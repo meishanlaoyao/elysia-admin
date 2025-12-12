@@ -21,5 +21,14 @@ const routeList: IRouteModule[] = [
 // 需要一个注册所有路由的函数
 
 export function RegisterRoutes(app: Elysia) {
-
+    routeList.forEach(module => {
+        module.routes.forEach(route => {
+            (app as any)[route.method](route.url, route.handle, {
+                detail: {
+                    tags: [module.tags],
+                    summary: route.summary
+                }
+            });
+        })
+    })
 };

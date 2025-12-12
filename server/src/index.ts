@@ -18,6 +18,13 @@ app.use(openapi({
     }
 }))
 
+// app.get('/demo', () => { }, {
+//     detail: {
+//         tags: ['测试'],
+//         summary: '测试',
+//     }
+// })
+
 // 注册路由
 RegisterRoutes(app as Elysia);
 

@@ -9,5 +9,5 @@ export interface IRoute {
 
 export interface IRouteModule {
     tags: string
-    routes?: IRoute[]
+    routes: IRoute[]
 }

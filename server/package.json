@@ -15,6 +15,7 @@
   "dependencies": {
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.45.1",
+    "drizzle-typebox": "^0.3.3",
     "elysia": "latest",
     "postgres": "^3.4.7",
     "zod": "^4.1.13"
