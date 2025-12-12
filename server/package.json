@@ -2,13 +2,27 @@
   "name": "elysia-admin",
   "version": "1.0.50",
   "scripts": {
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./server ./src/index.ts",
+    "db:push": " bunx drizzle-kit push",
+    "db:pull": " bunx drizzle-kit pull",
+    "docker:build": "docker build -t hnq1/xiaomei-elysia-server:latest .",
+    "docker:run": "docker run --name xiaomei-elysia-server -p 3000:3000 xiaomei-elysia-server:latest",
+    "docker:stop": "docker stop xiaomei-elysia-server",
+    "docker:rm": "docker rm xiaomei-elysia-server",
+    "docker:logs": "docker logs xiaomei-elysia-server"
   },
   "dependencies": {
-    "elysia": "latest"
+    "dayjs": "^1.11.19",
+    "drizzle-orm": "^0.45.1",
+    "elysia": "latest",
+    "postgres": "^3.4.7",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@elysiajs/openapi": "^1.4.11",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.8"
   },
   "module": "src/index.js"
 }

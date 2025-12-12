@@ -1,0 +1,25 @@
+import type { Elysia } from "elysia";
+import type { IRouteModule } from "@/common/route";
+
+import SystemUserModule from "./system-user/route";
+const routeList: IRouteModule[] = [
+    // {
+    //     tags: '用户模块',
+    //     routes: [
+    //         {
+    //             url: '/system/user/create',
+    //             method: 'post',
+    //             summary: '创建',
+    //             dto: () => { },
+    //             handle: () => { }
+    //         }
+    //     ]
+    // },
+    SystemUserModule
+];
+
+// 需要一个注册所有路由的函数
+
+export function RegisterRoutes(app: Elysia) {
+
+};
