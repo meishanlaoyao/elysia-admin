@@ -1,4 +1,5 @@
 import type { IRouteModule } from "@/common/route";
+import { CreateDto, ListDto, UpdateDto } from "./dto";
 import { create, findAll, findList, findOne, update, remove } from "./handle";
 
 const routeModule: IRouteModule = {
@@ -8,6 +9,7 @@ const routeModule: IRouteModule = {
             url: '/system/user',
             method: 'post',
             summary: '创建',
+            dto: CreateDto,
             handle: create,
         },
         {
@@ -20,6 +22,7 @@ const routeModule: IRouteModule = {
             url: '/system/user/list',
             method: 'get',
             summary: '查询列表',
+            dto: ListDto,
             handle: findList,
         },
         {
@@ -32,6 +35,7 @@ const routeModule: IRouteModule = {
             url: '/system/user',
             method: 'put',
             summary: '更新',
+            dto: UpdateDto,
             handle: update,
         },
         {

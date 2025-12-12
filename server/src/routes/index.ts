@@ -3,23 +3,14 @@ import type { IRouteModule } from "@/common/route";
 
 import SystemUserModule from "./system-user/route";
 const routeList: IRouteModule[] = [
-    // {
-    //     tags: '用户模块',
-    //     routes: [
-    //         {
-    //             url: '/system/user/create',
-    //             method: 'post',
-    //             summary: '创建',
-    //             dto: () => { },
-    //             handle: () => { }
-    //         }
-    //     ]
-    // },
-    SystemUserModule
+    SystemUserModule,
 ];
 
-// 需要一个注册所有路由的函数
 
+/**
+ * 注册所有路由
+ * @param app Elysia 实例
+ */
 export function RegisterRoutes(app: Elysia) {
     routeList.forEach(module => {
         module.routes.forEach(route => {
@@ -27,8 +18,9 @@ export function RegisterRoutes(app: Elysia) {
                 detail: {
                     tags: [module.tags],
                     summary: route.summary
-                }
+                },
+                ...route.dto
             });
-        })
-    })
+        });
+    });
 };

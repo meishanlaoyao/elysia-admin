@@ -2,8 +2,7 @@ export interface IRoute {
     url: string
     method: 'get' | 'post' | 'put' | 'delete'
     summary: string
-    reqDto?: Function
-    resDto?: Function
+    dto?: any
     handle: Function
 }
 
