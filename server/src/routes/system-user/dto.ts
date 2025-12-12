@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { InsertSystemUser, SelectSystemUser } from "@/schema/system_user";
-import { BaseResultDto, BaseListQueryDto } from '@/common/dto';
+import { BaseResultDto, BaseListQueryDto, BaseResultListDto } from '@/common/dto';
 
 export const CreateDto = {
     body: t.Pick(InsertSystemUser, ['username', 'password', 'email', 'phone']),
@@ -15,7 +15,7 @@ export const ListDto = {
         phone: t.Optional(t.String({ description: "手机号" })),
         sex: t.Optional(t.String({ description: "性别" })),
     }),
-    ...BaseResultDto(t.Array(SelectSystemUser)),
+    ...BaseResultListDto(t.Omit(SelectSystemUser, ['password'])),
 };
 
 export const UpdateDto = {

@@ -21,6 +21,29 @@ export const BaseResultDto = (other: any) => ({
 });
 
 /**
+ * 基础列表结果DTO
+ * @param other 其他数据类型
+ * @returns 基础列表结果DTO
+ */
+export const BaseResultListDto = (other: any) => ({
+    response: {
+        200: t.Object({
+            code: t.Number(),
+            msg: t.String(),
+            data: t.Object({
+                list: t.Array(other),
+                total: t.Number(),
+            }),
+        }),
+        500: t.Object({
+            code: t.Number(),
+            msg: t.String(),
+            data: t.Null(),
+        }),
+    }
+});
+
+/**
  * 基础列表查询DTO
  * @param other 其他数据类型
  * @returns 基础列表查询DTO
