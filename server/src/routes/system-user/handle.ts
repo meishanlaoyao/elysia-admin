@@ -1,10 +1,16 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
-import pg from '@/client/pg';
-import { eq } from "drizzle-orm";
 import { systemUserSchema } from '@/schema/system_user';
 import { BcryptHash } from '@/common/bcrypt';
-import { InsertOne, FindOneByKey, UpdateByKey, SoftDeleteByKeys, CreateQueryBuilder, FindPage } from '@/common/db';
+import {
+    InsertOne,
+    FindOneByKey,
+    UpdateByKey,
+    SoftDeleteByKeys,
+    CreateQueryBuilder,
+    FindPage,
+    FindAll
+} from '@/common/db';
 
 export async function create(req: Context) {
     try {
@@ -19,7 +25,8 @@ export async function create(req: Context) {
 
 export async function findAll() {
     try {
-        const data = await pg.select().from(systemUserSchema).where(eq(systemUserSchema.delFlag, false));
+        const where = CreateQueryBuilder(systemUserSchema).eq('delFlag', false).build();
+        const data = await FindAll(systemUserSchema, where);
         return BaseResultData.ok(data.map(({ password, ...item }) => ({ ...item })));
     } catch (error) {
         return BaseResultData.fail(500, error);

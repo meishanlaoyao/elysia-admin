@@ -4,6 +4,7 @@ export default {
         port: 3000, // 端口
         lang: "zh", // 应用语言
         prefix: "/api", // API 前缀
+        baseCacheTime: 5 * 60 * 1000, // 基础缓存时间 5分钟
     },
     jwt: {
 
@@ -23,5 +24,5 @@ export default {
         idle_timeout: 20, // 空闲连接超时时间 (秒)
         connect_timeout: 10, // 连接超时时间 (秒)
         ssl: false, // 是否启用 SSL 连接
-    }
+    },
 }

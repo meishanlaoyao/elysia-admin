@@ -1,5 +1,5 @@
 import { PgTable, TableConfig, PgColumn } from 'drizzle-orm/pg-core';
-import { SQL, eq, inArray, like, gt, gte, lt, lte, between, notBetween, and, asc, desc, count } from 'drizzle-orm';
+import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count } from 'drizzle-orm';
 import pg from '@/client/pg';
 
 type InferInsertModel<T extends PgTable> = T extends PgTable<infer Config extends TableConfig>
@@ -74,7 +74,21 @@ export async function FindOneByKey<T extends PgTable>(
 ): Promise<InferSelectModel<T> | null> {
     const data = await pg.select().from(schema as any).where(eq(keyColumn, value));
     return data.length > 0 ? (data[0] as InferSelectModel<T>) : null;
-};
+}
+
+/**
+ * 通用查询全部记录函数
+ * @param schema - Drizzle ORM 表 schema
+ * @param where - 查询条件（可选）
+ * @returns 查询结果数组
+ */
+export async function FindAll<T extends PgTable>(
+    schema: T,
+    where?: SQL | undefined
+): Promise<InferSelectModel<T>[]> {
+    const data = await pg.select().from(schema as any).where(where);
+    return data as InferSelectModel<T>[];
+}
 
 /**
  * 通用更新函数（根据主键）
@@ -228,13 +242,85 @@ export class QueryBuilder<T extends PgTable = any> {
     };
 
     /**
-     * 模糊匹配（包含）
+     * 不等于
+     * @param column - 字段名或字段对象
+     * @param value - 值
+     */
+    ne(column: string | PgColumn, value: any): this {
+        if (value !== undefined && value !== null && value !== '') {
+            this.conditions.push(ne(this.getColumn(column), value));
+        }
+        return this;
+    };
+
+    /**
+     * 在数组中（IN）
+     * @param column - 字段名或字段对象
+     * @param values - 值数组
+     */
+    in(column: string | PgColumn, values: any[]): this {
+        if (values && values.length > 0) {
+            this.conditions.push(inArray(this.getColumn(column), values));
+        }
+        return this;
+    };
+
+    /**
+     * 不在数组中（NOT IN）
+     * @param column - 字段名或字段对象
+     * @param values - 值数组
+     */
+    notIn(column: string | PgColumn, values: any[]): this {
+        if (values && values.length > 0) {
+            this.conditions.push(notInArray(this.getColumn(column), values));
+        }
+        return this;
+    };
+
+    /**
+     * 模糊匹配（包含，区分大小写）
      * @param column - 字段名或字段对象
      * @param value - 值
      */
     like(column: string | PgColumn, value: any): this {
         if (value !== undefined && value !== null && value !== '') {
             this.conditions.push(like(this.getColumn(column), `%${value}%`));
+        }
+        return this;
+    };
+
+    /**
+     * 模糊匹配（不包含，区分大小写）
+     * @param column - 字段名或字段对象
+     * @param value - 值
+     */
+    notLike(column: string | PgColumn, value: any): this {
+        if (value !== undefined && value !== null && value !== '') {
+            this.conditions.push(notLike(this.getColumn(column), `%${value}%`));
+        }
+        return this;
+    };
+
+    /**
+     * 模糊匹配（包含，不区分大小写）
+     * @param column - 字段名或字段对象
+     * @param value - 值
+     */
+    ilike(column: string | PgColumn, value: any): this {
+        if (value !== undefined && value !== null && value !== '') {
+            this.conditions.push(ilike(this.getColumn(column), `%${value}%`));
+        }
+        return this;
+    };
+
+    /**
+     * 模糊匹配（不包含，不区分大小写）
+     * @param column - 字段名或字段对象
+     * @param value - 值
+     */
+    notIlike(column: string | PgColumn, value: any): this {
+        if (value !== undefined && value !== null && value !== '') {
+            this.conditions.push(notIlike(this.getColumn(column), `%${value}%`));
         }
         return this;
     };
@@ -356,6 +442,52 @@ export class QueryBuilder<T extends PgTable = any> {
     };
 
     /**
+     * 是否为 NULL
+     * @param column - 字段名或字段对象
+     */
+    isNull(column: string | PgColumn): this {
+        this.conditions.push(isNull(this.getColumn(column)));
+        return this;
+    };
+
+    /**
+     * 是否不为 NULL
+     * @param column - 字段名或字段对象
+     */
+    isNotNull(column: string | PgColumn): this {
+        this.conditions.push(isNotNull(this.getColumn(column)));
+        return this;
+    };
+
+    /**
+     * 添加 OR 条件组
+     * @param callback - 回调函数，用于构建 OR 条件
+     */
+    or(callback: (builder: QueryBuilder<any>) => void): this {
+        const orBuilder = new QueryBuilder(this.schema);
+        callback(orBuilder);
+        const orCondition = orBuilder.build();
+        if (orCondition) {
+            this.conditions.push(orCondition);
+        }
+        return this;
+    };
+
+    /**
+     * 添加 NOT 条件
+     * @param callback - 回调函数，用于构建 NOT 条件
+     */
+    not(callback: (builder: QueryBuilder<any>) => void): this {
+        const notBuilder = new QueryBuilder(this.schema);
+        callback(notBuilder);
+        const notCondition = notBuilder.build();
+        if (notCondition) {
+            this.conditions.push(not(notCondition));
+        }
+        return this;
+    };
+
+    /**
      * 添加自定义条件
      * @param condition - SQL 条件
      */
@@ -367,7 +499,7 @@ export class QueryBuilder<T extends PgTable = any> {
     };
 
     /**
-     * 构建最终的查询条件
+     * 构建最终的查询条件（使用 AND 连接）
      * @returns SQL 条件或 undefined
      */
     build(): SQL | undefined {
@@ -378,6 +510,20 @@ export class QueryBuilder<T extends PgTable = any> {
             return this.conditions[0];
         }
         return and(...this.conditions);
+    };
+
+    /**
+     * 构建最终的查询条件（使用 OR 连接）
+     * @returns SQL 条件或 undefined
+     */
+    buildOr(): SQL | undefined {
+        if (this.conditions.length === 0) {
+            return undefined;
+        }
+        if (this.conditions.length === 1) {
+            return this.conditions[0];
+        }
+        return or(...this.conditions);
     };
 
     /**
