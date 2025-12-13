@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { GetNowTime } from "@/common/time";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
+import { BaseResultData } from '@/common/result';
 
 const { port, id, prefix } = config.app;
 const app = new Elysia({ prefix });
@@ -17,6 +18,17 @@ app.use(openapi({
         },
     },
 }))
+
+// 捕获错误
+app.onError(({ code, error }) => {
+    // 处理验证错误
+    if (code === 'VALIDATION') {
+        if (error.message == '请先登陆后访问') {
+            return BaseResultData.fail(401, error.message);
+        };
+        return BaseResultData.fail(400, error.message);
+    };
+});
 
 // 注册路由
 RegisterRoutes(app as Elysia);

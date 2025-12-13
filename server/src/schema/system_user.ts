@@ -1,4 +1,4 @@
-import { pgTable, bigserial, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, bigserial, varchar, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
 
@@ -13,6 +13,7 @@ export const systemUserSchema = pgTable(
         phone: varchar('phone', { length: 11 }), // 手机号
         sex: varchar('sex', { length: 1 }).default('0'), // 性别 0未知 1男 2女
         avatar: varchar('avatar', { length: 255 }), // 头像
+        status: boolean('status').default(true), // 状态 true正常 false停用
         ...BaseSchema,
     }
 );

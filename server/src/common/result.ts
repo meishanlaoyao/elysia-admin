@@ -11,7 +11,9 @@ export const BaseResultData = {
     }),
     fail: (code: number = 500, msg?: any) => {
         let isStr = typeof msg === 'string';
-        console.error("BaseResultData.fail: ", isStr ? msg : JSON.stringify(msg));
+        if (code == 500) {
+            console.error("BaseResultData.fail: ", isStr ? msg : JSON.stringify(msg));
+        };
         return {
             code,
             msg: isStr ? msg : ResCode[code as keyof typeof ResCode],

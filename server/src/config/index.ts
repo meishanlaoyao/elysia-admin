@@ -7,7 +7,14 @@ export default {
         baseCacheTime: 5 * 60 * 1000, // 基础缓存时间 5分钟
     },
     jwt: {
-
+        accessToken: {
+            expiresIn: '15m',// accessToken 过期时间
+            secret: 'elysia-admin-accessToken',// accessToken 密钥
+        },
+        refreshToken: {
+            expiresIn: '7d',// refreshToken 过期时间
+            secret: 'elysia-admin-refreshToken',// refreshToken 密钥
+        }
     },
     s3: {
 

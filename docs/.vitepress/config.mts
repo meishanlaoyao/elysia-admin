@@ -48,6 +48,7 @@ export default defineConfig({
         {
           text: '其他',
           items: [
+            { text: '架构设计', link: '/guide/architecture' },
             { text: '常见问题', link: '/guide/faq' }
           ]
         }

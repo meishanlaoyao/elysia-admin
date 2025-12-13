@@ -93,24 +93,30 @@ export async function FindAll<T extends PgTable>(
 /**
  * 通用更新函数（根据主键）
  * @param schema - Drizzle ORM 表 schema
- * @param keyColumn - 主键字段
- * @param value - 主键值
- * @param data - 要更新的数据
+ * @param keyColumnName - 主键字段名（字符串）
+ * @param data - 要更新的数据（必须包含主键字段）
  * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
  * @returns 更新操作的结果
  */
 export async function UpdateByKey<T extends PgTable>(
     schema: T,
-    keyColumn: PgColumn,
-    value: any,
-    data: Partial<InferInsertModel<T>>,
+    keyColumnName: string,
+    data: Partial<InferInsertModel<T>> & Record<string, any>,
     autoUpdateTime: boolean = true
 ) {
+    const keyColumn = (schema as any)[keyColumnName];
+    if (!keyColumn) {
+        throw new Error(`Column "${keyColumnName}" not found in schema`);
+    };
+    const keyValue = (data as any)[keyColumnName];
+    if (keyValue === undefined || keyValue === null) {
+        throw new Error(`Key value for "${keyColumnName}" is required in data`);
+    };
     const updateData = { ...data } as any;
     if (autoUpdateTime && 'updateTime' in schema) {
         updateData.updateTime = new Date();
     };
-    return await pg.update(schema).set(updateData).where(eq(keyColumn, value));
+    return await pg.update(schema).set(updateData).where(eq(keyColumn, keyValue));
 };
 
 /**

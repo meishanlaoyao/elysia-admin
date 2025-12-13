@@ -84,10 +84,9 @@ export async function findOne(req: Context) {
 
 export async function update(req: Context) {
     try {
-        const id = Number(req.params.id);
         const data = req.body as typeof systemUserSchema.$inferSelect;
-        if (data.password) data.password = BcryptHash(data.password);
-        await UpdateByKey(systemUserSchema, systemUserSchema.userId, id, data);
+        const { password, ...rest } = data;
+        await UpdateByKey(systemUserSchema, 'userId', rest);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -102,4 +101,10 @@ export async function remove(req: Context) {
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
+};
+
+// 获得用户信息
+export async function GetUserByUsername(username: string) {
+    const res = await FindOneByKey(systemUserSchema, systemUserSchema.username, username);
+    return res;
 };
