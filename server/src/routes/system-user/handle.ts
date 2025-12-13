@@ -107,6 +107,7 @@ export async function update(req: Context) {
         const id = Number(req.params.id);
         const data = req.body as typeof systemUserSchema.$inferSelect;
         if (data.password) data.password = BcryptHash(data.password);
+        data.updateTime = new Date();
         await pg.update(systemUserSchema).set(data).where(eq(systemUserSchema.userId, id));
         return BaseResultData.ok();
     } catch (error) {
@@ -117,7 +118,7 @@ export async function update(req: Context) {
 export async function remove(req: Context) {
     try {
         const ids = req.params.ids.split(',').map(Number) as number[];
-        await pg.update(systemUserSchema).set({ delFlag: true }).where(inArray(systemUserSchema.userId, ids));
+        await pg.update(systemUserSchema).set({ delFlag: true, updateTime: new Date() }).where(inArray(systemUserSchema.userId, ids));
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
