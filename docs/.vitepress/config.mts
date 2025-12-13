@@ -44,6 +44,12 @@ export default defineConfig({
           items: [
             { text: '部署指南', link: '/guide/deployment' }
           ]
+        },
+        {
+          text: '其他',
+          items: [
+            { text: '常见问题', link: '/guide/faq' }
+          ]
         }
       ],
       '/api/': [
