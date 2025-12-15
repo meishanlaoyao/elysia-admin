@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Elysia-Admin"
   text: "现代化全栈管理系统"
-  tagline: 后端使用 Bun + Elysia，前端使用 Ant Design Pro，小程序端使用 unibase
+  tagline: 后端使用 Bun + Elysia，后台管理系统使用 Art Design Pro，小程序端使用 unibase
   image:
     src: /hero-image.svg
     alt: Elysia-Admin
