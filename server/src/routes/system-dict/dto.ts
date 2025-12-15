@@ -17,6 +17,12 @@ export const CreateDataDto = {
     ...BaseResultDto(SelectSystemDictData),
 };
 
+export const FindAllDataDto = {
+    query: t.Object({
+        dictType: t.Optional(t.String({ description: "字典类型" })),
+    }),
+};
+
 export const ListTypeDto = {
     query: BaseListQueryDto({
         dictName: t.Optional(t.String({ description: "字典名称" })),

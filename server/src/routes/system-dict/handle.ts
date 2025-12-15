@@ -10,6 +10,8 @@ import {
     FindPage,
     FindAll
 } from '@/common/db';
+import { CacheEnum } from '@/common/enum';
+import { WithCache } from '@/utils/cache';
 
 export async function createType(req: Context) {
     try {
@@ -35,8 +37,13 @@ export async function createData(req: Context) {
 
 export async function findAllType() {
     try {
-        const where = CreateQueryBuilder(systemDictTypeSchema).eq('delFlag', false).build();
-        const data = await FindAll(systemDictTypeSchema, where);
+        const data = await WithCache(
+            CacheEnum.DICT_TYPE,
+            async () => {
+                const where = CreateQueryBuilder(systemDictTypeSchema).eq('delFlag', false).build();
+                return await FindAll(systemDictTypeSchema, where);
+            }
+        );
         return BaseResultData.ok(data);
     }
     catch (error) {
@@ -44,10 +51,19 @@ export async function findAllType() {
     }
 };
 
-export async function findAllData() {
+export async function findAllData(req: Context) {
     try {
-        const where = CreateQueryBuilder(systemDictDataSchema).eq('delFlag', false).build();
-        const data = await FindAll(systemDictDataSchema, where);
+        const { dictType } = req.query;
+        const data = await WithCache(
+            CacheEnum.DICT_DATA + dictType,
+            async () => {
+                const where = CreateQueryBuilder(systemDictDataSchema)
+                    .eq('delFlag', false)
+                    .eq('dictType', dictType)
+                    .build();
+                return await FindAll(systemDictDataSchema, where);
+            }
+        );
         return BaseResultData.ok(data);
     }
     catch (error) {

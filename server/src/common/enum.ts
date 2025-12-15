@@ -9,4 +9,12 @@ export const CacheEnum = {
      * 在线用户缓存key
      */
     ONLINE_USER: `${config.app.id}:onlineUser:`,
+    /**
+     * 字典所有类型
+     */
+    DICT_TYPE: `${config.app.id}:dictType`,
+    /**
+     * 字典类型数据
+     */
+    DICT_DATA: `${config.app.id}:dictData:`,
 };

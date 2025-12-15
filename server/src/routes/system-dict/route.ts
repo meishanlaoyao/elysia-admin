@@ -2,6 +2,7 @@ import type { IRouteModule } from "@/common/route";
 import {
     CreateDataDto,
     CreateTypeDto,
+    FindAllDataDto,
     ListDataDto,
     ListTypeDto,
     UpdateDataDto,
@@ -32,7 +33,7 @@ const SystemDictModule: IRouteModule = {
         { url: '/system/dict/type', method: 'put', summary: '更新-类型', isAuth: true, dto: UpdateTypeDto, handle: updateType },
         { url: '/system/dict/type/:ids', method: 'delete', isAuth: true, summary: '删除-类型', handle: removeType },
         { url: '/system/dict/data', method: 'post', summary: '创建-数据', isAuth: true, dto: CreateDataDto, handle: createData },
-        { url: '/system/dict/data/all', method: 'get', summary: '查询所有-缓存数据', isAuth: true, handle: findAllData },
+        { url: '/system/dict/data/all', method: 'get', summary: '查询所有-缓存数据', isAuth: true, dto: FindAllDataDto, handle: findAllData },
         { url: '/system/dict/data/list', method: 'get', summary: '查询列表-数据', isAuth: true, dto: ListDataDto, handle: findListData },
         { url: '/system/dict/data/:id', method: 'get', summary: '查询详情-数据', isAuth: true, handle: findOneData },
         { url: '/system/dict/data', method: 'put', summary: '更新-数据', isAuth: true, dto: UpdateDataDto, handle: updateData },

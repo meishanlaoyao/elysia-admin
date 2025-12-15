@@ -4,7 +4,7 @@ export default {
         port: 3000, // 端口
         lang: "zh", // 应用语言
         prefix: "/api", // API 前缀
-        baseCacheTime: 5 * 60 * 1000, // 基础缓存时间 5分钟
+        baseCacheTime: 5 * 60, // 基础缓存时间 5分钟
     },
     jwt: {
         accessToken: {
