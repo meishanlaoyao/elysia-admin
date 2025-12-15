@@ -70,6 +70,27 @@ export async function findList(req: Context) {
     }
 };
 
+export async function findInfo(req: Context) {
+    try {
+        const obj = {
+            "userId": "1",
+            "userName": "Super",
+            "roles": [
+                "R_SUPER"
+            ],
+            "buttons": [
+                "B_CODE1",
+                "B_CODE2",
+                "B_CODE3"
+            ],
+            "email": "art.design@gmail.com"
+        };
+        return BaseResultData.ok(obj);
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+}
+
 export async function findOne(req: Context) {
     try {
         const id = Number(req.params.id);

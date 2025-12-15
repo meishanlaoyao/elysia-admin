@@ -4,14 +4,17 @@ import type { IRouteModule, IRoute } from "@/common/route";
 
 import SystemUserModule from "./system-user/route";
 import SystemDictModule from "./system-dict/route";
+import SystemMenuModule from "./system-menu/route";
+import SystemRoleModule from "./system-role/route";
 import AuthModule from "./auth/route";
 
 const routeList: IRouteModule[] = [
     SystemUserModule,
     SystemDictModule,
+    SystemMenuModule,
+    SystemRoleModule,
     AuthModule,
 ];
-
 
 /**
  * 注册所有路由
