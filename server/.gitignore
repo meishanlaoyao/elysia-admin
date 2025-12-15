@@ -15,6 +15,7 @@
 
 # production
 /build
+server.exe
 
 # misc
 .DS_Store

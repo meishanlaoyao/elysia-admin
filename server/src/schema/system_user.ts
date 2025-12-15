@@ -17,6 +17,5 @@ export const systemUserSchema = pgTable(
         ...BaseSchema,
     }
 );
-
 export const InsertSystemUser = createInsertSchema(systemUserSchema);
 export const SelectSystemUser = createSelectSchema(systemUserSchema);

@@ -1,11 +1,14 @@
 import { t } from 'elysia';
 import type { Elysia } from "elysia";
 import type { IRouteModule, IRoute } from "@/common/route";
+
 import SystemUserModule from "./system-user/route";
+import SystemDictModule from "./system-dict/route";
 import AuthModule from "./auth/route";
 
 const routeList: IRouteModule[] = [
     SystemUserModule,
+    SystemDictModule,
     AuthModule,
 ];
 

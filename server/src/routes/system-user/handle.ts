@@ -73,7 +73,7 @@ export async function findList(req: Context) {
 export async function findOne(req: Context) {
     try {
         const id = Number(req.params.id);
-        const data = await FindOneByKey(systemUserSchema, systemUserSchema.userId, id);
+        const data = await FindOneByKey(systemUserSchema, 'userId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         const { password, ...item } = data;
         return BaseResultData.ok(item);
@@ -96,7 +96,7 @@ export async function update(req: Context) {
 export async function remove(req: Context) {
     try {
         const ids = req.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemUserSchema, systemUserSchema.userId, ids);
+        await SoftDeleteByKeys(systemUserSchema, 'userId', ids);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -105,6 +105,6 @@ export async function remove(req: Context) {
 
 // 获得用户信息
 export async function GetUserByUsername(username: string) {
-    const res = await FindOneByKey(systemUserSchema, systemUserSchema.username, username);
+    const res = await FindOneByKey(systemUserSchema, 'username', username);
     return res;
 };

@@ -63,15 +63,19 @@ export async function InsertMany<T extends PgTable>(
 /**
  * 通用查询单条记录函数（根据主键）
  * @param schema - Drizzle ORM 表 schema
- * @param keyColumn - 主键字段
+ * @param keyColumnName - 主键字段名（字符串）
  * @param value - 主键值
  * @returns 查询结果，如果没有找到返回 null
  */
 export async function FindOneByKey<T extends PgTable>(
     schema: T,
-    keyColumn: PgColumn,
+    keyColumnName: string,
     value: any
 ): Promise<InferSelectModel<T> | null> {
+    const keyColumn = (schema as any)[keyColumnName];
+    if (!keyColumn) {
+        throw new Error(`Column "${keyColumnName}" not found in schema`);
+    }
     const data = await pg.select().from(schema as any).where(eq(keyColumn, value));
     return data.length > 0 ? (data[0] as InferSelectModel<T>) : null;
 }
@@ -122,17 +126,21 @@ export async function UpdateByKey<T extends PgTable>(
 /**
  * 通用批量软删除函数
  * @param schema - Drizzle ORM 表 schema
- * @param keyColumn - 主键字段
+ * @param keyColumnName - 主键字段名（字符串）
  * @param values - 主键值数组
  * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
  * @returns 删除操作的结果
  */
 export async function SoftDeleteByKeys<T extends PgTable>(
     schema: T,
-    keyColumn: PgColumn,
+    keyColumnName: string,
     values: any[],
     autoUpdateTime: boolean = true
 ) {
+    const keyColumn = (schema as any)[keyColumnName];
+    if (!keyColumn) {
+        throw new Error(`Column "${keyColumnName}" not found in schema`);
+    }
     const updateData: any = { delFlag: true };
     if (autoUpdateTime && 'updateTime' in schema) {
         updateData.updateTime = new Date();

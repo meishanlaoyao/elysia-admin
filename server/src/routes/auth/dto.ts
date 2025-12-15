@@ -8,6 +8,5 @@ export const AccountPasswordLoginDto = {
     }),
     ...BaseResultDto(t.Object({
         accessToken: t.String(),
-        refreshToken: t.String(),
     }))
 };
