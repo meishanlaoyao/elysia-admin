@@ -64,14 +64,13 @@ declare namespace Api {
   namespace Auth {
     /** 登录参数 */
     interface LoginParams {
-      userName: string
+      username: string
       password: string
     }
 
     /** 登录响应 */
     interface LoginResponse {
       token: string
-      refreshToken: string
     }
 
     /** 用户信息 */
@@ -110,7 +109,7 @@ declare namespace Api {
     /** 用户搜索参数 */
     type UserSearchParams = Partial<
       Pick<UserListItem, 'id' | 'userName' | 'userGender' | 'userPhone' | 'userEmail' | 'status'> &
-        Api.Common.CommonSearchParams
+      Api.Common.CommonSearchParams
     >
 
     /** 角色列表 */
@@ -129,7 +128,7 @@ declare namespace Api {
     /** 角色搜索参数 */
     type RoleSearchParams = Partial<
       Pick<RoleListItem, 'roleId' | 'roleName' | 'roleCode' | 'description' | 'enabled'> &
-        Api.Common.CommonSearchParams
+      Api.Common.CommonSearchParams
     >
   }
 }

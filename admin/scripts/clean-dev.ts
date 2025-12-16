@@ -595,7 +595,7 @@ async function updateMenuApi() {
     const content = await fs.readFile(apiPath, 'utf-8')
     const updatedContent = content.replace(
       "url: '/api/v3/system/menus'",
-      "url: '/api/v3/system/menus/simple'"
+      "url: '/api/system/menu/simple'"
     )
 
     await fs.writeFile(apiPath, updatedContent, 'utf-8')
@@ -724,8 +724,8 @@ async function showStats() {
     `${fmt.info('涉及路径')}: ${fmt.highlight(stats.deletedPaths.toString())} 个目录/文件`,
     ...(stats.failedPaths > 0
       ? [
-          `${icons.error} ${fmt.error('删除失败')}: ${fmt.highlight(stats.failedPaths.toString())} 个路径`
-        ]
+        `${icons.error} ${fmt.error('删除失败')}: ${fmt.highlight(stats.failedPaths.toString())} 个路径`
+      ]
       : []),
     `${fmt.info('耗时')}: ${fmt.highlight(seconds)} 秒`
   ])

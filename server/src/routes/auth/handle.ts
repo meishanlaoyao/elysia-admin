@@ -69,7 +69,7 @@ export async function accountPasswordLogin(req: Context) {
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
         setRefreshTokenCookie(req, tokens.refreshToken);
-        return BaseResultData.ok({ accessToken: tokens.accessToken });
+        return BaseResultData.ok({ token: tokens.accessToken });
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -89,7 +89,15 @@ export async function refreshToken(req: Context) {
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
         setRefreshTokenCookie(req, tokens.refreshToken);
-        return BaseResultData.ok({ accessToken: tokens.accessToken });
+        return BaseResultData.ok({ token: tokens.accessToken });
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function registerUser(req: Context) {
+    try {
+        return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }

@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { cors } from '@elysiajs/cors';
 import { GetNowTime } from "@/common/time";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
@@ -6,6 +7,7 @@ import { BaseResultData } from '@/common/result';
 
 const { port, id, prefix } = config.app;
 const app = new Elysia({ prefix });
+app.use(cors());
 
 // 生产环境 记得注释掉文档
 import { openapi } from '@elysiajs/openapi';

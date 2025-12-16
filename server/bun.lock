@@ -4,6 +4,7 @@
     "": {
       "name": "elysia-admin",
       "dependencies": {
+        "@elysiajs/cors": "^1.4.0",
         "dayjs": "^1.11.19",
         "drizzle-orm": "^0.45.1",
         "drizzle-typebox": "^0.3.3",
@@ -23,6 +24,8 @@
     "@borewit/text-codec": ["@borewit/text-codec@0.1.1", "https://registry.npmmirror.com/@borewit/text-codec/-/text-codec-0.1.1.tgz", {}, "sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "https://registry.npmmirror.com/@drizzle-team/brocli/-/brocli-0.10.2.tgz", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
+
+    "@elysiajs/cors": ["@elysiajs/cors@1.4.0", "https://registry.npmmirror.com/@elysiajs/cors/-/cors-1.4.0.tgz", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-pb0SCzBfFbFSYA/U40HHO7R+YrcXBJXOWgL20eSViK33ol1e20ru2/KUaZYo5IMUn63yaTJI/bQERuQ+77ND8g=="],
 
     "@elysiajs/openapi": ["@elysiajs/openapi@1.4.11", "https://registry.npmmirror.com/@elysiajs/openapi/-/openapi-1.4.11.tgz", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-d75bMxYJpN6qSDi/z9L1S7SLk1S/8Px+cTb3W2lrYzU8uQ5E0kXdy1oOMJEfTyVsz3OA19NP9KNxE7ztSbLBLg=="],
 

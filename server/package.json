@@ -13,6 +13,7 @@
     "docker:logs": "docker logs xiaomei-elysia-server"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.45.1",
     "drizzle-typebox": "^0.3.3",
