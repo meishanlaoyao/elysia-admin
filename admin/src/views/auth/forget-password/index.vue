@@ -11,21 +11,11 @@
           <p class="sub-title">{{ $t('forgetPassword.subTitle') }}</p>
           <div class="mt-5">
             <span class="input-label" v-if="showInputLabel">账号</span>
-            <ElInput
-              class="custom-height"
-              :placeholder="$t('forgetPassword.placeholder')"
-              v-model.trim="username"
-            />
+            <ElInput class="custom-height" :placeholder="$t('forgetPassword.placeholder')" v-model.trim="username" />
           </div>
 
           <div style="margin-top: 15px">
-            <ElButton
-              class="w-full custom-height"
-              type="primary"
-              @click="register"
-              :loading="loading"
-              v-ripple
-            >
+            <ElButton class="w-full custom-height" type="primary" @click="register" :loading="loading" v-ripple>
               {{ $t('forgetPassword.submitBtnText') }}
             </ElButton>
           </div>
@@ -42,21 +32,38 @@
 </template>
 
 <script setup lang="ts">
-  defineOptions({ name: 'ForgetPassword' })
+import { fetchForgetPassword } from '@/api/auth'
+import { useI18n } from 'vue-i18n'
 
-  const router = useRouter()
-  const showInputLabel = ref(false)
+const { t } = useI18n()
+defineOptions({ name: 'ForgetPassword' })
 
-  const username = ref('')
-  const loading = ref(false)
+const router = useRouter()
+const showInputLabel = ref(false)
 
-  const register = async () => {}
+const username = ref('')
+const loading = ref(false)
 
-  const toLogin = () => {
-    router.push({ name: 'Login' })
+const register = async () => {
+  if (!username.value) {
+    ElMessage.error(t('register.rule.emailInvalid'))
+    return
   }
+  try {
+    loading.value = true
+    await fetchForgetPassword({ email: username.value })
+    loading.value = false
+    username.value = ''
+  } catch (error) {
+    loading.value = false
+  }
+}
+
+const toLogin = () => {
+  router.push({ name: 'Login' })
+}
 </script>
 
 <style scoped>
-  @import '../login/style.css';
+@import '../login/style.css';
 </style>

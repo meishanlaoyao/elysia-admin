@@ -4,9 +4,9 @@ import { ResCode } from '@/utils/rescode';
  * 基础结果数据
  */
 export const BaseResultData = {
-    ok: (data: any = null) => ({
+    ok: (data: any = null, msg: string = '操作成功') => ({
         code: 200,
-        msg: '操作成功',
+        msg,
         data,
     }),
     fail: (code: number = 500, msg?: any) => {

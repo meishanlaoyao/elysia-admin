@@ -89,7 +89,7 @@ export async function findInfo(req: Context) {
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
-}
+};
 
 export async function findOne(req: Context) {
     try {
@@ -125,7 +125,19 @@ export async function remove(req: Context) {
 };
 
 // 获得用户信息
-export async function GetUserByUsername(username: string) {
-    const res = await FindOneByKey(systemUserSchema, 'username', username);
+export async function GetUserBy(key: string, val: any) {
+    const res = await FindOneByKey(systemUserSchema, key, val);
     return res;
+};
+
+// 注册用户
+export async function RegisterUser(username: string, password: string) {
+    password = BcryptHash(password);
+    await InsertOne(systemUserSchema, { username, password });
+};
+
+// 设置用户密码
+export async function SetUserPassword(userId: number, password: string) {
+    password = BcryptHash(password);
+    await UpdateByKey(systemUserSchema, 'userId', { password, userId, updateBy: new Date().getTime() });
 };

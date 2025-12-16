@@ -2,11 +2,13 @@ import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
 import { GenerateToken, VerifyToken } from '@/utils/jwt';
 import { BcryptCompare } from '@/common/bcrypt';
-import { GetUserByUsername } from '@/routes/system-user/handle';
+import { GetUserBy, RegisterUser, SetUserPassword } from '@/routes/system-user/handle';
 import { GenerateUUID } from '@/common/uuid';
 import { GetNowTime, ConvertTimeToSecond } from '@/common/time';
 import { CacheEnum } from '@/common/enum';
 import { Get, Set, Del, Keys } from '@/client/redis';
+import { SendMail } from '@/client/smtp';
+import { GenerateForgetPasswordHtmlTemplate } from '@/utils/htmltemplate';
 import config from '@/config';
 
 // 设置刷新令牌 Cookie
@@ -51,7 +53,7 @@ async function generateAndStoreTokens(payload: any) {
 export async function accountPasswordLogin(req: Context) {
     try {
         const { username, password } = req.body as any;
-        const user = await GetUserByUsername(username);
+        const user = await GetUserBy('username', username);
         if (!user) return BaseResultData.fail(404, '用户不存在');
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
         if (user?.delFlag) return BaseResultData.fail(410, '用户已删除');
@@ -60,8 +62,10 @@ export async function accountPasswordLogin(req: Context) {
         const payload = { userId: user.userId };
         const baseKey = CacheEnum.REFRESH_TOKEN + `${user.userId}:`;
         const oldkeys = await Keys(baseKey);
-        const isDel = await Del(oldkeys);
-        if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
+        if (oldkeys.length) {
+            const isDel = await Del(oldkeys);
+            if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
+        };
         const tokens = await generateAndStoreTokens(payload);
         if ('error' in tokens) return tokens.error;
         const userInfo = { ...rest, loginTime: GetNowTime() };
@@ -97,7 +101,59 @@ export async function refreshToken(req: Context) {
 
 export async function registerUser(req: Context) {
     try {
+        const { username, password } = req.body as any;
+        await RegisterUser(username, password)
         return BaseResultData.ok();
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function forgetPassword(req: Context) {
+    try {
+        const { email } = req.body as any;
+        const user = await GetUserBy('email', email);
+        if (user?.email) {
+            const key = CacheEnum.FORGET_PASSWORD + user.userId;
+            const oldKeys = await Keys(`${key}:*`);
+            if (oldKeys.length) await Del(oldKeys);
+            const uuid = GenerateUUID();
+            const cacheKey = `${key}:${uuid}`;
+            const isSet = await Set(cacheKey, { userId: user.userId }, config.app.forgetPasswordExpiresIn);
+            if (!isSet) return BaseResultData.fail(500);
+            try {
+                const resetUrl = `${config.app.forgetPasswordUrl}?token=${uuid}&uid=${user.userId}`;
+                const html = GenerateForgetPasswordHtmlTemplate(resetUrl, user?.nickname || '');
+                const isSend = await SendMail({
+                    to: email,
+                    subject: `[${config.app.id}] - 重置密码`,
+                    html,
+                });
+                if (!isSend) {
+                    await Del(cacheKey);
+                    return BaseResultData.fail(500);
+                }
+            } catch (mailError) {
+                await Del(cacheKey);
+                return BaseResultData.fail(500, mailError);
+            }
+        };
+        return BaseResultData.ok(null, '如果该邮箱存在，我们已发送重置邮件');
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function resetPassword(req: Context) {
+    try {
+        const { uid, token, password } = req.body as any;
+        const key = CacheEnum.FORGET_PASSWORD + uid + ':' + token;
+        const payload = await Get(key);
+        if (!payload) return BaseResultData.fail(400, '重置令牌无效');
+        const isDel = await Del(key);
+        if (!isDel) return BaseResultData.fail(500, '重置令牌删除失败');
+        await SetUserPassword(uid, password);
+        return BaseResultData.ok(null, '密码重置成功');
     } catch (error) {
         return BaseResultData.fail(500, error);
     }

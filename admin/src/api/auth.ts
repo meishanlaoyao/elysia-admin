@@ -27,3 +27,33 @@ export function fetchGetUserInfo() {
     // }
   })
 }
+
+/**
+ * 注册用户
+ * @param params 注册参数
+ * @returns 注册响应
+ */
+export function fetchRegister(params: Api.Auth.RegisterParams) {
+  return request.post({
+    url: '/api/auth/register',
+    params
+  })
+}
+
+// 忘记密码
+export function fetchForgetPassword(params: Api.Auth.ForgetPasswordParams) {
+  return request.post({
+    url: '/api/auth/forget',
+    params,
+    showSuccessMessage: true // 显示成功消息
+  })
+}
+
+// 重置密码
+export function fetchResetPassword(params: Api.Auth.ResetPasswordParams) {
+  return request.post({
+    url: '/api/auth/reset-password',
+    params,
+    showSuccessMessage: true // 显示成功消息
+  })
+}

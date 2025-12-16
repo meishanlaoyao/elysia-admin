@@ -1,7 +1,6 @@
 import { RedisClient } from "bun";
 import config from "@/config";
 
-
 const redis = new RedisClient(config.redis);
 
 try {

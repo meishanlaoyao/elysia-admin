@@ -184,6 +184,25 @@
     "submitBtnText": "Submit",
     "backBtnText": "Back"
   },
+  "resetPassword": {
+    "title": "Reset Password",
+    "subTitle": "Please enter your new password",
+    "placeholder": {
+      "password": "Please enter new password",
+      "confirmPassword": "Please enter new password again"
+    },
+    "rule": {
+      "passwordRequired": "Please enter new password",
+      "confirmPasswordRequired": "Please enter new password again",
+      "passwordMismatch": "The two passwords are inconsistent!",
+      "passwordLength": "The password length cannot be less than 6 digits"
+    },
+    "submitBtnText": "Reset Password",
+    "backBtnText": "Back to Login",
+    "success": "Password reset successfully, please login with your new password",
+    "tokenInvalid": "Reset link is invalid or expired",
+    "uidInvalid": "User ID is invalid"
+  },
   "register": {
     "title": "Create account",
     "subTitle": "Welcome to join us, please fill in the following information to complete the registration",
@@ -197,7 +216,8 @@
       "passwordMismatch": "The two passwords are inconsistent!",
       "usernameLength": "The length is 3 to 20 characters",
       "passwordLength": "The password length cannot be less than 6 digits",
-      "agreementRequired": "Please agree to the privacy policy"
+      "agreementRequired": "Please agree to the privacy policy",
+      "emailInvalid": "Please enter a valid email address"
     },
     "agreeText": "I agree",
     "privacyPolicy": "Privacy policy",
@@ -238,6 +258,9 @@
     },
     "forgetPassword": {
       "title": "Forget Password"
+    },
+    "resetPassword": {
+      "title": "Reset Password"
     },
     "outside": {
       "title": "Outside"

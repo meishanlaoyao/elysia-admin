@@ -17,4 +17,8 @@ export const CacheEnum = {
      * 字典类型数据
      */
     DICT_DATA: `${config.app.id}:dictData:`,
+    /**
+     * 忘记密码
+     */
+    FORGET_PASSWORD: `${config.app.id}:forgetPassword:`,
 };

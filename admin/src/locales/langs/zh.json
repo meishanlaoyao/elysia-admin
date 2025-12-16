@@ -184,6 +184,25 @@
     "submitBtnText": "提交",
     "backBtnText": "返回"
   },
+  "resetPassword": {
+    "title": "重置密码",
+    "subTitle": "请输入您的新密码",
+    "placeholder": {
+      "password": "请输入新密码",
+      "confirmPassword": "请再次输入新密码"
+    },
+    "rule": {
+      "passwordRequired": "请输入新密码",
+      "confirmPasswordRequired": "请再次输入新密码",
+      "passwordMismatch": "两次输入密码不一致!",
+      "passwordLength": "密码长度不能小于6位"
+    },
+    "submitBtnText": "重置密码",
+    "backBtnText": "返回登录",
+    "success": "密码重置成功，请使用新密码登录",
+    "tokenInvalid": "重置链接无效或已过期",
+    "uidInvalid": "用户ID无效"
+  },
   "register": {
     "title": "创建账号",
     "subTitle": "欢迎加入我们，请填写以下信息完成注册",
@@ -197,7 +216,8 @@
       "passwordMismatch": "两次输入密码不一致!",
       "usernameLength": "长度在 3 到 20 个字符",
       "passwordLength": "密码长度不能小于6位",
-      "agreementRequired": "请同意隐私协议"
+      "agreementRequired": "请同意隐私协议",
+      "emailInvalid": "请输入有效的电子邮件地址"
     },
     "agreeText": "我同意",
     "privacyPolicy": "《隐私政策》",
@@ -238,6 +258,9 @@
     },
     "forgetPassword": {
       "title": "忘记密码"
+    },
+    "resetPassword": {
+      "title": "重置密码"
     },
     "outside": {
       "title": "内嵌页面"

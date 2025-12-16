@@ -17,3 +17,21 @@ export const RegisterUserDto = {
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
 };
+
+export const ForgetPasswordDto = {
+    body: t.Object({
+        email: t.String({
+            error: '邮箱格式错误',
+            format: 'email',
+            minLength: 5
+        }),
+    }),
+};
+
+export const ResetPasswordDto = {
+    body: t.Object({
+        token: t.String({ error: 'token格式错误', minLength: 5 }),
+        uid: t.Number({ error: 'uid格式错误', minLength: 1 }),
+        password: t.String({ error: '密码格式错误', minLength: 5 }),
+    }),
+};

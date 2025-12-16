@@ -19,11 +19,13 @@
     "drizzle-typebox": "^0.3.3",
     "elysia": "latest",
     "jose": "^6.1.3",
+    "nodemailer": "^7.0.11",
     "postgres": "^3.4.7",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@elysiajs/openapi": "^1.4.11",
+    "@types/nodemailer": "^7.0.4",
     "bun-types": "latest",
     "drizzle-kit": "^0.31.8"
   },
