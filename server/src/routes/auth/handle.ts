@@ -44,9 +44,7 @@ async function generateAndStoreTokens(payload: any) {
     const refreshToken = await GenerateToken('refreshToken', { uuid, ...payload });
     const refreshKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${uuid}`;
     const isSet = await Set(refreshKey, payload, ConvertTimeToSecond(config.jwt.refreshToken.expiresIn));
-    if (!isSet) {
-        return { error: BaseResultData.fail(500, '刷新令牌设置失败') };
-    }
+    if (!isSet) return { error: BaseResultData.fail(500, '刷新令牌设置失败') };
     return { accessToken, refreshToken };
 };
 

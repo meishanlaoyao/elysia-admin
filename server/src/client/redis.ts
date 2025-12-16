@@ -1,14 +1,15 @@
-import { RedisClient } from "bun";
+import Redis from "ioredis";
 import config from "@/config";
 
-const redis = new RedisClient(config.redis);
+const redis = new Redis(config.redis);
 
-try {
-    await redis.connect();
+redis.on("connect", () => {
     console.log("Redis connected");
-} catch (error) {
+});
+
+redis.on("error", (error) => {
     console.error("Redis connect error:", error);
-}
+});
 
 /**
  * 设置缓存
@@ -67,13 +68,28 @@ export async function Del(key: string | string[]): Promise<boolean> {
 };
 
 /**
- * 获取匹配缓存key列表 (此操作会阻塞redis)
+ * 获取匹配缓存key列表 (使用scan非阻塞方式)
  * @param pattern 缓存key模式
  * @returns 缓存key列表
  */
 export async function Keys(pattern: string): Promise<string[]> {
     try {
-        return await redis.keys(pattern + '*');
+        const keys: string[] = [];
+        let cursor = '0';
+
+        do {
+            const [nextCursor, matchedKeys] = await redis.scan(
+                cursor,
+                'MATCH',
+                pattern + '*',
+                'COUNT',
+                100
+            );
+            cursor = nextCursor;
+            keys.push(...matchedKeys);
+        } while (cursor !== '0');
+
+        return keys;
     } catch (error) {
         console.error("Redis keys error:", error);
         return [];

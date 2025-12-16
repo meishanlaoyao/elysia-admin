@@ -139,5 +139,5 @@ export async function RegisterUser(username: string, password: string) {
 // 设置用户密码
 export async function SetUserPassword(userId: number, password: string) {
     password = BcryptHash(password);
-    await UpdateByKey(systemUserSchema, 'userId', { password, userId, updateBy: new Date().getTime() });
+    await UpdateByKey(systemUserSchema, 'userId', { password, userId, updateTime: new Date() });
 };
