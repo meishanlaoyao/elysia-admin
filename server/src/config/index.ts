@@ -21,7 +21,13 @@ export default {
     s3: {
 
     },
-    redis: "redis://default:K0HU5zEBgwnxzNZt7etbLVYK6MdpBLaz@redis-12340.c74.us-east-1-4.ec2.cloud.redislabs.com:12340", // redis://username:password@host:port
+    redis: {
+        host: 'localhost', // redis 主机
+        port: 6379, // redis 端口
+        password: '', // redis 密码
+        username: '', // redis 用户名
+        db: 0, // redis 数据库编号
+    },
     pg: {
         host: 'localhost', // 数据库主机
         port: 5432, // 数据库端口

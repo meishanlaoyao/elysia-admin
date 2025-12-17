@@ -100,6 +100,20 @@ export async function findSimple(req: Context) {
                                 }
                             ]
                         }
+                    },
+                    {
+                        "path": "dict",
+                        "name": "Dict",
+                        "component": "/system/dict",
+                        "meta": {
+                            "title": "menus.system.dict",
+                            "icon": "material-symbols:book-2-outline",
+                            "keepAlive": true,
+                            "roles": [
+                                "R_SUPER",
+                                "R_ADMIN"
+                            ]
+                        }
                     }
                 ]
             },

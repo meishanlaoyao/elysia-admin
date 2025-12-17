@@ -32,6 +32,12 @@ app.onError(({ code, error }) => {
     };
 });
 
+// 全局拦截器
+app.onRequest(({ request, server }) => {
+    const ip = server?.requestIP(request)?.address || '未知';
+    console.log("ip地址", ip);
+});
+
 // 注册路由
 RegisterRoutes(app as Elysia);
 
