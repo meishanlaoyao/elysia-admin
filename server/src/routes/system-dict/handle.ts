@@ -108,8 +108,8 @@ export async function findListData(req: Context) {
         const {
             pageNum = 1,
             pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
+            orderByColumn = "dictSort",
+            sortRule = "asc",
             startTime,
             endTime,
             dictLabel,

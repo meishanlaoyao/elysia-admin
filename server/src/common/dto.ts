@@ -49,10 +49,10 @@ export const BaseResultListDto = (other: any) => ({
  * @returns 基础列表查询DTO
  */
 export const BaseListQueryDto = (other?: any) => t.Object({
-    pageNo: t.Number({ description: "页码", default: 1 }),
+    pageNum: t.Number({ description: "页码", default: 1 }),
     pageSize: t.Number({ description: "每页数量", default: 10 }),
-    orderByColumn: t.Optional(t.String({ description: "排序字段", default: "createTime" })),
-    sortRule: t.Optional(t.String({ description: "排序规则", default: "desc" })),
+    orderByColumn: t.Optional(t.String({ description: "排序字段" })),
+    sortRule: t.Optional(t.String({ description: "排序规则" })),
     startTime: t.Optional(t.String({ description: "开始时间" })),
     endTime: t.Optional(t.String({ description: "结束时间" })),
     ...other,

@@ -71,11 +71,9 @@ const formData = reactive({
 const rules: FormRules = {
     dictLabel: [
         { required: true, message: '请输入字典标签', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ],
     dictType: [
         { required: true, message: '请输入字典类型', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ],
     dictValue: [
         { required: true, message: '请输入字典值', trigger: 'blur' },
