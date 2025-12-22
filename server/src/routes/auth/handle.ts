@@ -70,6 +70,7 @@ export async function accountPasswordLogin(req: Context) {
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
+        // 后台管理系统可以这样做，app、小程序、桌面端不能设置httpOnlycookie。然后需要同时返回双token。
         setRefreshTokenCookie(req, tokens.refreshToken);
         return BaseResultData.ok({ token: tokens.accessToken });
     } catch (error) {

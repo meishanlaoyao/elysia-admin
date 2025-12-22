@@ -1,24 +1,91 @@
 <template>
     <ElRow class="dict-page art-full-height" :gutter="20">
         <ElCol :span="12">
-            <DictTypeSearch v-model="searchForm" @search="handleSearchType" @reset="resetSearchParamsType" />
+            <DictTypeSearch v-model="searchFormType" @search="handleSearchType" @reset="resetSearchParamsType" />
             <ElCard class="art-table-card" shadow="never" v-model:columns="columnChecksType" :loading="loadingType"
-                @refresh="refreshDataType"></ElCard>
+                @refresh="refreshDataType">
+                <ArtTableHeader v-model:columns="columnChecksType" :loading="loadingType" @refresh="refreshDataType">
+                    <template #left>
+                        <ElSpace wrap>
+                            <ElButton v-ripple @click="showDialogType('add')">新增类型</ElButton>
+                        </ElSpace>
+                    </template>
+                </ArtTableHeader>
+                <ArtTable :loading="loadingType" :data="dataType" :columns="columnsType" :pagination="paginationType"
+                    @selection-change="handleSelectionChangeType" @pagination:size-change="handleSizeChangeType"
+                    @pagination:current-change="handleCurrentChangeType">
+                </ArtTable>
+                <DictTypeDialog v-model:visible="dialogVisibleType" :type="dialogTypeType" :data="currentDictDataType"
+                    @submit="handleDialogSubmitType" />
+            </ElCard>
         </ElCol>
         <ElCol :span="12">
-            <DictDataSearch v-model="searchForm" @search="handleSearchData" @reset="resetSearchParamsData" />
+            <DictDataSearch v-model="searchFormData" @search="handleSearchData" @reset="resetSearchParamsData" />
+            <ElCard class="art-table-card" shadow="never" v-model:columns="columnChecksData" :loading="loadingData"
+                @refresh="refreshDataData">
+                <ArtTableHeader v-model:columns="columnChecksData" :loading="loadingData" @refresh="refreshDataData">
+                    <template #left>
+                        <ElSpace wrap>
+                            <ElButton v-ripple @click="showDialogData('add')">新增数据</ElButton>
+                        </ElSpace>
+                    </template>
+                </ArtTableHeader>
+                <ArtTable :loading="loadingData" :data="dataData" :columns="columnsData" :pagination="paginationData"
+                    @selection-change="handleSelectionChangeData" @pagination:size-change="handleSizeChangeData"
+                    @pagination:current-change="handleCurrentChangeData">
+                </ArtTable>
+                <DictDataDialog v-model:visible="dialogVisibleData" :type="dialogTypeData" :data="currentDictDataData"
+                    @submit="handleDialogSubmitData" />
+            </ElCard>
         </ElCol>
     </ElRow>
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import DictTypeSearch from './modules/dict-type-search.vue';
 import DictDataSearch from './modules/dict-data-search.vue';
 import DictTypeDialog from './modules/dict-type-dialog.vue';
-import { useTable } from '@/hooks/core/useTable'
+import DictDataDialog from './modules/dict-data-dialog.vue';
+import { useTable } from '@/hooks/core/useTable';
+import {
+    fetchGetDictTypeList,
+    fetchGetDictDataList,
+    fetchCreateDictData,
+    fetchCreateDictType,
+    fetchUpdateDictType,
+    fetchUpdateDictData,
+    fetchDeleteDictType,
+    fetchDeleteDictData,
+} from '@/api/system/dict';
+import { DialogType } from '@/types'
+
+type DictTypeListItem = Api.SystemDict.DictTypeListItem
+type DictDataListItem = Api.SystemDict.DictDataListItem
+
+// 弹窗相关
+const dialogTypeType = ref<DialogType>('add')
+const dialogVisibleType = ref(false)
+const currentDictDataType = ref<Partial<DictTypeListItem>>({})
+
+const dialogTypeData = ref<DialogType>('add')
+const dialogVisibleData = ref(false)
+const currentDictDataData = ref<Partial<DictDataListItem>>({})
+
+// 选中行
+const selectedRowsData = ref<DictDataListItem[]>([])
+const selectedRowsType = ref<DictTypeListItem[]>([])
 
 // 搜索表单
-const searchForm = ref({
+const searchFormType = ref({
+    dictName: undefined,
+    dictType: undefined,
+})
+
+// 搜索表单
+const searchFormData = ref({
     dictName: undefined,
     dictType: undefined,
 })
@@ -38,34 +105,33 @@ const {
 } = useTable({
     // 核心配置
     core: {
-        apiFn: () => Promise.resolve({
-            code: 200,
-            data: {
-                current: 1,
-                size: 20,
-                total: 100,
-                records: []
-            }
-        }),
-        apiParams: {
-            current: 1,
-            size: 20,
-            ...searchForm.value
-        },
+        apiFn: fetchGetDictTypeList,
+        apiParams: searchFormType.value,
         // 自定义分页字段映射，未设置时将使用全局配置 tableConfig.ts 中的 paginationKey
-        // paginationKey: {
-        //   current: 'pageNum',
-        //   size: 'pageSize'
-        // },
+        paginationKey: { current: 'pageNum', size: 'pageSize' },
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号' }, // 序号
-            { prop: 'userPhone', label: '手机号' },
+            { prop: 'dictName', label: '字典名称' },
+            { prop: 'dictType', label: '字典类型' },
+            { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
-                prop: 'createTime',
-                label: '创建日期',
-                sortable: true
-            },
+                prop: 'operation',
+                label: '操作',
+                width: 120,
+                fixed: 'right',
+                formatter: (row) =>
+                    h('div', [
+                        h(ArtButtonTable, {
+                            type: 'edit',
+                            onClick: () => showDialogType('edit', row)
+                        }),
+                        h(ArtButtonTable, {
+                            type: 'delete',
+                            onClick: () => deleteDictType(row)
+                        })
+                    ])
+            }
         ]
     }
 })
@@ -85,34 +151,37 @@ const {
 } = useTable({
     // 核心配置
     core: {
-        apiFn: () => Promise.resolve({
-            code: 200,
-            data: {
-                current: 1,
-                size: 20,
-                total: 100,
-                records: []
-            }
-        }),
-        apiParams: {
-            current: 1,
-            size: 20,
-            ...searchForm.value
-        },
+        apiFn: fetchGetDictDataList,
+        apiParams: searchFormData.value,
         // 自定义分页字段映射，未设置时将使用全局配置 tableConfig.ts 中的 paginationKey
-        // paginationKey: {
-        //   current: 'pageNum',
-        //   size: 'pageSize'
-        // },
+        paginationKey: {
+            current: 'pageNum',
+            size: 'pageSize'
+        },
         columnsFactory: () => [
-            { type: 'selection' }, // 勾选列
-            { type: 'index', width: 60, label: '序号' }, // 序号
-            { prop: 'userPhone', label: '手机号' },
+            { type: 'selection' },
+            { type: 'index', width: 60, label: '序号' },
+            { prop: 'dictLabel', label: '字典标签' },
+            { prop: 'dictValue', label: '字典值' },
+            { prop: 'dictSort', label: '字典排序' },
+            { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
-                prop: 'createTime',
-                label: '创建日期',
-                sortable: true
-            },
+                prop: 'operation',
+                label: '操作',
+                width: 120,
+                fixed: 'right',
+                formatter: (row) =>
+                    h('div', [
+                        h(ArtButtonTable, {
+                            type: 'edit',
+                            onClick: () => showDialogData('edit', row)
+                        }),
+                        h(ArtButtonTable, {
+                            type: 'delete',
+                            onClick: () => deleteDictData(row)
+                        })
+                    ])
+            }
         ]
     }
 })
@@ -124,8 +193,8 @@ const {
 const handleSearchType = (params: Record<string, any>) => {
     console.log(params)
     // 搜索参数赋值
-    //   Object.assign(searchParams, params)
-    //   getData()
+    Object.assign(searchParamsType, params)
+    getDataType()
 }
 
 /**
@@ -135,10 +204,125 @@ const handleSearchType = (params: Record<string, any>) => {
 const handleSearchData = (params: Record<string, any>) => {
     console.log(params)
     // 搜索参数赋值
-    //   Object.assign(searchParams, params)
-    //   getData()
+    Object.assign(searchParamsData, params)
+    getDictData()
 }
 
+/**
+ * 处理表格行选择变化
+ */
+const handleSelectionChangeType = (selection: DictTypeListItem[]): void => {
+    selectedRowsType.value = selection
+    console.log('选中行数据:', selectedRowsType.value)
+}
+
+/**
+ * 处理表格行选择变化
+ */
+const handleSelectionChangeData = (selection: DictDataListItem[]): void => {
+    selectedRowsData.value = selection
+    console.log('选中行数据:', selectedRowsData.value)
+}
+
+/**
+ * 处理弹窗提交事件
+ */
+const handleDialogSubmitType = async (formData: Partial<DictTypeListItem>) => {
+    Object.assign(currentDictDataType.value, formData)
+    try {
+        if (dialogTypeType.value == 'add') {
+            await fetchCreateDictType(currentDictDataType.value)
+        } else {
+            await fetchUpdateDictType(currentDictDataType.value)
+        }
+        dialogVisibleType.value = false
+        currentDictDataType.value = {}
+        refreshDataType()
+    } catch (error) {
+        console.error('提交失败:', error)
+    }
+}
+
+/**
+ * 处理弹窗提交事件
+ */
+const handleDialogSubmitData = async (formData: Partial<DictDataListItem>) => {
+    Object.assign(currentDictDataData.value, formData)
+    try {
+        if (dialogTypeData.value == 'add') {
+            await fetchCreateDictData(currentDictDataData.value)
+        } else {
+            await fetchUpdateDictData(currentDictDataData.value)
+        }
+        dialogVisibleData.value = false
+        currentDictDataData.value = {}
+        refreshDataData()
+    } catch (error) {
+        console.error('提交失败:', error)
+    }
+}
+
+/**
+ * 显示字典类型弹窗
+ */
+const showDialogType = (type: DialogType, row?: DictTypeListItem): void => {
+    console.log('打开弹窗:', { type, row })
+    dialogTypeType.value = type
+    currentDictDataType.value = row || {}
+    nextTick(() => {
+        dialogVisibleType.value = true
+    })
+}
+
+/**
+ * 显示字典数据弹窗
+ */
+const showDialogData = (type: DialogType, row?: DictDataListItem): void => {
+    console.log('打开弹窗:', { type, row })
+    dialogTypeData.value = type
+    currentDictDataData.value = row || {}
+    nextTick(() => {
+        dialogVisibleData.value = true
+    })
+}
+
+/**
+ * 删除字典类型
+ */
+const deleteDictType = (row: DictTypeListItem): void => {
+    console.log('删除字典类型:', row)
+    ElMessageBox.confirm(`确定要删除该字典类型吗？`, '删除字典类型', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+    }).then(() => {
+        fetchDeleteDictType(row.dictId as number).then(() => {
+            ElMessage.success('删除成功')
+            refreshDataType()
+        }).catch(() => {
+            ElMessage.error('删除失败')
+        })
+    })
+}
+
+/**
+ * 删除字典数据
+ */
+const deleteDictData = (row: DictDataListItem): void => {
+    console.log('删除字典数据:', row)
+    ElMessageBox.confirm(`确定要删除该字典数据吗？`, '删除字典数据', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+    }).then(() => {
+        fetchDeleteDictData(row.dictCode as number).then(() => {
+            ElMessage.success('删除成功')
+            refreshDataData()
+        }).catch(() => {
+            ElMessage.error('删除失败')
+        })
+    })
+}
 </script>
 
 <style scoped lang='scss'>

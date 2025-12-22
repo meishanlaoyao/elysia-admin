@@ -15,6 +15,8 @@ declare namespace Api {
             current: number
             /** 每页条数 */
             size: number
+            /** 总条数 */
+            total: number
         }
 
         /** 通用搜索参数 */
