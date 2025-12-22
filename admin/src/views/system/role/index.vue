@@ -41,7 +41,7 @@ import { ElTag, ElMessageBox } from 'element-plus'
 
 defineOptions({ name: 'Role' })
 
-type RoleListItem = Api.SystemManage.RoleListItem
+type RoleListItem = Api.SystemRole.RoleListItem
 
 // 搜索表单
 const searchForm = ref({

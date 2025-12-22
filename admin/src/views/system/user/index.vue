@@ -43,7 +43,7 @@ import { DialogType } from '@/types'
 
 defineOptions({ name: 'User' })
 
-type UserListItem = Api.SystemManage.UserListItem
+type UserListItem = Api.SystemUser.UserListItem
 
 // 弹窗相关
 const dialogType = ref<DialogType>('add')

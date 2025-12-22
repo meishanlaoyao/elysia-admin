@@ -40,4 +40,5 @@
 
 /// <reference path="./common.d.ts" />
 /// <reference path="./auth.d.ts" />
-/// <reference path="./system-manage.d.ts" />
+/// <reference path="./system-user.d.ts" />
+/// <reference path="./system-role.d.ts" />

@@ -35,7 +35,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 interface Props {
   visible: boolean
   type: string
-  userData?: Partial<Api.SystemManage.UserListItem>
+  userData?: Partial<Api.SystemUser.UserListItem>
 }
 
 interface Emits {
