@@ -57,3 +57,33 @@ export const BaseListQueryDto = (other?: any) => t.Object({
     endTime: t.Optional(t.String({ description: "结束时间" })),
     ...other,
 });
+
+/**
+ * 创建 Update DTO，自动处理日期字段为字符串
+ * @param schema Drizzle select schema
+ * @returns Update DTO with date fields as strings
+ */
+export const CreateUpdateDto = (schema: any) => {
+    return t.Composite([
+        t.Omit(schema, ['createTime', 'updateTime']),
+        t.Object({
+            createTime: t.Optional(t.Union([t.String({ format: 'date-time' }), t.Null()])),
+            updateTime: t.Optional(t.Union([t.String({ format: 'date-time' }), t.Null()])),
+        })
+    ]);
+};
+
+/**
+ * 转换日期字符串为 Date 对象
+ * @param data 包含日期字段的数据
+ * @returns 转换后的数据
+ */
+export const parseDateFields = (data: any) => {
+    if (data.createTime && typeof data.createTime === 'string') {
+        data.createTime = new Date(data.createTime);
+    }
+    if (data.updateTime && typeof data.updateTime === 'string') {
+        data.updateTime = new Date(data.updateTime);
+    }
+    return data;
+};

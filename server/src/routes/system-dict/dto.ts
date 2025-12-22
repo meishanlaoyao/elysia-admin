@@ -5,7 +5,7 @@ import {
     SelectSystemDictData,
     SelectSystemDictType
 } from '@/schema/system_dict';
-import { BaseResultDto, BaseListQueryDto, BaseResultListDto } from '@/common/dto';
+import { BaseResultDto, BaseListQueryDto, BaseResultListDto, CreateUpdateDto } from '@/common/dto';
 
 export const CreateTypeDto = {
     body: t.Pick(InsertSystemDictType, ['dictName', 'dictType']),
@@ -40,11 +40,11 @@ export const ListDataDto = {
 };
 
 export const UpdateTypeDto = {
-    body: SelectSystemDictType,
+    body: CreateUpdateDto(SelectSystemDictType),
     ...BaseResultDto(SelectSystemDictType),
 };
 
 export const UpdateDataDto = {
-    body: SelectSystemDictData,
+    body: CreateUpdateDto(SelectSystemDictData),
     ...BaseResultDto(SelectSystemDictData),
 };

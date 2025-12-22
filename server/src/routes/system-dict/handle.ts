@@ -12,6 +12,7 @@ import {
 } from '@/common/db';
 import { CacheEnum } from '@/common/enum';
 import { WithCache } from '@/utils/cache';
+import { parseDateFields } from '@/common/dto';
 
 export async function createType(req: Context) {
     try {
@@ -159,7 +160,7 @@ export async function findOneData(req: Context) {
 
 export async function updateType(req: Context) {
     try {
-        const data = req.body as typeof systemDictTypeSchema.$inferSelect;
+        const data = parseDateFields(req.body);
         await UpdateByKey(systemDictTypeSchema, 'dictId', data);
         return BaseResultData.ok();
     }
@@ -170,7 +171,7 @@ export async function updateType(req: Context) {
 
 export async function updateData(req: Context) {
     try {
-        const data = req.body as typeof systemDictDataSchema.$inferSelect;
+        const data = parseDateFields(req.body);
         await UpdateByKey(systemDictDataSchema, 'dictCode', data);
         return BaseResultData.ok();
     }
