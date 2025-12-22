@@ -11,6 +11,7 @@ import {
     FindPage,
     FindAll
 } from '@/common/db';
+import { ParseDateFields } from '@/common/dto';
 
 export async function create(req: Context) {
     try {
@@ -105,7 +106,7 @@ export async function findOne(req: Context) {
 
 export async function update(req: Context) {
     try {
-        const data = req.body as typeof systemUserSchema.$inferSelect;
+        const data = ParseDateFields(req.body);
         const { password, ...rest } = data;
         await UpdateByKey(systemUserSchema, 'userId', rest);
         return BaseResultData.ok();

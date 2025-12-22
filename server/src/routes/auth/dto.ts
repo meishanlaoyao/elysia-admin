@@ -16,6 +16,7 @@ export const RegisterUserDto = {
         username: t.String({ error: '用户名格式错误', minLength: 5 }),
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
+    ...BaseResultDto(t.Null()),
 };
 
 export const ForgetPasswordDto = {
@@ -26,6 +27,7 @@ export const ForgetPasswordDto = {
             minLength: 5
         }),
     }),
+    ...BaseResultDto(t.Null()),
 };
 
 export const ResetPasswordDto = {
@@ -34,4 +36,5 @@ export const ResetPasswordDto = {
         uid: t.Number({ error: 'uid格式错误', minLength: 1 }),
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
+    ...BaseResultDto(t.Null()),
 };

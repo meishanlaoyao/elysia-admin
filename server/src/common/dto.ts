@@ -78,7 +78,7 @@ export const CreateUpdateDto = (schema: any) => {
  * @param data 包含日期字段的数据
  * @returns 转换后的数据
  */
-export const parseDateFields = (data: any) => {
+export const ParseDateFields = (data: any) => {
     if (data.createTime && typeof data.createTime === 'string') {
         data.createTime = new Date(data.createTime);
     }
@@ -86,4 +86,57 @@ export const parseDateFields = (data: any) => {
         data.updateTime = new Date(data.updateTime);
     }
     return data;
+};
+
+/**
+ * 标准 CRUD DTO 生成器
+ */
+export const CrudDto = {
+    /**
+     * 创建 Create DTO
+     * @param insertSchema Insert schema
+     * @param selectSchema Select schema
+     * @param fields 需要的字段
+     */
+    create: (insertSchema: any, selectSchema: any, fields: string[]) => ({
+        body: t.Pick(insertSchema, fields),
+        ...BaseResultDto(selectSchema),
+    }),
+
+    /**
+     * 创建 Update DTO
+     * @param selectSchema Select schema
+     */
+    update: (selectSchema: any) => ({
+        body: CreateUpdateDto(selectSchema),
+        ...BaseResultDto(selectSchema),
+    }),
+
+    /**
+     * 创建 List DTO
+     * @param selectSchema Select schema
+     * @param queryFields 额外的查询字段
+     */
+    list: (selectSchema: any, queryFields?: any) => ({
+        query: BaseListQueryDto(queryFields),
+        ...BaseResultListDto(selectSchema),
+    }),
+
+    /**
+     * 创建 FindAll DTO
+     * @param selectSchema Select schema
+     * @param queryFields 查询字段
+     */
+    findAll: (selectSchema: any, queryFields?: any) => ({
+        query: t.Object(queryFields || {}),
+        ...BaseResultDto(t.Array(selectSchema)),
+    }),
+
+    /**
+     * 创建 FindOne DTO
+     * @param selectSchema Select schema
+     */
+    findOne: (selectSchema: any) => ({
+        ...BaseResultDto(selectSchema),
+    }),
 };

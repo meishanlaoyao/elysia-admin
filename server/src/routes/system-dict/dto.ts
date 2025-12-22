@@ -5,46 +5,45 @@ import {
     SelectSystemDictData,
     SelectSystemDictType
 } from '@/schema/system_dict';
-import { BaseResultDto, BaseListQueryDto, BaseResultListDto, CreateUpdateDto } from '@/common/dto';
+import { CrudDto } from '@/common/dto';
 
-export const CreateTypeDto = {
-    body: t.Pick(InsertSystemDictType, ['dictName', 'dictType']),
-    ...BaseResultDto(SelectSystemDictType),
-};
+export const CreateTypeDto = CrudDto.create(
+    InsertSystemDictType,
+    SelectSystemDictType,
+    ['dictName', 'dictType']
+);
 
-export const CreateDataDto = {
-    body: t.Pick(InsertSystemDictData, ['dictSort', 'dictValue', 'dictLabel', 'dictType']),
-    ...BaseResultDto(SelectSystemDictData),
-};
+export const UpdateTypeDto = CrudDto.update(SelectSystemDictType);
 
-export const FindAllDataDto = {
-    query: t.Object({
-        dictType: t.Optional(t.String({ description: "字典类型" })),
-    }),
-};
-
-export const ListTypeDto = {
-    query: BaseListQueryDto({
+export const ListTypeDto = CrudDto.list(
+    SelectSystemDictType,
+    {
         dictName: t.Optional(t.String({ description: "字典名称" })),
         dictType: t.Optional(t.String({ description: "字典类型" })),
-    }),
-    ...BaseResultListDto(SelectSystemDictType),
-};
+    }
+);
 
-export const ListDataDto = {
-    query: BaseListQueryDto({
+export const FindAllTypeDto = CrudDto.findAll(SelectSystemDictType);
+
+export const CreateDataDto = CrudDto.create(
+    InsertSystemDictData,
+    SelectSystemDictData,
+    ['dictSort', 'dictValue', 'dictLabel', 'dictType']
+);
+
+export const UpdateDataDto = CrudDto.update(SelectSystemDictData);
+
+export const ListDataDto = CrudDto.list(
+    SelectSystemDictData,
+    {
         dictType: t.Optional(t.String({ description: "字典类型" })),
         dictLabel: t.Optional(t.String({ description: "字典标签" })),
-    }),
-    ...BaseResultListDto(SelectSystemDictData),
-};
+    }
+);
 
-export const UpdateTypeDto = {
-    body: CreateUpdateDto(SelectSystemDictType),
-    ...BaseResultDto(SelectSystemDictType),
-};
-
-export const UpdateDataDto = {
-    body: CreateUpdateDto(SelectSystemDictData),
-    ...BaseResultDto(SelectSystemDictData),
-};
+export const FindAllDataDto = CrudDto.findAll(
+    SelectSystemDictData,
+    {
+        dictType: t.Optional(t.String({ description: "字典类型" })),
+    }
+);
