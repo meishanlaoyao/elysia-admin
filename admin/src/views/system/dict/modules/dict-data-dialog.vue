@@ -27,15 +27,13 @@
 </template>
 
 <script setup lang="ts">
-import {
-    fetchGetCacheDictTypeList
-} from '@/api/system/dict';
 import type { FormInstance, FormRules } from 'element-plus'
 
 interface Props {
     visible: boolean
     type: string
     data?: Partial<Api.SystemDict.DictDataListItem>
+    dictTypeList: Api.SystemDict.DictTypeListItem[]
 }
 
 interface Emits {
@@ -45,8 +43,6 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
-
-const dictTypeList = ref<Api.SystemDict.DictTypeListItem[]>([])
 
 // 对话框显示控制
 const dialogVisible = computed({
@@ -89,14 +85,10 @@ const initFormData = () => {
     const row = props.data
 
     Object.assign(formData, {
-        dictType: isEdit && row ? row.dictType || '' : '',
+        dictType: row?.dictType || '',
         dictLabel: isEdit && row ? row.dictLabel || '' : '',
         dictValue: isEdit && row ? row.dictValue || '' : '',
         dictSort: isEdit && row ? row.dictSort || 0 : 0,
-    })
-
-    fetchGetCacheDictTypeList().then((res) => {
-        dictTypeList.value = res || []
     })
 }
 

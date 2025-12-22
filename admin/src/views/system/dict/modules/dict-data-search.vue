@@ -5,7 +5,8 @@
 
 <script setup lang="ts">
 interface Props {
-    modelValue: Record<string, any>
+    modelValue: Record<string, any>,
+    dictTypeList: Api.SystemDict.DictTypeListItem[]
 }
 interface Emits {
     (e: 'update:modelValue', value: Record<string, any>): void
@@ -27,9 +28,13 @@ const formItems = computed(() => [
     {
         label: '类型',
         key: 'dictType',
-        type: 'input',
-        placeholder: '请输入字典类型',
-        clearable: true
+        type: 'select',
+        placeholder: '请选择字典类型',
+        clearable: true,
+        options: props.dictTypeList.map(item => ({
+            label: item.dictName,
+            value: item.dictType
+        }))
     },
     {
         label: '标签',

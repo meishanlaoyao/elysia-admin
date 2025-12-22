@@ -2,8 +2,7 @@
     <ElRow class="dict-page art-full-height" :gutter="20">
         <ElCol :span="12">
             <DictTypeSearch v-model="searchFormType" @search="handleSearchType" @reset="resetSearchParamsType" />
-            <ElCard class="art-table-card" shadow="never" v-model:columns="columnChecksType" :loading="loadingType"
-                @refresh="refreshDataType">
+            <ElCard class="art-table-card" shadow="never">
                 <ArtTableHeader v-model:columns="columnChecksType" :loading="loadingType" @refresh="refreshDataType">
                     <template #left>
                         <ElSpace wrap>
@@ -20,9 +19,9 @@
             </ElCard>
         </ElCol>
         <ElCol :span="12">
-            <DictDataSearch v-model="searchFormData" @search="handleSearchData" @reset="resetSearchParamsData" />
-            <ElCard class="art-table-card" shadow="never" v-model:columns="columnChecksData" :loading="loadingData"
-                @refresh="refreshDataData">
+            <DictDataSearch v-model="searchFormData" :dict-type-list="cacheDictType" @search="handleSearchData"
+                @reset="resetSearchParamsData" />
+            <ElCard class="art-table-card" shadow="never">
                 <ArtTableHeader v-model:columns="columnChecksData" :loading="loadingData" @refresh="refreshDataData">
                     <template #left>
                         <ElSpace wrap>
@@ -35,7 +34,7 @@
                     @pagination:current-change="handleCurrentChangeData">
                 </ArtTable>
                 <DictDataDialog v-model:visible="dialogVisibleData" :type="dialogTypeData" :data="currentDictDataData"
-                    @submit="handleDialogSubmitData" />
+                    :dict-type-list="cacheDictType" @submit="handleDialogSubmitData" />
             </ElCard>
         </ElCol>
     </ElRow>
@@ -59,11 +58,14 @@ import {
     fetchUpdateDictData,
     fetchDeleteDictType,
     fetchDeleteDictData,
+    fetchGetCacheDictTypeList
 } from '@/api/system/dict';
 import { DialogType } from '@/types'
 
 type DictTypeListItem = Api.SystemDict.DictTypeListItem
 type DictDataListItem = Api.SystemDict.DictDataListItem
+
+const cacheDictType = ref<DictTypeListItem[]>([])
 
 // 弹窗相关
 const dialogTypeType = ref<DialogType>('add')
@@ -118,7 +120,7 @@ const {
             {
                 prop: 'operation',
                 label: '操作',
-                width: 120,
+                width: 180,
                 fixed: 'right',
                 formatter: (row) =>
                     h('div', [
@@ -129,6 +131,10 @@ const {
                         h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteDictType(row)
+                        }),
+                        h(ArtButtonTable, {
+                            type: 'view',
+                            onClick: () => chooseDictType(row)
                         })
                     ])
             }
@@ -186,6 +192,12 @@ const {
     }
 })
 
+function getCacheDictTypeList() {
+    fetchGetCacheDictTypeList().then(res => {
+        cacheDictType.value = res
+    })
+}
+
 /**
  * 搜索处理
  * @param params 参数
@@ -238,6 +250,7 @@ const handleDialogSubmitType = async (formData: Partial<DictTypeListItem>) => {
         dialogVisibleType.value = false
         currentDictDataType.value = {}
         refreshDataType()
+        getCacheDictTypeList()
     } catch (error) {
         console.error('提交失败:', error)
     }
@@ -280,7 +293,7 @@ const showDialogType = (type: DialogType, row?: DictTypeListItem): void => {
 const showDialogData = (type: DialogType, row?: DictDataListItem): void => {
     console.log('打开弹窗:', { type, row })
     dialogTypeData.value = type
-    currentDictDataData.value = row || {}
+    currentDictDataData.value = row || { dictType: searchFormData.value.dictType }
     nextTick(() => {
         dialogVisibleData.value = true
     })
@@ -323,6 +336,16 @@ const deleteDictData = (row: DictDataListItem): void => {
         })
     })
 }
+
+function chooseDictType(row: DictTypeListItem) {
+    searchParamsData.dictType = row.dictType
+    searchFormData.value.dictType = row.dictType as never
+    getDictData()
+}
+
+onMounted(() => {
+    getCacheDictTypeList()
+})
 </script>
 
 <style scoped lang='scss'>
