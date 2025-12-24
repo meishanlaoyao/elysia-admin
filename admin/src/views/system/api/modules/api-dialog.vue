@@ -1,11 +1,23 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典类型' : '编辑字典类型'" width="500px" align-center>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加接口' : '编辑接口'" width="500px" align-center>
         <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
-            <ElFormItem label="字典名称" prop="dictName">
-                <ElInput v-model="formData.dictName" placeholder="请输入字典名称" />
+            <ElFormItem label="接口名称" prop="apiName">
+                <ElInput v-model="formData.apiName" placeholder="请输入接口名称" />
             </ElFormItem>
-            <ElFormItem label="字典类型" prop="dictType">
-                <ElInput v-model="formData.dictType" placeholder="请输入字典类型" />
+            <ElFormItem label="接口路径" prop="apiPath">
+                <ElInput v-model="formData.apiPath" placeholder="请输入接口路径" />
+            </ElFormItem>
+            <ElFormItem label="接口方法" prop="apiMethod">
+                <ElSelect v-model="formData.apiMethod" placeholder="请选择接口方法">
+                    <ElOption v-for="item in api_request_method" :key="item.dictValue" :label="item.dictLabel"
+                        :value="item.dictValue || ''" />
+                </ElSelect>
+            </ElFormItem>
+            <ElFormItem label="状态" prop="status">
+                <ElSwitch v-model="formData.status" />
+            </ElFormItem>
+            <ElFormItem label="备注" prop="remark">
+                <ElInput v-model="formData.remark" type="textarea" :rows="4" placeholder="请输入备注" />
             </ElFormItem>
         </ElForm>
         <template #footer>
@@ -22,14 +34,18 @@ import type { FormInstance, FormRules } from 'element-plus'
 
 interface Props {
     visible: boolean
-    type: string
-    data?: Partial<Api.SystemDict.DictTypeListItem>
+    type: string,
+    data?: Partial<Api.SystemApi.ApiListItem>
 }
 
 interface Emits {
     (e: 'update:visible', value: boolean): void
-    (e: 'submit', value: Partial<Api.SystemDict.DictTypeListItem>): void
+    (e: 'submit', value: Partial<Api.SystemApi.ApiListItem>): void
 }
+
+import { useDictStore } from '@/store/modules/dict';
+const dictStore = useDictStore()
+const { api_request_method } = dictStore.getDictData(['api_request_method'])
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
@@ -47,20 +63,25 @@ const formRef = ref<FormInstance>()
 
 // 表单数据
 const formData = reactive({
-    dictName: '',
-    dictType: '',
+    apiName: '',
+    apiPath: '',
+    apiMethod: '',
+    remark: '',
+    status: true
 })
 
 // 表单验证规则
 const rules: FormRules = {
-    dictName: [
-        { required: true, message: '请输入字典名称', trigger: 'blur' },
+    apiName: [
+        { required: true, message: '请输入接口名称', trigger: 'blur' },
         { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ],
-    dictType: [
-        { required: true, message: '请输入字典类型', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
-    ]
+    apiPath: [
+        { required: true, message: '请输入接口路径', trigger: 'blur' },
+    ],
+    apiMethod: [
+        { required: true, message: '请输入接口方法', trigger: 'blur' }
+    ],
 }
 
 /**
@@ -69,10 +90,13 @@ const rules: FormRules = {
  */
 const initFormData = () => {
     const isEdit = props.type === 'edit' && props.data
-    const row = props.data
+    const row = props.data || {}
     Object.assign(formData, {
-        dictName: isEdit && row ? row.dictName || '' : '',
-        dictType: isEdit && row ? row.dictType || '' : '',
+        apiName: isEdit && row.apiName ? row.apiName || '' : '',
+        apiPath: isEdit && row.apiPath ? row.apiPath || '' : '',
+        apiMethod: isEdit && row.apiMethod ? row.apiMethod || '' : '',
+        remark: isEdit && row.remark ? row.remark || '' : '',
+        status: isEdit ? row.status : true
     })
 }
 

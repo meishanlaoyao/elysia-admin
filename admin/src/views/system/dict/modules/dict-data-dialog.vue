@@ -1,5 +1,5 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典数据' : '编辑字典数据'" width="450px" align-center>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典数据' : '编辑字典数据'" width="500px" align-center>
         <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
             <ElFormItem label="字典类型" prop="dictType">
                 <ElSelect v-model="formData.dictType" placeholder="请选择字典类型">
@@ -15,6 +15,9 @@
             </ElFormItem>
             <ElFormItem label="字典排序" prop="dictSort">
                 <ElInputNumber v-model="formData.dictSort" placeholder="请输入字典排序" />
+            </ElFormItem>
+            <ElFormItem label="备注" prop="remark">
+                <ElInput type="textarea" :rows="4" v-model="formData.remark" placeholder="请输入备注" />
             </ElFormItem>
         </ElForm>
         <template #footer>
@@ -61,6 +64,7 @@ const formData = reactive({
     dictType: '',
     dictValue: '',
     dictSort: 0,
+    remark: ''
 })
 
 // 表单验证规则
@@ -89,6 +93,7 @@ const initFormData = () => {
         dictLabel: isEdit && row ? row.dictLabel || '' : '',
         dictValue: isEdit && row ? row.dictValue || '' : '',
         dictSort: isEdit && row ? row.dictSort || 0 : 0,
+        remark: isEdit && row ? row.remark || '' : '',
     })
 }
 

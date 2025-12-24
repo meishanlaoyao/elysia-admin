@@ -114,6 +114,20 @@ export async function findSimple(req: Context) {
                                 "R_ADMIN"
                             ]
                         }
+                    },
+                    {
+                        "path": "api",
+                        "name": "Api",
+                        "component": "/system/api",
+                        "meta": {
+                            "title": "menus.system.api",
+                            "icon": "tabler:api",
+                            "keepAlive": true,
+                            "roles": [
+                                "R_SUPER",
+                                "R_ADMIN"
+                            ]
+                        }
                     }
                 ]
             },

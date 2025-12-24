@@ -88,3 +88,15 @@ export function fetchGetCacheDictTypeList() {
         url: '/api/system/dict/type/all'
     })
 }
+
+/**
+ * 查询所有-缓存数据
+ * @param dictType 字典类型
+ * @returns 
+ */
+export function fetchGetDictDataListByType(dictType: string) {
+    return request.get<Api.SystemDict.DictDataListItem[]>({
+        url: `/api/system/dict/data/all`,
+        params: { dictType }
+    })
+}

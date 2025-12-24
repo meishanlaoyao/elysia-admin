@@ -40,10 +40,3 @@ export const ListDataDto = CrudDto.list(
         dictLabel: t.Optional(t.String({ description: "字典标签" })),
     }
 );
-
-export const FindAllDataDto = CrudDto.findAll(
-    SelectSystemDictData,
-    {
-        dictType: t.Optional(t.String({ description: "字典类型" })),
-    }
-);
