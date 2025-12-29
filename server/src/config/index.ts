@@ -19,7 +19,11 @@ export default {
         }
     },
     s3: {
-
+        endPoint: '',
+        port: 9000,
+        useSSL: false,
+        accessKey: 'minioadmin',
+        secretKey: 'minioadmin',
     },
     redis: {
         host: 'localhost', // redis 主机

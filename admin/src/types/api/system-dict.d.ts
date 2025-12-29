@@ -1,5 +1,8 @@
 declare namespace Api {
     namespace SystemDict {
+
+        type ElTagType = 'primary' | 'info' | 'success' | 'warning' | 'danger'
+
         interface DictTypeListItem {
             dictId?: number;
             dictName?: string;
@@ -19,6 +22,8 @@ declare namespace Api {
             dictValue?: string;
             dictLabel?: string;
             dictType?: string;
+            tagType?: ElTagType;
+            customClass?: string;
             status?: boolean;
             createTime?: Date;
             createBy?: null | number;

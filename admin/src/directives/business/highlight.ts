@@ -38,7 +38,7 @@
  * - 智能监听：只在有新代码块时才触发处理
  *
  * @module directives/highlight
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import { App, Directive } from 'vue'
@@ -222,8 +222,8 @@ const highlightDirective: Directive<HTMLElement> = {
       subtree: true
     })
 
-    // 将 observer 存储到元素上，以便在 unmounted 时清理
-    ;(el as any)._highlightObserver = observer
+      // 将 observer 存储到元素上，以便在 unmounted 时清理
+      ; (el as any)._highlightObserver = observer
   },
 
   updated(el: HTMLElement) {

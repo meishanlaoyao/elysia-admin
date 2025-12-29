@@ -1,6 +1,6 @@
 <template>
     <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典数据' : '编辑字典数据'" width="500px" align-center>
-        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
+        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="100px">
             <ElFormItem label="字典类型" prop="dictType">
                 <ElSelect v-model="formData.dictType" placeholder="请选择字典类型">
                     <ElOption v-for="item in dictTypeList" :key="item.dictType" :label="item.dictName"
@@ -12,6 +12,16 @@
             </ElFormItem>
             <ElFormItem label="字典值" prop="dictValue">
                 <ElInput v-model="formData.dictValue" placeholder="请输入字典值" />
+            </ElFormItem>
+            <ElFormItem label="标签类型" prop="tagType">
+                <ElSelect v-model="formData.tagType" placeholder="请选择标签类型">
+                    <ElOption v-for="item in tagTypeOptions" :key="item.value" :label="item.label" :value="item.value">
+                        <ElTag :type="item.value as any">{{ item.label }}</ElTag>
+                    </ElOption>
+                </ElSelect>
+            </ElFormItem>
+            <ElFormItem label="自定义样式" prop="customClass">
+                <ElInput v-model="formData.customClass" placeholder="请输入自定义class" />
             </ElFormItem>
             <ElFormItem label="字典排序" prop="dictSort">
                 <ElInputNumber v-model="formData.dictSort" placeholder="请输入字典排序" />
@@ -55,6 +65,14 @@ const dialogVisible = computed({
 
 const dialogType = computed(() => props.type)
 
+const tagTypeOptions = [
+    { label: 'Primary', value: 'primary' },
+    { label: 'Success', value: 'success' },
+    { label: 'Warning', value: 'warning' },
+    { label: 'Info', value: 'info' },
+    { label: 'Danger', value: 'danger' },
+]
+
 // 表单实例
 const formRef = ref<FormInstance>()
 
@@ -64,7 +82,9 @@ const formData = reactive({
     dictType: '',
     dictValue: '',
     dictSort: 0,
-    remark: ''
+    remark: '',
+    tagType: '',
+    customClass: '',
 })
 
 // 表单验证规则
@@ -94,6 +114,8 @@ const initFormData = () => {
         dictValue: isEdit && row ? row.dictValue || '' : '',
         dictSort: isEdit && row ? row.dictSort || 0 : 0,
         remark: isEdit && row ? row.remark || '' : '',
+        tagType: isEdit && row ? row.tagType || '' : '',
+        customClass: isEdit && row ? row.customClass || '' : '',
     })
 }
 

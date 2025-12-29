@@ -25,7 +25,7 @@
  * - 图表事件处理
  *
  * @module types/component/chart
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 import type { EChartsOption } from '@/plugins/echarts'
 
@@ -281,8 +281,8 @@ export interface MapChartProps extends BaseChartProps {
 // 双向堆叠柱状图 Props 接口（人口金字塔样式）
 export interface BidirectionalBarChartProps
   extends BaseChartProps,
-    AxisDisplayProps,
-    InteractionProps {
+  AxisDisplayProps,
+  InteractionProps {
   /** 正向数据（向上显示） */
   positiveData: number[]
   /** 负向数据（向下显示） */

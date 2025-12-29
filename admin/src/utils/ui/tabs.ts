@@ -31,7 +31,7 @@
  * - tab-google: 谷歌浏览器风格标签页
  *
  * @module utils/ui/tabs
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 export const TAB_CONFIG = {
   'tab-default': {

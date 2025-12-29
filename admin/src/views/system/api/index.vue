@@ -22,6 +22,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import ArtDictTag from '@/components/core/tag/art-dict-tag/index.vue'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable';
 import { DialogType } from '@/types'
@@ -72,7 +73,14 @@ const {
             { type: 'index', width: 60, label: '序号' }, // 序号
             { prop: 'apiName', label: 'API名称' },
             { prop: 'apiPath', label: 'API路径' },
-            { prop: 'apiMethod', label: 'API方法', formatter: (row) => api_request_method.value.find(item => item.dictValue == row.apiMethod)?.dictLabel || '' },
+            {
+                prop: 'apiMethod',
+                label: 'API方法',
+                formatter: (row) => h(ArtDictTag, {
+                    dictList: api_request_method.value,
+                    value: row.apiMethod,
+                })
+            },
             { prop: 'status', label: '状态', formatter: (row) => row.status ? '启用' : '停用' },
             { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {

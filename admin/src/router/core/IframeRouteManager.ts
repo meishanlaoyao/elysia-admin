@@ -4,7 +4,7 @@
  * 负责管理 iframe 类型的路由
  *
  * @module router/core/IframeRouteManager
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import type { AppRouteRecord } from '@/types/router'
@@ -13,7 +13,7 @@ export class IframeRouteManager {
   private static instance: IframeRouteManager
   private iframeRoutes: AppRouteRecord[] = []
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): IframeRouteManager {
     if (!IframeRouteManager.instance) {

@@ -4,7 +4,7 @@
  * 负责菜单数据的获取、过滤和处理
  *
  * @module router/core/MenuProcessor
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import type { AppRouteRecord } from '@/types/router'

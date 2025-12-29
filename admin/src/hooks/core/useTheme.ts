@@ -28,7 +28,7 @@
  * ```
  *
  * @module useTheme
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import { useSettingStore } from '@/store/modules/setting'

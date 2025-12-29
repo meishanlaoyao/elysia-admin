@@ -30,7 +30,7 @@ const formData = computed({
 const formItems = computed(() => [
     {
         label: '类型',
-        key: 'apiType',
+        key: 'apiMethod',
         type: 'select',
         placeholder: '请输入接口类型',
         clearable: true,

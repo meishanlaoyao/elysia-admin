@@ -24,7 +24,7 @@
  * - 减少重复类型定义
  *
  * @module types/common/index
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 // 导出响应类型

@@ -35,7 +35,7 @@
  * - system-manage.d.ts - 系统管理类型（用户、角色等）
  *
  * @module types/api/api
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 /// <reference path="./common.d.ts" />

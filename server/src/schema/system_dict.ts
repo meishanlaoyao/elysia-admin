@@ -24,6 +24,8 @@ export const systemDictDataSchema = pgTable(
         dictLabel: varchar('dict_label', { length: 64 }).notNull(), // 字典标签
         dictType: varchar('dict_type', { length: 64 }).notNull(), // 字典类型
         status: boolean('status').default(true), // 状态 true正常 false停用
+        tagType: varchar('tag_type', { length: 64 }), // 标签类型
+        customClass: varchar('custom_class', { length: 64 }), // 自定义class
         ...BaseSchema,
     }
 );

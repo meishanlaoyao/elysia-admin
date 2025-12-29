@@ -12,7 +12,7 @@
  * 4. 智能适配 - 无额外元素时自动使用 100% 高度
  *
  * @module useTableHeight
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import { computed, type Ref } from 'vue'
@@ -39,7 +39,7 @@ class TableHeightCalculator {
   private static readonly DEFAULT_TABLE_HEADER_HEIGHT = 44
   private static readonly TABLE_HEADER_SPACING = 12
 
-  constructor(private options: TableHeightOptions) {}
+  constructor(private options: TableHeightOptions) { }
 
   /**
    * 计算容器高度

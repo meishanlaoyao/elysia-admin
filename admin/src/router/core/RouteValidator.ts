@@ -4,7 +4,7 @@
  * 负责验证路由配置的合法性
  *
  * @module router/core/RouteValidator
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import type { AppRouteRecord } from '@/types/router'
@@ -171,10 +171,10 @@ export class RouteValidator {
 
     console.error(
       `[路由配置错误] 菜单 "${menuTitle}" (name: ${routeName}, path: ${routePath}) 配置错误\n` +
-        `  问题: ${level}级菜单不能使用 ${RoutesAlias.Layout} 作为 component\n` +
-        `  说明: 只有一级菜单才能使用 ${RoutesAlias.Layout}，二级及以下菜单应该指向具体的组件路径\n` +
-        `  当前配置: component: '${RoutesAlias.Layout}'\n` +
-        `  应该改为: component: '/your/component/path' 或留空 ''（如果是目录菜单）`
+      `  问题: ${level}级菜单不能使用 ${RoutesAlias.Layout} 作为 component\n` +
+      `  说明: 只有一级菜单才能使用 ${RoutesAlias.Layout}，二级及以下菜单应该指向具体的组件路径\n` +
+      `  当前配置: component: '${RoutesAlias.Layout}'\n` +
+      `  应该改为: component: '/your/component/path' 或留空 ''（如果是目录菜单）`
     )
   }
 

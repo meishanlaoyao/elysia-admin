@@ -41,7 +41,7 @@
  * - 如需基于具体操作的细粒度权限控制，请使用 v-auth 指令
  *
  * @module directives/roles
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import { useUserStore } from '@/store/modules/user'

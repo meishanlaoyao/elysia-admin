@@ -36,7 +36,7 @@
  * - createErrorHandler: 生成错误处理器
  *
  * @module utils/table/tableUtils
- * @author Art Design Pro Team
+ * @author Elysia Admin Team
  */
 
 import type { ApiResponse } from './tableCache'
@@ -126,8 +126,8 @@ export const defaultResponseAdapter = <T>(response: unknown): ApiResponse<T> => 
   if (typeof response !== 'object') {
     console.warn(
       '[tableUtils] 无法识别的响应格式，支持的格式包括: 数组、包含' +
-        recordFields.join('/') +
-        '字段的对象、嵌套data对象。当前格式:',
+      recordFields.join('/') +
+      '字段的对象、嵌套data对象。当前格式:',
       response
     )
     return { records: [], total: 0 }
