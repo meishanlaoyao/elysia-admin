@@ -71,11 +71,11 @@ const {
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号' }, // 序号
-            { prop: 'apiName', label: 'API名称' },
-            { prop: 'apiPath', label: 'API路径' },
+            { prop: 'apiName', label: '名称' },
+            { prop: 'apiPath', label: '路径' },
             {
                 prop: 'apiMethod',
-                label: 'API方法',
+                label: '方法',
                 formatter: (row) => h(ArtDictTag, {
                     dictList: api_request_method.value,
                     value: row.apiMethod,

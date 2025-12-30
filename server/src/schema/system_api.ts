@@ -7,7 +7,7 @@ export const systemApiSchema = pgTable(
     {
         apiId: bigserial('api_id', { mode: 'number' }).primaryKey(), // API ID
         apiName: varchar('api_name', { length: 64 }).notNull(), // API名称
-        apiPath: varchar('api_path', { length: 255 }).notNull().unique(), // API路径
+        apiPath: varchar('api_path', { length: 255 }).notNull(), // API路径
         apiMethod: varchar('api_method', { length: 10 }).notNull(), // API方法
         status: boolean('status').default(true), // 状态
         ...BaseSchema,
