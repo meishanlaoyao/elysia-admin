@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElSwitch } from 'element-plus'
 import ArtDictTag from '@/components/core/tag/art-dict-tag/index.vue'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable';
@@ -81,7 +81,19 @@ const {
                     value: row.apiMethod,
                 })
             },
-            { prop: 'status', label: '状态', formatter: (row) => row.status ? '启用' : '停用' },
+            {
+                prop: 'status', label: '状态', formatter: (row) => h(ElSwitch, {
+                    modelValue: row.status,
+                    activeValue: true,
+                    inactiveValue: false,
+                    onChange: async (val) => {
+                        row.status = val as boolean
+                        await fetchUpdateApi(row)
+                        ElMessage.success('状态更新成功')
+                        refreshData()
+                    },
+                })
+            },
             { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
                 prop: 'operation',

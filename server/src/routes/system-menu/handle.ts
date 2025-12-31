@@ -102,6 +102,20 @@ export async function findSimple(req: Context) {
                         }
                     },
                     {
+                        "path": "dept",
+                        "name": "Dept",
+                        "component": "/system/dept",
+                        "meta": {
+                            "title": "menus.system.dept",
+                            "icon": "material-symbols:groups-2-outline",
+                            "keepAlive": true,
+                            "roles": [
+                                "R_SUPER",
+                                "R_ADMIN"
+                            ]
+                        }
+                    },
+                    {
                         "path": "dict",
                         "name": "Dict",
                         "component": "/system/dict",

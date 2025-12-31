@@ -287,7 +287,8 @@
       "userCenter": "User Center",
       "menu": "Menu Manage",
       "dict": "Dict Manage",
-      "api": "Api Manage"
+      "api": "Api Manage",
+      "dept": "Dept Manage"
     }
   },
   "table": {

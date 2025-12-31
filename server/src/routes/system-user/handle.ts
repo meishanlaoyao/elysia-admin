@@ -1,7 +1,7 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
 import { systemUserSchema } from '@/schema/system_user';
-import { BcryptHash } from '@/common/bcrypt';
+import { BcryptHash } from '@/utils/bcrypt';
 import {
     InsertOne,
     FindOneByKey,
@@ -108,7 +108,7 @@ export async function update(req: Context) {
     try {
         const data = ParseDateFields(req.body);
         const { password, ...rest } = data;
-        await UpdateByKey(systemUserSchema, 'userId', rest);
+        await UpdateByKey(systemUserSchema, 'userId', rest, true);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -140,5 +140,5 @@ export async function RegisterUser(username: string, password: string) {
 // 设置用户密码
 export async function SetUserPassword(userId: number, password: string) {
     password = BcryptHash(password);
-    await UpdateByKey(systemUserSchema, 'userId', { password, userId, updateTime: new Date() });
+    await UpdateByKey(systemUserSchema, 'userId', { password, userId }, true);
 };

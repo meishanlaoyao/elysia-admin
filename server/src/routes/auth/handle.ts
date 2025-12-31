@@ -1,10 +1,10 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
 import { GenerateToken, VerifyToken } from '@/utils/jwt';
-import { BcryptCompare } from '@/common/bcrypt';
+import { BcryptCompare } from '@/utils/bcrypt';
 import { GetUserBy, RegisterUser, SetUserPassword } from '@/routes/system-user/handle';
-import { GenerateUUID } from '@/common/uuid';
-import { GetNowTime, ConvertTimeToSecond } from '@/common/time';
+import { GenerateUUID } from '@/utils/uuid';
+import { GetNowTime, ConvertTimeToSecond } from '@/utils/time';
 import { CacheEnum } from '@/common/enum';
 import { Get, Set, Del, Keys } from '@/client/redis';
 import { SendMail } from '@/client/smtp';

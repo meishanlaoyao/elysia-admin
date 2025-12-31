@@ -161,7 +161,7 @@ export async function findOneData(req: Context) {
 export async function updateType(req: Context) {
     try {
         const data = ParseDateFields(req.body);
-        await UpdateByKey(systemDictTypeSchema, 'dictId', data);
+        await UpdateByKey(systemDictTypeSchema, 'dictId', data, true);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -172,7 +172,7 @@ export async function updateType(req: Context) {
 export async function updateData(req: Context) {
     try {
         const data = ParseDateFields(req.body);
-        await UpdateByKey(systemDictDataSchema, 'dictCode', data);
+        await UpdateByKey(systemDictDataSchema, 'dictCode', data, true);
         return BaseResultData.ok();
     }
     catch (error) {

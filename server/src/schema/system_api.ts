@@ -1,4 +1,4 @@
-import { pgTable, bigserial, varchar, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, bigserial, varchar, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
 

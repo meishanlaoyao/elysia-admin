@@ -1,21 +1,21 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
-import { systemApiSchema } from '@/schema/system_api';
 import {
     InsertOne,
     FindOneByKey,
     UpdateByKey,
     SoftDeleteByKeys,
     CreateQueryBuilder,
-    FindPage,
+    FindAll,
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
-
+import { systemDeptSchema } from '@/schema/system_dept';
+import { listToTree } from '@/common/function';
 
 export async function create(req: Context) {
     try {
-        const data = req.body as typeof systemApiSchema.$inferInsert;
-        await InsertOne(systemApiSchema, data);
+        const data = req.body as typeof systemDeptSchema.$inferInsert;
+        await InsertOne(systemDeptSchema, data);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -23,33 +23,24 @@ export async function create(req: Context) {
     }
 };
 
-export async function findList(req: Context) {
+export async function findTree(req: Context) {
     try {
         const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            apiName,
-            apiPath,
-            apiMethod,
+            deptName,
         } = req.query;
-        const whereCondition = CreateQueryBuilder(systemApiSchema)
+        const where = CreateQueryBuilder(systemDeptSchema)
             .eq('delFlag', false)
-            .like('apiName', apiName)
-            .like('apiPath', apiPath)
-            .eq('apiMethod', apiMethod)
-            .dateRange('createTime', startTime, endTime)
+            .like('deptName', deptName)
             .build();
-        const res = await FindPage(systemApiSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
+        const data = await FindAll(systemDeptSchema, where);
+        const tree = listToTree(data, {
+            idKey: 'deptId',
+            parentKey: 'parentId',
+            childrenKey: 'children',
+            rootValue: 0,
+            sortKey: 'sort',
         });
-        return BaseResultData.ok(res);
+        return BaseResultData.ok(tree);
     }
     catch (error) {
         return BaseResultData.fail(500, error);
@@ -59,7 +50,7 @@ export async function findList(req: Context) {
 export async function findOne(req: Context) {
     try {
         const id = Number(req.params.id);
-        const data = await FindOneByKey(systemApiSchema, 'apiId', id);
+        const data = await FindOneByKey(systemDeptSchema, 'deptId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         return BaseResultData.ok(data);
     }
@@ -71,7 +62,7 @@ export async function findOne(req: Context) {
 export async function update(req: Context) {
     try {
         const data = ParseDateFields(req.body);
-        await UpdateByKey(systemApiSchema, 'apiId', data, true);
+        await UpdateByKey(systemDeptSchema, 'deptId', data, true);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -82,7 +73,7 @@ export async function update(req: Context) {
 export async function remove(req: Context) {
     try {
         const ids = req.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemApiSchema, 'apiId', ids);
+        await SoftDeleteByKeys(systemDeptSchema, 'deptId', ids);
         return BaseResultData.ok();
     }
     catch (error) {

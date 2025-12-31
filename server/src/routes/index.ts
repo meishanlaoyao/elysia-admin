@@ -7,6 +7,7 @@ import SystemUserModule from "./system-user/route";
 import SystemDictModule from "./system-dict/route";
 import SystemMenuModule from "./system-menu/route";
 import SystemRoleModule from "./system-role/route";
+import SystemDeptModule from "./system-dept/route";
 import SystemApiModule from "./system-api/route";
 
 const routeList: IRouteModule[] = [
@@ -15,6 +16,7 @@ const routeList: IRouteModule[] = [
     SystemDictModule,
     SystemMenuModule,
     SystemRoleModule,
+    SystemDeptModule,
     SystemApiModule,
 ];
 

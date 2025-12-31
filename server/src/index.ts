@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { cors } from '@elysiajs/cors';
-import { GetNowTime } from "@/common/time";
+import { GetNowTime } from "@/utils/time";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';

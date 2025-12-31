@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import config from '@/config';
-import { GenerateUUID } from '@/common/uuid';
+import { GenerateUUID } from '@/utils/uuid';
 
 type tokenType = 'accessToken' | 'refreshToken';
 
