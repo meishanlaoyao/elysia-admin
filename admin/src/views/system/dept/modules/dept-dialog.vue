@@ -1,22 +1,8 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加部门' : '编辑部门'" width="500px" align-center>
-        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
-            <ElFormItem label="部门名称" prop="deptName">
-                <ElInput v-model="formData.deptName" placeholder="请输入部门名称" />
-            </ElFormItem>
-            <ElFormItem label="父部门" prop="parentId">
-                <ElInput v-model="formData.parentId" placeholder="请输入父部门ID" />
-            </ElFormItem>
-            <ElFormItem label="排序" prop="sort">
-                <ElInputNumber v-model="formData.sort" placeholder="请输入排序" />
-            </ElFormItem>
-            <ElFormItem label="部门状态" prop="status">
-                <ElSwitch v-model="formData.status" />
-            </ElFormItem>
-            <ElFormItem label="备注" prop="remark">
-                <ElInput v-model="formData.remark" type="textarea" :rows="4" placeholder="请输入备注" />
-            </ElFormItem>
-        </ElForm>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加部门' : '编辑部门'" width="450px" align-center
+        @closed="handleClosed">
+        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="80px"
+            :show-reset="false" :show-submit="false" />
         <template #footer>
             <div class="dialog-footer">
                 <ElButton @click="dialogVisible = false">取消</ElButton>
@@ -27,12 +13,15 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormRules } from 'element-plus'
+import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+import ArtForm from '@/components/core/forms/art-form/index.vue'
 
 interface Props {
     visible: boolean
     type: string,
     data?: Partial<Api.SystemDept.DeptListItem>
+    deptOptions?: Api.SystemDept.DeptListItem[]
 }
 
 interface Emits {
@@ -52,8 +41,7 @@ const dialogVisible = computed({
 const dialogType = computed(() => props.type)
 
 // 表单实例
-const formRef = ref<FormInstance>()
-
+const formRef = ref()
 
 // 表单数据
 const formData = reactive({
@@ -63,6 +51,55 @@ const formData = reactive({
     remark: '',
     parentId: undefined,
 })
+
+// 级联选择器配置
+const cascaderProps = {
+    value: 'deptId',
+    label: 'deptName',
+    children: 'children',
+    checkStrictly: true,
+    emitPath: false
+}
+
+// 表单项配置
+const formItems = computed<FormItem[]>(() => [
+    {
+        label: '部门名称',
+        key: 'deptName',
+        type: 'input',
+        props: { placeholder: '请输入部门名称' }
+    },
+    {
+        label: '父部门',
+        key: 'parentId',
+        type: 'cascader',
+        props: {
+            options: props.deptOptions || [],
+            props: cascaderProps,
+            placeholder: '请选择父部门',
+            clearable: true,
+            showAllLevels: false,
+            style: { width: '100%' }
+        }
+    },
+    {
+        label: '排序',
+        key: 'sort',
+        type: 'number',
+        props: { placeholder: '请输入排序', controlsPosition: 'right', style: { width: '100%' }, min: 0 }
+    },
+    {
+        label: '部门状态',
+        key: 'status',
+        type: 'switch'
+    },
+    {
+        label: '备注',
+        key: 'remark',
+        type: 'input',
+        props: { type: 'textarea', rows: 4, placeholder: '请输入备注' }
+    }
+])
 
 // 表单验证规则
 const rules: FormRules = {
@@ -90,19 +127,17 @@ const initFormData = () => {
 
 /**
  * 监听对话框状态变化
- * 当对话框打开时初始化表单数据并清除验证状态
+ * 当对话框打开时初始化表单数据
  */
 watch(
-    () => [props.visible, props.type, props.data],
-    ([visible]) => {
+    () => props.visible,
+    (visible) => {
         if (visible) {
-            initFormData()
             nextTick(() => {
-                formRef.value?.clearValidate()
+                initFormData()
             })
         }
-    },
-    { immediate: true }
+    }
 )
 
 /**
@@ -111,13 +146,19 @@ watch(
  */
 const handleSubmit = async () => {
     if (!formRef.value) return
-    await formRef.value.validate((valid) => {
-        if (valid) {
-            ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-            dialogVisible.value = false
-            emit('submit', formData)
-        }
-    })
+    try {
+        await formRef.value.validate()
+        emit('submit', formData)
+    } catch {
+        ElMessage.error('表单校验失败，请检查输入')
+    }
+}
+
+/**
+ * 对话框关闭后的回调
+ */
+const handleClosed = () => {
+    formRef.value?.reset()
 }
 </script>
 

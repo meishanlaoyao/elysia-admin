@@ -5,12 +5,17 @@ declare namespace Api {
 
         /** 角色列表项 */
         interface RoleListItem {
-            roleId: number
-            roleName: string
-            roleCode: string
-            description: string
-            enabled: boolean
-            createTime: string
+            roleId?: number;
+            roleName?: string;
+            roleCode?: string;
+            sort?: number;
+            status?: boolean;
+            createTime?: Date;
+            createBy?: number | null;
+            updateTime?: null | Date;
+            updateBy?: null | number;
+            delFlag?: boolean;
+            remark?: null | string;
         }
 
         /** 角色搜索参数 */

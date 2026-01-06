@@ -1,13 +1,8 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典类型' : '编辑字典类型'" width="500px" align-center>
-        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
-            <ElFormItem label="字典名称" prop="dictName">
-                <ElInput v-model="formData.dictName" placeholder="请输入字典名称" />
-            </ElFormItem>
-            <ElFormItem label="字典类型" prop="dictType">
-                <ElInput v-model="formData.dictType" placeholder="请输入字典类型" />
-            </ElFormItem>
-        </ElForm>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典类型' : '编辑字典类型'" width="500px" align-center
+        @closed="handleClosed">
+        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="80px"
+            :show-reset="false" :show-submit="false" />
         <template #footer>
             <div class="dialog-footer">
                 <ElButton @click="dialogVisible = false">取消</ElButton>
@@ -18,7 +13,9 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormRules } from 'element-plus'
+import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+import ArtForm from '@/components/core/forms/art-form/index.vue'
 
 interface Props {
     visible: boolean
@@ -43,13 +40,29 @@ const dialogVisible = computed({
 const dialogType = computed(() => props.type)
 
 // 表单实例
-const formRef = ref<FormInstance>()
+const formRef = ref()
 
 // 表单数据
 const formData = reactive({
     dictName: '',
     dictType: '',
 })
+
+// 表单项配置
+const formItems: FormItem[] = [
+    {
+        label: '字典名称',
+        key: 'dictName',
+        type: 'input',
+        props: { placeholder: '请输入字典名称' }
+    },
+    {
+        label: '字典类型',
+        key: 'dictType',
+        type: 'input',
+        props: { placeholder: '请输入字典类型' }
+    }
+]
 
 // 表单验证规则
 const rules: FormRules = {
@@ -78,19 +91,17 @@ const initFormData = () => {
 
 /**
  * 监听对话框状态变化
- * 当对话框打开时初始化表单数据并清除验证状态
+ * 当对话框打开时初始化表单数据
  */
 watch(
-    () => [props.visible, props.type, props.data],
-    ([visible]) => {
+    () => props.visible,
+    (visible) => {
         if (visible) {
-            initFormData()
             nextTick(() => {
-                formRef.value?.clearValidate()
+                initFormData()
             })
         }
-    },
-    { immediate: true }
+    }
 )
 
 /**
@@ -99,13 +110,19 @@ watch(
  */
 const handleSubmit = async () => {
     if (!formRef.value) return
-    await formRef.value.validate((valid) => {
-        if (valid) {
-            ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-            dialogVisible.value = false
-            emit('submit', formData)
-        }
-    })
+    try {
+        await formRef.value.validate()
+        emit('submit', formData)
+    } catch {
+        ElMessage.error('表单校验失败，请检查输入')
+    }
+}
+
+/**
+ * 对话框关闭后的回调
+ */
+const handleClosed = () => {
+    formRef.value?.reset()
 }
 </script>
 

@@ -22,7 +22,7 @@
 
     <!-- 角色编辑弹窗 -->
     <RoleEditDialog v-model="dialogVisible" :dialog-type="dialogType" :role-data="currentRoleData"
-      @success="refreshData" />
+      @submit="refreshData" />
 
     <!-- 菜单权限弹窗 -->
     <RolePermissionDialog v-model="permissionDialog" :role-data="currentRoleData" @success="refreshData" />
@@ -74,11 +74,8 @@ const {
   // 核心配置
   core: {
     apiFn: fetchGetRoleList,
-    apiParams: {
-      current: 1,
-      size: 20
-    },
-    // 排除 apiParams 中的属性
+    apiParams: searchForm.value,
+    paginationKey: { current: 'pageNum', size: 'pageSize' },
     excludeParams: ['daterange'],
     columnsFactory: () => [
       {
@@ -107,7 +104,7 @@ const {
         label: '角色状态',
         width: 100,
         formatter: (row) => {
-          const statusConfig = row.enabled
+          const statusConfig = row.status
             ? { type: 'success', text: '启用' }
             : { type: 'warning', text: '禁用' }
           return h(

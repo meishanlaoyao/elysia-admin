@@ -1,6 +1,6 @@
 <template>
     <div class="dept-page art-full-height">
-        <DeptSearch v-model="searchForm" @search="handleSearch" @reset="() => { }" />
+        <DeptSearch v-model="searchForm" @search="handleSearch" @reset="handleReset" />
         <ElCard class="art-table-card" shadow="never">
             <ArtTableHeader :showZebra="false" :loading="loading" v-model:columns="columnChecks" @refresh="getData">
                 <template #left>
@@ -10,11 +10,11 @@
                     </ElButton>
                 </template>
             </ArtTableHeader>
-            <ArtTable ref="tableRef" rowKey="path" :loading="loading" :columns="columns" :data="tableData"
+            <ArtTable ref="tableRef" rowKey="deptId" :loading="loading" :columns="columns" :data="tableData"
                 :stripe="false" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
                 :default-expand-all="false" />
             <DeptDialog v-model:visible="dialogVisible" :type="dialogType" :data="currentDictData"
-                @submit="handleDialogSubmit" />
+                :dept-options="tableData" @submit="handleDialogSubmit" />
         </ElCard>
     </div>
 </template>
@@ -120,6 +120,7 @@ const handleDialogSubmit = async (formData: Partial<DeptListItem>) => {
         } else {
             await fetchUpdateDept(currentDictData.value)
         }
+        ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
         dialogVisible.value = false
         currentDictData.value = {}
         getData()
@@ -166,17 +167,17 @@ const deleteDict = (row: DeptListItem): void => {
 const toggleExpand = (): void => {
     isExpanded.value = !isExpanded.value
     nextTick(() => {
-        // if (tableRef.value?.elTableRef && filteredTableData.value) {
-        //   const processRows = (rows: AppRouteRecord[]) => {
-        //     rows.forEach((row) => {
-        //       if (row.children?.length) {
-        //         tableRef.value.elTableRef.toggleRowExpansion(row, isExpanded.value)
-        //         processRows(row.children)
-        //       }
-        //     })
-        //   }
-        //   processRows(filteredTableData.value)
-        // }
+        if (tableRef.value?.elTableRef && tableData.value) {
+            const processRows = (rows: DeptListItem[]) => {
+                rows.forEach((row) => {
+                    if (row.children?.length) {
+                        tableRef.value.elTableRef.toggleRowExpansion(row, isExpanded.value)
+                        processRows(row.children)
+                    }
+                })
+            }
+            processRows(tableData.value)
+        }
     })
 }
 
@@ -188,6 +189,16 @@ const handleSearch = (params: Record<string, any>) => {
     console.log(params)
     // 搜索参数赋值
     Object.assign(searchForm.value, params)
+    getData()
+}
+
+/**
+ * 重置处理
+ */
+const handleReset = () => {
+    searchForm.value = {
+        deptName: undefined,
+    }
     getData()
 }
 

@@ -1,29 +1,19 @@
 <template>
-  <ElDialog v-model="visible" :title="dialogType === 'add' ? '新增角色' : '编辑角色'" width="30%" align-center
-    @close="handleClose">
-    <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
-      <ElFormItem label="角色名称" prop="roleName">
-        <ElInput v-model="form.roleName" placeholder="请输入角色名称" />
-      </ElFormItem>
-      <ElFormItem label="角色编码" prop="roleCode">
-        <ElInput v-model="form.roleCode" placeholder="请输入角色编码" />
-      </ElFormItem>
-      <ElFormItem label="描述" prop="description">
-        <ElInput v-model="form.description" type="textarea" :rows="3" placeholder="请输入角色描述" />
-      </ElFormItem>
-      <ElFormItem label="启用">
-        <ElSwitch v-model="form.enabled" />
-      </ElFormItem>
-    </ElForm>
+  <ElDialog v-model="visible" :title="dialogType === 'add' ? '新增角色' : '编辑角色'" width="450px" align-center
+    @closed="handleClosed">
+    <ArtForm ref="formRef" v-model="form" :items="formItems" :rules="rules" :span="24" label-width="80px"
+      :show-reset="false" :show-submit="false" />
     <template #footer>
-      <ElButton @click="handleClose">取消</ElButton>
+      <ElButton @click="handleClosed">取消</ElButton>
       <ElButton type="primary" @click="handleSubmit">提交</ElButton>
     </template>
   </ElDialog>
 </template>
 
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormRules } from 'element-plus'
+import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+import ArtForm from '@/components/core/forms/art-form/index.vue'
 
 type RoleListItem = Api.SystemRole.RoleListItem
 
@@ -35,7 +25,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'success'): void
+  (e: 'submit', value: Partial<RoleListItem>): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const formRef = ref<FormInstance>()
+const formRef = ref()
 
 /**
  * 弹窗显示状态双向绑定
@@ -55,6 +45,53 @@ const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
 })
+
+/**
+ * 表单数据
+ */
+const form = reactive<RoleListItem>({
+  roleId: 0,
+  roleName: '',
+  roleCode: '',
+  sort: 0,
+  remark: '',
+  status: true
+})
+
+/**
+ * 表单项配置
+ */
+const formItems: FormItem[] = [
+  {
+    label: '角色名称',
+    key: 'roleName',
+    type: 'input',
+    props: { placeholder: '请输入角色名称' }
+  },
+  {
+    label: '角色编码',
+    key: 'roleCode',
+    type: 'input',
+    props: { placeholder: '请输入角色编码' }
+  },
+  {
+    label: '排序',
+    key: 'sort',
+    type: 'number',
+    props: { placeholder: '请输入排序', controlsPosition: 'right', style: { width: '100%' }, min: 0 }
+  },
+  {
+    label: '状态',
+    key: 'status',
+    type: 'switch'
+  },
+  {
+    label: '描述',
+    key: 'remark',
+    type: 'input',
+    props: { type: 'textarea', rows: 3, placeholder: '请输入角色描述' }
+  },
+]
 
 /**
  * 表单验证规则
@@ -67,20 +104,7 @@ const rules = reactive<FormRules>({
   roleCode: [
     { required: true, message: '请输入角色编码', trigger: 'blur' },
     { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
-  ],
-  description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }]
-})
-
-/**
- * 表单数据
- */
-const form = reactive<RoleListItem>({
-  roleId: 0,
-  roleName: '',
-  roleCode: '',
-  description: '',
-  createTime: '',
-  enabled: true
+  ]
 })
 
 /**
@@ -88,47 +112,37 @@ const form = reactive<RoleListItem>({
  */
 watch(
   () => props.modelValue,
-  (newVal) => {
-    if (newVal) initForm()
+  (visible) => {
+    if (visible) {
+      nextTick(() => {
+        initFormData()
+      })
+    }
   }
-)
-
-/**
- * 监听角色数据变化，更新表单
- */
-watch(
-  () => props.roleData,
-  (newData) => {
-    if (newData && props.modelValue) initForm()
-  },
-  { deep: true }
 )
 
 /**
  * 初始化表单数据
  * 根据弹窗类型填充表单或重置表单
  */
-const initForm = () => {
-  if (props.dialogType === 'edit' && props.roleData) {
-    Object.assign(form, props.roleData)
-  } else {
-    Object.assign(form, {
-      roleId: 0,
-      roleName: '',
-      roleCode: '',
-      description: '',
-      createTime: '',
-      enabled: true
-    })
-  }
+const initFormData = () => {
+  const isEdit = props.dialogType === 'edit' && props.roleData
+  const row = props.roleData || {}
+  Object.assign(form, {
+    roleId: isEdit && row.roleId ? row.roleId || 0 : 0,
+    roleName: isEdit && row.roleName ? row.roleName || '' : '',
+    roleCode: isEdit && row.roleCode ? row.roleCode || '' : '',
+    sort: isEdit && row.sort ? row.sort || 0 : 0,
+    remark: isEdit && row.remark ? row.remark || '' : '',
+    status: isEdit ? row.status : true
+  })
 }
 
 /**
- * 关闭弹窗并重置表单
+ * 对话框关闭后的回调
  */
-const handleClose = () => {
-  visible.value = false
-  formRef.value?.resetFields()
+const handleClosed = () => {
+  formRef.value?.reset()
 }
 
 /**
@@ -140,13 +154,9 @@ const handleSubmit = async () => {
 
   try {
     await formRef.value.validate()
-    // TODO: 调用新增/编辑接口
-    const message = props.dialogType === 'add' ? '新增成功' : '修改成功'
-    ElMessage.success(message)
-    emit('success')
-    handleClose()
-  } catch (error) {
-    console.log('表单验证失败:', error)
+    emit('submit', form)
+  } catch {
+    ElMessage.error('表单校验失败，请检查输入')
   }
 }
 </script>

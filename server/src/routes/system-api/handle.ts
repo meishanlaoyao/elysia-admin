@@ -11,7 +11,6 @@ import {
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 
-
 export async function create(req: Context) {
     try {
         const data = req.body as typeof systemApiSchema.$inferInsert;

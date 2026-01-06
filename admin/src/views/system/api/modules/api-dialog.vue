@@ -1,25 +1,8 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加接口' : '编辑接口'" width="500px" align-center>
-        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
-            <ElFormItem label="接口名称" prop="apiName">
-                <ElInput v-model="formData.apiName" placeholder="请输入接口名称" />
-            </ElFormItem>
-            <ElFormItem label="接口路径" prop="apiPath">
-                <ElInput v-model="formData.apiPath" placeholder="请输入接口路径" />
-            </ElFormItem>
-            <ElFormItem label="接口方法" prop="apiMethod">
-                <ElSelect v-model="formData.apiMethod" placeholder="请选择接口方法">
-                    <ElOption v-for="item in api_request_method" :key="item.dictValue" :label="item.dictLabel"
-                        :value="item.dictValue || ''" />
-                </ElSelect>
-            </ElFormItem>
-            <ElFormItem label="状态" prop="status">
-                <ElSwitch v-model="formData.status" />
-            </ElFormItem>
-            <ElFormItem label="备注" prop="remark">
-                <ElInput v-model="formData.remark" type="textarea" :rows="4" placeholder="请输入备注" />
-            </ElFormItem>
-        </ElForm>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加接口' : '编辑接口'" width="500px" align-center
+        @closed="handleClosed">
+        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="80px"
+            :show-reset="false" :show-submit="false" />
         <template #footer>
             <div class="dialog-footer">
                 <ElButton @click="dialogVisible = false">取消</ElButton>
@@ -30,7 +13,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormRules } from 'element-plus'
+import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+import ArtForm from '@/components/core/forms/art-form/index.vue'
+import { useDictStore } from '@/store/modules/dict'
 
 interface Props {
     visible: boolean
@@ -43,12 +29,11 @@ interface Emits {
     (e: 'submit', value: Partial<Api.SystemApi.ApiListItem>): void
 }
 
-import { useDictStore } from '@/store/modules/dict';
-const dictStore = useDictStore()
-const { api_request_method } = dictStore.getDictData(['api_request_method'])
-
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const dictStore = useDictStore()
+const { api_request_method } = dictStore.getDictData(['api_request_method'])
 
 // 对话框显示控制
 const dialogVisible = computed({
@@ -59,7 +44,7 @@ const dialogVisible = computed({
 const dialogType = computed(() => props.type)
 
 // 表单实例
-const formRef = ref<FormInstance>()
+const formRef = ref()
 
 // 表单数据
 const formData = reactive({
@@ -69,6 +54,50 @@ const formData = reactive({
     remark: '',
     status: true
 })
+
+// 接口方法选项
+const apiMethodOptions = computed(() => {
+    return api_request_method.value.map(item => ({
+        label: item.dictLabel,
+        value: item.dictValue || ''
+    }))
+})
+
+// 表单项配置
+const formItems = computed<FormItem[]>(() => [
+    {
+        label: '接口名称',
+        key: 'apiName',
+        type: 'input',
+        props: { placeholder: '请输入接口名称' }
+    },
+    {
+        label: '接口路径',
+        key: 'apiPath',
+        type: 'input',
+        props: { placeholder: '请输入接口路径' }
+    },
+    {
+        label: '接口方法',
+        key: 'apiMethod',
+        type: 'select',
+        props: {
+            placeholder: '请选择接口方法',
+            options: apiMethodOptions.value
+        }
+    },
+    {
+        label: '状态',
+        key: 'status',
+        type: 'switch'
+    },
+    {
+        label: '备注',
+        key: 'remark',
+        type: 'input',
+        props: { type: 'textarea', rows: 4, placeholder: '请输入备注' }
+    }
+])
 
 // 表单验证规则
 const rules: FormRules = {
@@ -80,7 +109,7 @@ const rules: FormRules = {
         { required: true, message: '请输入接口路径', trigger: 'blur' },
     ],
     apiMethod: [
-        { required: true, message: '请输入接口方法', trigger: 'blur' }
+        { required: true, message: '请选择接口方法', trigger: 'change' }
     ],
 }
 
@@ -102,19 +131,17 @@ const initFormData = () => {
 
 /**
  * 监听对话框状态变化
- * 当对话框打开时初始化表单数据并清除验证状态
+ * 当对话框打开时初始化表单数据
  */
 watch(
-    () => [props.visible, props.type, props.data],
-    ([visible]) => {
+    () => props.visible,
+    (visible) => {
         if (visible) {
-            initFormData()
             nextTick(() => {
-                formRef.value?.clearValidate()
+                initFormData()
             })
         }
-    },
-    { immediate: true }
+    }
 )
 
 /**
@@ -123,13 +150,19 @@ watch(
  */
 const handleSubmit = async () => {
     if (!formRef.value) return
-    await formRef.value.validate((valid) => {
-        if (valid) {
-            ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-            dialogVisible.value = false
-            emit('submit', formData)
-        }
-    })
+    try {
+        await formRef.value.validate()
+        emit('submit', formData)
+    } catch {
+        ElMessage.error('表单校验失败，请检查输入')
+    }
+}
+
+/**
+ * 对话框关闭后的回调
+ */
+const handleClosed = () => {
+    formRef.value?.reset()
 }
 </script>
 

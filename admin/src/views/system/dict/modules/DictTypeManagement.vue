@@ -140,6 +140,7 @@ const handleDialogSubmitType = async (formData: Partial<DictTypeListItem>) => {
         } else {
             await fetchUpdateDictType(currentDictDataType.value)
         }
+        ElMessage.success(dialogTypeType.value === 'add' ? '添加成功' : '更新成功')
         dialogVisibleType.value = false
         currentDictDataType.value = {}
         refreshDataType()

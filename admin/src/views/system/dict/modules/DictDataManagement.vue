@@ -147,6 +147,7 @@ const handleDialogSubmitData = async (formData: Partial<DictDataListItem>) => {
         } else {
             await fetchUpdateDictData(currentDictDataData.value)
         }
+        ElMessage.success(dialogTypeData.value === 'add' ? '添加成功' : '更新成功')
         dialogVisibleData.value = false
         currentDictDataData.value = {}
         refreshDataData()

@@ -1,35 +1,8 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典数据' : '编辑字典数据'" width="500px" align-center>
-        <ElForm ref="formRef" :model="formData" :rules="rules" label-width="100px">
-            <ElFormItem label="字典类型" prop="dictType">
-                <ElSelect v-model="formData.dictType" placeholder="请选择字典类型">
-                    <ElOption v-for="item in dictTypeList" :key="item.dictType" :label="item.dictName"
-                        :value="item.dictType || ''" />
-                </ElSelect>
-            </ElFormItem>
-            <ElFormItem label="字典标签" prop="dictLabel">
-                <ElInput v-model="formData.dictLabel" placeholder="请输入字典标签" />
-            </ElFormItem>
-            <ElFormItem label="字典值" prop="dictValue">
-                <ElInput v-model="formData.dictValue" placeholder="请输入字典值" />
-            </ElFormItem>
-            <ElFormItem label="标签类型" prop="tagType">
-                <ElSelect v-model="formData.tagType" placeholder="请选择标签类型">
-                    <ElOption v-for="item in tagTypeOptions" :key="item.value" :label="item.label" :value="item.value">
-                        <ElTag :type="item.value as any">{{ item.label }}</ElTag>
-                    </ElOption>
-                </ElSelect>
-            </ElFormItem>
-            <ElFormItem label="自定义样式" prop="customClass">
-                <ElInput v-model="formData.customClass" placeholder="请输入自定义class" />
-            </ElFormItem>
-            <ElFormItem label="字典排序" prop="dictSort">
-                <ElInputNumber v-model="formData.dictSort" placeholder="请输入字典排序" />
-            </ElFormItem>
-            <ElFormItem label="备注" prop="remark">
-                <ElInput type="textarea" :rows="4" v-model="formData.remark" placeholder="请输入备注" />
-            </ElFormItem>
-        </ElForm>
+    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典数据' : '编辑字典数据'" width="500px" align-center
+        @closed="handleClosed">
+        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="100px"
+            :show-reset="false" :show-submit="false" />
         <template #footer>
             <div class="dialog-footer">
                 <ElButton @click="dialogVisible = false">取消</ElButton>
@@ -40,7 +13,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FormInstance, FormRules } from 'element-plus'
+import type { FormRules } from 'element-plus'
+import { ElTag } from 'element-plus'
+import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+import ArtForm from '@/components/core/forms/art-form/index.vue'
 
 interface Props {
     visible: boolean
@@ -74,7 +50,7 @@ const tagTypeOptions = [
 ]
 
 // 表单实例
-const formRef = ref<FormInstance>()
+const formRef = ref()
 
 // 表单数据
 const formData = reactive({
@@ -87,13 +63,73 @@ const formData = reactive({
     customClass: '',
 })
 
+// 字典类型选项
+const dictTypeOptions = computed(() => {
+    return props.dictTypeList.map(item => ({
+        label: item.dictName,
+        value: item.dictType || ''
+    }))
+})
+
+// 表单项配置
+const formItems = computed<FormItem[]>(() => [
+    {
+        label: '字典类型',
+        key: 'dictType',
+        type: 'select',
+        props: {
+            placeholder: '请选择字典类型',
+            options: dictTypeOptions.value
+        }
+    },
+    {
+        label: '字典标签',
+        key: 'dictLabel',
+        type: 'input',
+        props: { placeholder: '请输入字典标签' }
+    },
+    {
+        label: '字典值',
+        key: 'dictValue',
+        type: 'input',
+        props: { placeholder: '请输入字典值' }
+    },
+    {
+        label: '标签类型',
+        key: 'tagType',
+        type: 'select',
+        props: {
+            placeholder: '请选择标签类型',
+            options: tagTypeOptions
+        }
+    },
+    {
+        label: '自定义样式',
+        key: 'customClass',
+        type: 'input',
+        props: { placeholder: '请输入自定义class' }
+    },
+    {
+        label: '字典排序',
+        key: 'dictSort',
+        type: 'number',
+        props: { min: 0, controlsPosition: 'right', style: { width: '100%' } }
+    },
+    {
+        label: '备注',
+        key: 'remark',
+        type: 'input',
+        props: { type: 'textarea', rows: 4, placeholder: '请输入备注' }
+    }
+])
+
 // 表单验证规则
 const rules: FormRules = {
     dictLabel: [
         { required: true, message: '请输入字典标签', trigger: 'blur' },
     ],
     dictType: [
-        { required: true, message: '请输入字典类型', trigger: 'blur' },
+        { required: true, message: '请选择字典类型', trigger: 'change' },
     ],
     dictValue: [
         { required: true, message: '请输入字典值', trigger: 'blur' },
@@ -121,19 +157,17 @@ const initFormData = () => {
 
 /**
  * 监听对话框状态变化
- * 当对话框打开时初始化表单数据并清除验证状态
+ * 当对话框打开时初始化表单数据
  */
 watch(
-    () => [props.visible, props.type, props.data],
-    ([visible]) => {
+    () => props.visible,
+    (visible) => {
         if (visible) {
-            initFormData()
             nextTick(() => {
-                formRef.value?.clearValidate()
+                initFormData()
             })
         }
-    },
-    { immediate: true }
+    }
 )
 
 /**
@@ -142,14 +176,19 @@ watch(
  */
 const handleSubmit = async () => {
     if (!formRef.value) return
+    try {
+        await formRef.value.validate()
+        emit('submit', formData)
+    } catch {
+        ElMessage.error('表单校验失败，请检查输入')
+    }
+}
 
-    await formRef.value.validate((valid) => {
-        if (valid) {
-            ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-            dialogVisible.value = false
-            emit('submit', formData)
-        }
-    })
+/**
+ * 对话框关闭后的回调
+ */
+const handleClosed = () => {
+    formRef.value?.reset()
 }
 </script>
 
