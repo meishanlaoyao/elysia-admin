@@ -16,6 +16,7 @@
 import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
+import { fetchCreateDept, fetchUpdateDept } from '@/api/system/dept'
 
 interface Props {
     visible: boolean
@@ -26,7 +27,7 @@ interface Props {
 
 interface Emits {
     (e: 'update:visible', value: boolean): void
-    (e: 'submit', value: Partial<Api.SystemDept.DeptListItem>): void
+    (e: 'submit'): void
 }
 
 const props = defineProps<Props>()
@@ -117,6 +118,7 @@ const initFormData = () => {
     const isEdit = props.type === 'edit' && props.data
     const row = props.data || {}
     Object.assign(formData, {
+        ...row,
         deptName: isEdit && row.deptName ? row.deptName || '' : '',
         sort: isEdit ? row.sort : 0,
         remark: isEdit && row.remark ? row.remark || '' : '',
@@ -148,7 +150,14 @@ const handleSubmit = async () => {
     if (!formRef.value) return
     try {
         await formRef.value.validate()
-        emit('submit', formData)
+        if (dialogType.value == 'add') {
+            await fetchCreateDept(formData)
+        } else {
+            await fetchUpdateDept(formData)
+        }
+        ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
+        emit('submit')
+        dialogVisible.value = false
     } catch {
         ElMessage.error('表单校验失败，请检查输入')
     }

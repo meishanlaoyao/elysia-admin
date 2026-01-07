@@ -15,7 +15,7 @@
                 @pagination:current-change="handleCurrentChangeData">
             </ArtTable>
             <DictDataDialog v-model:visible="dialogVisibleData" :type="dialogTypeData" :data="currentDictDataData"
-                :dict-type-list="cacheDictType" @submit="handleDialogSubmitData" />
+                :dict-type-list="cacheDictType" @submit="refreshDataData" />
         </ElCard>
     </div>
 </template>
@@ -29,8 +29,6 @@ import DictDataDialog from './dict-data-dialog.vue';
 import { useTable } from '@/hooks/core/useTable';
 import {
     fetchGetDictDataList,
-    fetchCreateDictData,
-    fetchUpdateDictData,
     fetchDeleteDictData
 } from '@/api/system/dict';
 import { DialogType } from '@/types'
@@ -86,7 +84,7 @@ const {
             { prop: 'dictLabel', label: '字典标签' },
             { prop: 'dictValue', label: '字典值' },
             { prop: 'dictSort', label: '字典排序' },
-            { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
+            { prop: 'createTime', label: '创建日期', sortable: true, showOverflowTooltip: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
                 prop: 'operation',
                 label: '操作',
@@ -134,26 +132,6 @@ const handleSearchData = (params: Record<string, any>) => {
 const handleSelectionChangeData = (selection: DictDataListItem[]): void => {
     selectedRowsData.value = selection
     console.log('选中行数据:', selectedRowsData.value)
-}
-
-/**
- * 处理弹窗提交事件
- */
-const handleDialogSubmitData = async (formData: Partial<DictDataListItem>) => {
-    Object.assign(currentDictDataData.value, formData)
-    try {
-        if (dialogTypeData.value == 'add') {
-            await fetchCreateDictData(currentDictDataData.value)
-        } else {
-            await fetchUpdateDictData(currentDictDataData.value)
-        }
-        ElMessage.success(dialogTypeData.value === 'add' ? '添加成功' : '更新成功')
-        dialogVisibleData.value = false
-        currentDictDataData.value = {}
-        refreshDataData()
-    } catch (error) {
-        console.error('提交失败:', error)
-    }
 }
 
 /**

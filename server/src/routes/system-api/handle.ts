@@ -1,6 +1,5 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
-import { systemApiSchema } from '@/schema/system_api';
 import {
     InsertOne,
     FindOneByKey,
@@ -10,6 +9,7 @@ import {
     FindPage,
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
+import { systemApiSchema } from '@/schema/system_api';
 
 export async function create(req: Context) {
     try {

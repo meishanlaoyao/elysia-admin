@@ -14,7 +14,7 @@
                 :stripe="false" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
                 :default-expand-all="false" />
             <DeptDialog v-model:visible="dialogVisible" :type="dialogType" :data="currentDictData"
-                :dept-options="tableData" @submit="handleDialogSubmit" />
+                :dept-options="tableData" @submit="getData" />
         </ElCard>
     </div>
 </template>
@@ -25,7 +25,7 @@ import { ElTag, ElMessageBox } from 'element-plus'
 import { useTableColumns } from '@/hooks/core/useTableColumns'
 import { DialogType } from '@/types'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-import { fetchCreateDept, fetchDeleteDept, fetchGetDeptTree, fetchUpdateDept } from '@/api/system/dept'
+import { fetchDeleteDept, fetchGetDeptTree } from '@/api/system/dept'
 import DeptSearch from './modules/dept-search.vue'
 import DeptDialog from './modules/dept-dialog.vue'
 
@@ -73,10 +73,9 @@ const { columnChecks, columns } = useTableColumns(() => [
         prop: 'operation',
         label: '操作',
         width: 180,
-        align: 'right',
+        fixed: 'right',
         formatter: (row: DeptListItem) => {
-            const buttonStyle = { style: 'text-align: right' }
-            return h('div', buttonStyle, [
+            return h('div', {}, [
                 h(ArtButtonTable, {
                     type: 'add',
                     onClick: () => showDialog('add', { parentId: row.deptId })
@@ -106,26 +105,6 @@ const getData = async (): Promise<void> => {
         throw error instanceof Error ? error : new Error('获取部门列表失败')
     } finally {
         loading.value = false
-    }
-}
-
-/**
- * 处理弹窗提交事件
- */
-const handleDialogSubmit = async (formData: Partial<DeptListItem>) => {
-    Object.assign(currentDictData.value, formData)
-    try {
-        if (dialogType.value == 'add') {
-            await fetchCreateDept(currentDictData.value)
-        } else {
-            await fetchUpdateDept(currentDictData.value)
-        }
-        ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-        dialogVisible.value = false
-        currentDictData.value = {}
-        getData()
-    } catch (error) {
-        console.error('提交失败:', error)
     }
 }
 

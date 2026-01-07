@@ -15,5 +15,6 @@ export const ListDto = CrudDto.list(
     {
         roleName: t.Optional(t.String({ description: "角色名称" })),
         roleCode: t.Optional(t.String({ description: "角色编码" })),
+        status: t.Optional(t.String({ description: "角色状态" })),
     }
 );

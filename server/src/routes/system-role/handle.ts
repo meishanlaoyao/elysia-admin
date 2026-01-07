@@ -33,9 +33,15 @@ export async function findList(req: Context) {
             endTime,
             roleName,
             roleCode,
+            status,
         } = req.query;
+        let Zstatus = undefined;
+        if (status) {
+            Zstatus = status === 'false' ? false : true;
+        }
         const whereCondition = CreateQueryBuilder(systemRoleSchema)
             .eq('delFlag', false)
+            .eq('status', Zstatus)
             .like('roleName', roleName)
             .like('roleCode', roleCode)
             .dateRange('createTime', startTime, endTime)

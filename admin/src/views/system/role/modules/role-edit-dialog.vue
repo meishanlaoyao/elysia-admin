@@ -14,6 +14,7 @@
 import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
+import { fetchCreateRole, fetchUpdateRole } from '@/api/system/role'
 
 type RoleListItem = Api.SystemRole.RoleListItem
 
@@ -25,7 +26,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'submit', value: Partial<RoleListItem>): void
+  (e: 'submit'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -129,12 +130,13 @@ const initFormData = () => {
   const isEdit = props.dialogType === 'edit' && props.roleData
   const row = props.roleData || {}
   Object.assign(form, {
+    ...row,
     roleId: isEdit && row.roleId ? row.roleId || 0 : 0,
     roleName: isEdit && row.roleName ? row.roleName || '' : '',
     roleCode: isEdit && row.roleCode ? row.roleCode || '' : '',
     sort: isEdit && row.sort ? row.sort || 0 : 0,
     remark: isEdit && row.remark ? row.remark || '' : '',
-    status: isEdit ? row.status : true
+    status: isEdit ? row.status : true,
   })
 }
 
@@ -143,6 +145,7 @@ const initFormData = () => {
  */
 const handleClosed = () => {
   formRef.value?.reset()
+  visible.value = false
 }
 
 /**
@@ -154,7 +157,14 @@ const handleSubmit = async () => {
 
   try {
     await formRef.value.validate()
-    emit('submit', form)
+    if (props.dialogType == 'add') {
+      await fetchCreateRole(form)
+    } else {
+      await fetchUpdateRole(form)
+    }
+    ElMessage.success(props.dialogType === 'add' ? '添加成功' : '更新成功')
+    emit('submit')
+    visible.value = false
   } catch {
     ElMessage.error('表单校验失败，请检查输入')
   }

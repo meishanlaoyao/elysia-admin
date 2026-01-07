@@ -1,12 +1,11 @@
 <!-- 角色管理页面 -->
 <template>
   <div class="art-full-height">
-    <RoleSearch v-show="showSearchBar" v-model="searchForm" @search="handleSearch" @reset="resetSearchParams">
+    <RoleSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams">
     </RoleSearch>
 
-    <ElCard class="art-table-card" shadow="never" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
-      <ArtTableHeader v-model:columns="columnChecks" v-model:showSearchBar="showSearchBar" :loading="loading"
-        @refresh="refreshData">
+    <ElCard class="art-table-card" shadow="never">
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
             <ElButton @click="showDialog('add')" v-ripple>新增角色</ElButton>
@@ -30,9 +29,10 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import { ButtonMoreItem } from '@/components/core/forms/art-button-more/index.vue'
 import { useTable } from '@/hooks/core/useTable'
-import { fetchGetRoleList } from '@/api/system/role'
+import { fetchGetRoleList, fetchDeleteRole } from '@/api/system/role'
 import ArtButtonMore from '@/components/core/forms/art-button-more/index.vue'
 import RoleSearch from './modules/role-search.vue'
 import RoleEditDialog from './modules/role-edit-dialog.vue'
@@ -51,8 +51,6 @@ const searchForm = ref({
   enabled: undefined,
   daterange: undefined
 })
-
-const showSearchBar = ref(false)
 
 const dialogVisible = ref(false)
 const permissionDialog = ref(false)
@@ -78,31 +76,25 @@ const {
     paginationKey: { current: 'pageNum', size: 'pageSize' },
     excludeParams: ['daterange'],
     columnsFactory: () => [
-      {
-        prop: 'roleId',
-        label: '角色ID',
-        width: 100
-      },
+      { type: 'selection' }, // 勾选列
+      { type: 'index', width: 60, label: '序号' }, // 序号
       {
         prop: 'roleName',
         label: '角色名称',
-        minWidth: 120
+        align: 'center',
       },
       {
         prop: 'roleCode',
-        label: '角色编码',
-        minWidth: 120
+        label: '角色编码'
       },
       {
-        prop: 'description',
+        prop: 'remark',
         label: '角色描述',
-        minWidth: 150,
         showOverflowTooltip: true
       },
       {
         prop: 'enabled',
         label: '角色状态',
-        width: 100,
         formatter: (row) => {
           const statusConfig = row.status
             ? { type: 'success', text: '启用' }
@@ -117,8 +109,8 @@ const {
       {
         prop: 'createTime',
         label: '创建日期',
-        width: 180,
-        sortable: true
+        sortable: true,
+        formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : ''
       },
       {
         prop: 'operation',
@@ -202,9 +194,12 @@ const deleteRole = (row: RoleListItem) => {
     type: 'warning'
   })
     .then(() => {
-      // TODO: 调用删除接口
-      ElMessage.success('删除成功')
-      refreshData()
+      fetchDeleteRole(row.roleId as number).then(() => {
+        ElMessage.success('删除成功')
+        refreshData()
+      }).catch(() => {
+        ElMessage.error('删除失败')
+      })
     })
     .catch(() => {
       ElMessage.info('已取消删除')

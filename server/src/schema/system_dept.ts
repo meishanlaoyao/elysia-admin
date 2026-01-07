@@ -8,7 +8,7 @@ export const systemDeptSchema = pgTable(
         deptId: bigserial('dept_id', { mode: 'number' }).primaryKey(), // 部门ID
         deptName: varchar('dept_name', { length: 64 }).notNull(), // 部门名称
         status: boolean('status').default(true), // 状态
-        parentId: bigint('parent_id', { mode: 'number' }).default(0), // 父部门ID
+        parentId: bigint('parent_id', { mode: 'number' }), // 父部门ID
         sort: integer('sort').default(0), // 排序
         ...BaseSchema,
     }

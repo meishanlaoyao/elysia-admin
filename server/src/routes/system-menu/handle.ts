@@ -1,9 +1,52 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
+import {
+    InsertOne,
+    FindOneByKey,
+    UpdateByKey,
+    SoftDeleteByKeys,
+    CreateQueryBuilder,
+    FindPage,
+    FindAll,
+} from '@/common/db';
+import { ParseDateFields } from '@/common/dto';
+import { systemMenuSchema } from '@/schema/system_menu';
+import { listToTree } from '@/common/function';
+
+export async function create(req: Context) {
+    try {
+        const data = req.body as typeof systemMenuSchema.$inferInsert;
+        console.log('插入的数据是', data)
+        await InsertOne(systemMenuSchema, data);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
 
 export async function findSimple(req: Context) {
     try {
-        const data = [
+        const {
+            title,
+            path,
+        } = req.query;
+        const where = CreateQueryBuilder(systemMenuSchema)
+            .eq('delFlag', false)
+            .like('title', title)
+            .like('path', path)
+            .build();
+        const data = await FindAll(systemMenuSchema, where);
+        const tree = listToTree(data, {
+            idKey: 'menuId',
+            parentKey: 'parentId',
+            childrenKey: 'children',
+            rootValue: 0,
+            sortKey: 'sort',
+        });
+        console.log(tree);
+
+        const data2 = [
             {
                 "name": "Dashboard",
                 "path": "/dashboard",
@@ -218,8 +261,30 @@ export async function findSimple(req: Context) {
                 ]
             }
         ];
-        return BaseResultData.ok(data);
+        return BaseResultData.ok(data2);
     } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function update(req: Context) {
+    try {
+        const data = ParseDateFields(req.body);
+        await UpdateByKey(systemMenuSchema, 'menuId', data, true);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function remove(req: Context) {
+    try {
+        const ids = req.params.ids.split(',').map(Number) as number[];
+        await SoftDeleteByKeys(systemMenuSchema, 'menuId', ids);
+        return BaseResultData.ok();
+    }
+    catch (error) {
         return BaseResultData.fail(500, error);
     }
 };

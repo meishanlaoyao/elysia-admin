@@ -14,7 +14,7 @@
                 @pagination:current-change="handleCurrentChange">
             </ArtTable>
             <ApiDialog v-model:visible="dialogVisible" :type="dialogType" :data="currentDictData"
-                @submit="handleDialogSubmit" />
+                @submit="refreshData" />
         </ElCard>
     </div>
 </template>
@@ -28,7 +28,7 @@ import { useTable } from '@/hooks/core/useTable';
 import { DialogType } from '@/types'
 import ApiSearch from './modules/api-search.vue';
 import ApiDialog from './modules/api-dialog.vue';
-import { fetchGetApiList, fetchCreateApi, fetchDeleteApi, fetchUpdateApi } from '@/api/system/api';
+import { fetchGetApiList, fetchDeleteApi, fetchUpdateApi } from '@/api/system/api';
 import { useDictStore } from '@/store/modules/dict';
 const dictStore = useDictStore()
 const { api_request_method } = dictStore.getDictData(['api_request_method'])
@@ -70,19 +70,20 @@ const {
         paginationKey: { current: 'pageNum', size: 'pageSize' },
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
-            { type: 'index', width: 60, label: '序号' }, // 序号
-            { prop: 'apiName', label: '名称' },
-            { prop: 'apiPath', label: '路径' },
+            { type: 'index', width: 60, label: '序号', align: 'center' }, // 序号
+            { prop: 'apiName', label: '名称', align: 'center' },
+            { prop: 'apiPath', label: '路径', align: 'center' },
             {
                 prop: 'apiMethod',
                 label: '方法',
+                align: 'center',
                 formatter: (row) => h(ArtDictTag, {
                     dictList: api_request_method.value,
                     value: row.apiMethod,
                 })
             },
             {
-                prop: 'status', label: '状态', formatter: (row) => h(ElSwitch, {
+                prop: 'status', label: '状态', align: 'center', formatter: (row) => h(ElSwitch, {
                     modelValue: row.status,
                     activeValue: true,
                     inactiveValue: false,
@@ -94,11 +95,12 @@ const {
                     },
                 })
             },
-            { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
+            { prop: 'createTime', label: '创建日期', align: 'center', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
                 prop: 'operation',
                 label: '操作',
                 width: 180,
+                align: 'center',
                 fixed: 'right',
                 formatter: (row) =>
                     h('div', [
@@ -133,26 +135,6 @@ const handleSearch = (params: Record<string, any>) => {
 const handleSelectionChange = (selection: ApiListItem[]): void => {
     selectedRows.value = selection
     console.log('选中行数据:', selectedRows.value)
-}
-
-/**
- * 处理弹窗提交事件
- */
-const handleDialogSubmit = async (formData: Partial<ApiListItem>) => {
-    Object.assign(currentDictData.value, formData)
-    try {
-        if (dialogType.value == 'add') {
-            await fetchCreateApi(currentDictData.value)
-        } else {
-            await fetchUpdateApi(currentDictData.value)
-        }
-        ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
-        dialogVisible.value = false
-        currentDictData.value = {}
-        refreshData()
-    } catch (error) {
-        console.error('提交失败:', error)
-    }
 }
 
 /**

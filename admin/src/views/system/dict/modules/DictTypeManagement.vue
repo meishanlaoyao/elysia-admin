@@ -28,8 +28,6 @@ import DictTypeDialog from './dict-type-dialog.vue';
 import { useTable } from '@/hooks/core/useTable';
 import {
     fetchGetDictTypeList,
-    fetchCreateDictType,
-    fetchUpdateDictType,
     fetchDeleteDictType,
 } from '@/api/system/dict';
 import { DialogType } from '@/types'
@@ -84,7 +82,7 @@ const {
             { type: 'index', width: 60, label: '序号' }, // 序号
             { prop: 'dictName', label: '字典名称' },
             { prop: 'dictType', label: '字典类型' },
-            { prop: 'createTime', label: '创建日期', sortable: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
+            { prop: 'createTime', label: '创建日期', sortable: true, showOverflowTooltip: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
                 prop: 'operation',
                 label: '操作',
@@ -132,22 +130,9 @@ const handleSelectionChangeType = (selection: DictTypeListItem[]): void => {
 /**
  * 处理弹窗提交事件
  */
-const handleDialogSubmitType = async (formData: Partial<DictTypeListItem>) => {
-    Object.assign(currentDictDataType.value, formData)
-    try {
-        if (dialogTypeType.value == 'add') {
-            await fetchCreateDictType(currentDictDataType.value)
-        } else {
-            await fetchUpdateDictType(currentDictDataType.value)
-        }
-        ElMessage.success(dialogTypeType.value === 'add' ? '添加成功' : '更新成功')
-        dialogVisibleType.value = false
-        currentDictDataType.value = {}
-        refreshDataType()
-        emit('refresh-cache')
-    } catch (error) {
-        console.error('提交失败:', error)
-    }
+const handleDialogSubmitType = () => {
+    refreshDataType()
+    emit('refresh-cache')
 }
 
 /**

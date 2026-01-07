@@ -17,6 +17,7 @@ import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
 import { useDictStore } from '@/store/modules/dict'
+import { fetchCreateApi, fetchUpdateApi } from '@/api/system/api';
 
 interface Props {
     visible: boolean
@@ -26,7 +27,7 @@ interface Props {
 
 interface Emits {
     (e: 'update:visible', value: boolean): void
-    (e: 'submit', value: Partial<Api.SystemApi.ApiListItem>): void
+    (e: 'submit'): void
 }
 
 const props = defineProps<Props>()
@@ -121,6 +122,7 @@ const initFormData = () => {
     const isEdit = props.type === 'edit' && props.data
     const row = props.data || {}
     Object.assign(formData, {
+        ...row,
         apiName: isEdit && row.apiName ? row.apiName || '' : '',
         apiPath: isEdit && row.apiPath ? row.apiPath || '' : '',
         apiMethod: isEdit && row.apiMethod ? row.apiMethod || '' : '',
@@ -152,7 +154,14 @@ const handleSubmit = async () => {
     if (!formRef.value) return
     try {
         await formRef.value.validate()
-        emit('submit', formData)
+        if (dialogType.value == 'add') {
+            await fetchCreateApi(formData)
+        } else {
+            await fetchUpdateApi(formData)
+        }
+        ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
+        emit('submit')
+        dialogVisible.value = false
     } catch {
         ElMessage.error('表单校验失败，请检查输入')
     }

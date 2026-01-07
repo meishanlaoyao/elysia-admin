@@ -2,7 +2,6 @@ import { Context } from 'elysia';
 import { BaseResultData } from '@/common/result';
 import {
     InsertOne,
-    FindOneByKey,
     UpdateByKey,
     SoftDeleteByKeys,
     CreateQueryBuilder,
@@ -41,18 +40,6 @@ export async function findTree(req: Context) {
             sortKey: 'sort',
         });
         return BaseResultData.ok(tree);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findOne(req: Context) {
-    try {
-        const id = Number(req.params.id);
-        const data = await FindOneByKey(systemDeptSchema, 'deptId', id);
-        if (!data || data.delFlag) return BaseResultData.fail(404);
-        return BaseResultData.ok(data);
     }
     catch (error) {
         return BaseResultData.fail(500, error);

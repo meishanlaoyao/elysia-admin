@@ -15,7 +15,6 @@ import {
     findListType,
     findListData,
     findOneType,
-    findOneData,
     updateType,
     updateData,
     removeType,
@@ -34,7 +33,6 @@ const SystemDictModule: IRouteModule = {
         { url: '/system/dict/data', method: 'post', summary: '创建-数据', isAuth: true, dto: CreateDataDto, handle: createData },
         { url: '/system/dict/data/all', method: 'get', summary: '查询所有-缓存数据', isAuth: true, handle: findAllData },
         { url: '/system/dict/data/list', method: 'get', summary: '查询列表-数据', isAuth: true, dto: ListDataDto, handle: findListData },
-        { url: '/system/dict/data/:id', method: 'get', summary: '查询详情-数据', isAuth: true, handle: findOneData },
         { url: '/system/dict/data', method: 'put', summary: '更新-数据', isAuth: true, dto: UpdateDataDto, handle: updateData },
         { url: '/system/dict/data/:ids', method: 'delete', isAuth: true, summary: '删除-数据', handle: removeData },
     ]

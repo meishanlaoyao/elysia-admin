@@ -171,12 +171,11 @@ const { columnChecks, columns } = useTableColumns(() => [
     prop: 'operation',
     label: '操作',
     width: 180,
-    align: 'right',
+    fixed: 'right', // 固定列
     formatter: (row: AppRouteRecord) => {
-      const buttonStyle = { style: 'text-align: right' }
 
       if (row.meta?.isAuthButton) {
-        return h('div', buttonStyle, [
+        return h('div', {}, [
           h(ArtButtonTable, {
             type: 'edit',
             onClick: () => handleEditAuth(row)
@@ -188,7 +187,7 @@ const { columnChecks, columns } = useTableColumns(() => [
         ])
       }
 
-      return h('div', buttonStyle, [
+      return h('div', {}, [
         h(ArtButtonTable, {
           type: 'add',
           onClick: () => handleAddAuth(),
