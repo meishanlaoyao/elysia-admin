@@ -12,6 +12,8 @@ export interface TreeOptions {
     rootValue?: number | null;
     /** 排序字段名，如果提供则按此字段升序排序 */
     sortKey?: string;
+    /** 需要从结果中移除的字段名数组 */
+    omitKeys?: string[];
 }
 
 /**
@@ -31,25 +33,34 @@ export function listToTree<T extends Record<string, any>>(
         childrenKey = 'children',
         rootValue = 0,
         sortKey,
+        omitKeys = [],
     } = options;
+    const hasOmitKeys = omitKeys.length > 0;
+    const omitKeysSet = hasOmitKeys ? new Set(omitKeys) : null;
     const map: Record<any, any> = {};
     const result: T[] = [];
     for (let i = 0; i < list.length; i++) {
-        const item: any = list[i];
-        item[childrenKey] = [];
-        map[item[idKey]] = item;
+        const original: any = list[i];
+        const node: any = {};
+        for (const key in original) {
+            if (!hasOmitKeys || !omitKeysSet!.has(key)) {
+                node[key] = original[key];
+            }
+        };
+        node[childrenKey] = [];
+        map[node[idKey]] = node;
     };
-    for (let i = 0; i < list.length; i++) {
-        const item: any = list[i];
-        const parentId = item[parentKey];
+    for (const id in map) {
+        const node = map[id];
+        const parentId = node[parentKey];
         if (parentId === rootValue || parentId === null) {
-            result.push(item);
+            result.push(node);
         } else {
             const parent = map[parentId];
             if (parent) {
-                parent[childrenKey].push(item);
+                parent[childrenKey].push(node);
             } else {
-                result.push(item);
+                result.push(node);
             };
         };
     };
@@ -60,8 +71,8 @@ export function listToTree<T extends Record<string, any>>(
                 const children = nodes[i][childrenKey];
                 if (children?.length > 0) {
                     sortNodes(children);
-                };
-            };
+                }
+            }
         };
         sortNodes(result);
     };

@@ -16,7 +16,6 @@ import { listToTree } from '@/common/function';
 export async function create(req: Context) {
     try {
         const data = req.body as typeof systemMenuSchema.$inferInsert;
-        console.log('插入的数据是', data)
         await InsertOne(systemMenuSchema, data);
         return BaseResultData.ok();
     }
@@ -44,8 +43,6 @@ export async function findSimple(req: Context) {
             rootValue: 0,
             sortKey: 'sort',
         });
-        console.log(tree);
-
         const data2 = [
             {
                 "name": "Dashboard",

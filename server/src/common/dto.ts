@@ -96,12 +96,21 @@ export const CrudDto = {
      * 创建 Create DTO
      * @param insertSchema Insert schema
      * @param selectSchema Select schema
-     * @param fields 需要的字段
+     * @param requiredFields 必填字段数组
      */
-    create: (insertSchema: any, selectSchema: any, fields: string[]) => ({
-        body: t.Pick(insertSchema, fields),
-        ...BaseResultDto(selectSchema),
-    }),
+    create: (insertSchema: any, selectSchema: any, requiredFields: string[]) => {
+        // 将 insertSchema 的所有字段变为可选
+        const allOptional = t.Partial(insertSchema);
+
+        // 提取必填字段并设为必填
+        const required = t.Pick(insertSchema, requiredFields);
+
+        // 合并：必填字段 + 其他可选字段
+        return {
+            body: t.Composite([required, allOptional]),
+            ...BaseResultDto(selectSchema),
+        };
+    },
 
     /**
      * 创建 Update DTO

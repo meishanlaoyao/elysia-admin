@@ -18,7 +18,7 @@ export const systemMenuSchema = pgTable(
         isHideTab: boolean('is_hide_tab').default(false), // 是否在标签页中隐藏
         link: varchar('link', { length: 255 }), // 外部链接
         isIframe: boolean('is_iframe').default(false), // 是否为iframe
-        keepAlive: boolean('keep_alive').default(false), // 是否缓存
+        keepAlive: boolean('keep_alive').default(true), // 是否缓存
         fixedTab: boolean('fixed_tab').default(false), // 是否固定标签页
         activePath: varchar('active_path', { length: 255 }), // 激活路径
         sort: integer('sort').default(0), // 排序

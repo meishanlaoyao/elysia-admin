@@ -41,6 +41,10 @@ app.onRequest(({ request, server }) => {
 // 注册路由
 RegisterRoutes(app as Elysia);
 
+// 初始化种子数据
+// import { InitSeedData } from '@/common/seed';
+// InitSeedData();
+
 app.listen(port);
 console.log(`${id} is running at http://localhost:${port}${prefix}
 OpenAPI JSON: http://localhost:${port}${prefix}/openapi/json
