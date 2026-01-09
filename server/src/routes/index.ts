@@ -10,7 +10,7 @@ import SystemRoleModule from "./system-role/route";
 import SystemDeptModule from "./system-dept/route";
 import SystemApiModule from "./system-api/route";
 
-const routeList: IRouteModule[] = [
+export const RouteTree: IRouteModule[] = [
     AuthModule,
     SystemUserModule,
     SystemDictModule,
@@ -19,24 +19,26 @@ const routeList: IRouteModule[] = [
     SystemDeptModule,
     SystemApiModule,
 ];
+export const RouteList: { tags: string[], route: IRoute }[] = [];
+
 
 /**
  * 注册所有路由
  * @param app Elysia 实例
  */
 export function RegisterRoutes(app: Elysia) {
-    const publicRoutes: { tags: string[], route: IRoute }[] = [];
-    const authRoutes: { tags: string[], route: IRoute }[] = [];
-    routeList.forEach(module => {
+    const PublicRoutes: { tags: string[], route: IRoute }[] = [];
+    const AuthRoutes: { tags: string[], route: IRoute }[] = [];
+    RouteTree.forEach(module => {
         module.routes.forEach(route => {
             if (route.isAuth) {
-                authRoutes.push({ tags: [module.tags], route });
+                AuthRoutes.push({ tags: [module.tags], route });
             } else {
-                publicRoutes.push({ tags: [module.tags], route });
+                PublicRoutes.push({ tags: [module.tags], route });
             };
         });
     });
-    publicRoutes.forEach(({ tags, route }) => {
+    PublicRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
@@ -47,10 +49,12 @@ export function RegisterRoutes(app: Elysia) {
             authorization: t.String({ description: 'Bearer Token令牌', minLength: 1, error: '请先登陆后访问' }),
         }),
     });
-    authRoutes.forEach(({ tags, route }) => {
+    AuthRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
         });
     });
+    RouteList.push(...PublicRoutes, ...AuthRoutes);
+    console.log(`接口已注册: 公共${PublicRoutes.length}个 权限${AuthRoutes.length}个`);
 };

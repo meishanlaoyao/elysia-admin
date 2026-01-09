@@ -81,10 +81,10 @@ export const CreateUpdateDto = (schema: any) => {
 export const ParseDateFields = (data: any) => {
     if (data.createTime && typeof data.createTime === 'string') {
         data.createTime = new Date(data.createTime);
-    }
+    };
     if (data.updateTime && typeof data.updateTime === 'string') {
         data.updateTime = new Date(data.updateTime);
-    }
+    };
     return data;
 };
 

@@ -4,6 +4,7 @@ import { GetNowTime } from "@/utils/time";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';
+import { InitSeedData } from '@/utils/seed';
 
 const { port, id, prefix } = config.app;
 const app = new Elysia({ prefix });
@@ -42,8 +43,7 @@ app.onRequest(({ request, server }) => {
 RegisterRoutes(app as Elysia);
 
 // 初始化种子数据
-// import { InitSeedData } from '@/common/seed';
-// InitSeedData();
+InitSeedData();
 
 app.listen(port);
 console.log(`${id} is running at http://localhost:${port}${prefix}

@@ -10,6 +10,9 @@ import {
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemApiSchema } from '@/schema/system_api';
+import { CacheEnum } from '@/common/enum';
+import { Del, Set } from '@/client/redis';
+import { SYSTEM_API_METHOD } from '@/common/dict';
 
 export async function create(req: Context) {
     try {
@@ -71,6 +74,14 @@ export async function update(req: Context) {
     try {
         const data = ParseDateFields(req.body);
         await UpdateByKey(systemApiSchema, 'apiId', data, true);
+        const reverseMethodMap = Object.fromEntries(Object.entries(SYSTEM_API_METHOD).map(([key, value]) => [value, key]));
+        if (data.status) {
+            const key = `${CacheEnum.FALLBACK_API}${reverseMethodMap[data.apiMethod]}:${data.apiPath}`;
+            await Del(key);
+        } else {
+            const key = `${CacheEnum.FALLBACK_API}${reverseMethodMap[data.apiMethod]}:${data.apiPath}`;
+            await Set(key, '');
+        };
         return BaseResultData.ok();
     }
     catch (error) {

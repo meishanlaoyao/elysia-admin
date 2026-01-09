@@ -21,4 +21,8 @@ export const CacheEnum = {
      * 忘记密码
      */
     FORGET_PASSWORD: `${config.app.id}:forgetPassword:`,
+    /**
+     * 熔断的api
+     */
+    FALLBACK_API: `${config.app.id}:fallbackApi:`,
 };

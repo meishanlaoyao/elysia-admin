@@ -33,6 +33,29 @@ export async function Set(key: string, value: any, expire?: number): Promise<boo
 };
 
 /**
+ * 批量设置缓存
+ * @param items 缓存项数组，每个项包含key、value和可选的expire
+ * @returns 是否全部设置成功
+ */
+export async function SetMulti(items: Array<{ key: string, value: any, expire?: number }>): Promise<boolean> {
+    try {
+        const pipeline = redis.pipeline();
+        for (const item of items) {
+            const value = JSON.stringify(item.value);
+            pipeline.set(item.key, value);
+            if (item.expire) {
+                pipeline.expire(item.key, item.expire);
+            }
+        };
+        await pipeline.exec();
+        return true;
+    } catch (error) {
+        console.error("Redis set multi error:", error);
+        return false;
+    }
+};
+
+/**
  * 获取缓存
  * @param key 缓存key
  * @returns 缓存值
