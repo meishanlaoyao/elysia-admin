@@ -80,7 +80,7 @@ export async function update(req: Context) {
             await Del(key);
         } else {
             const key = `${CacheEnum.FALLBACK_API}${reverseMethodMap[data.apiMethod]}:${data.apiPath}`;
-            await Set(key, '');
+            await Set(key, '1');
         };
         return BaseResultData.ok();
     }

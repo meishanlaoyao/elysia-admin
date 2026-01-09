@@ -92,7 +92,7 @@ async function InitApiData() {
         } else if (!existingApi?.status) {
             fallbackApiKeys.push({
                 key: `${CacheEnum.FALLBACK_API}${reverseMethodMap[existingApi.api_method]}:${existingApi.api_path}`,
-                value: ''
+                value: '1'
             });
         };
     };
