@@ -1,3 +1,10 @@
+export interface IRouteMeta {
+    /** 
+     * 权限标识
+     */
+    permission?: string
+};
+
 export interface IRoute {
     /**
      * 路由路径
@@ -23,6 +30,10 @@ export interface IRoute {
      * 路由处理函数
      */
     handle: Function
+    /**
+     * 路由元信息
+     */
+    meta?: IRouteMeta
 };
 
 export interface IRouteModule {

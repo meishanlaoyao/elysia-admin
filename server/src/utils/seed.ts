@@ -1,5 +1,4 @@
 import pg from '@/client/pg';
-import { Keys, Del, SetMulti } from '@/client/redis';
 import { sql } from 'drizzle-orm';
 import postgres from 'postgres';
 import config from '@/config';
@@ -52,20 +51,6 @@ async function executeSqlFile() {
 };
 
 /**
- * 初始化熔断的api
- */
-async function InitFallbackApiData(fallbackApiKeys: Array<{ key: string, value: string }>) {
-    try {
-        const keys = await Keys(CacheEnum.FALLBACK_API);
-        if (keys?.length) await Del(keys);
-        if (fallbackApiKeys?.length) await SetMulti(fallbackApiKeys);
-    } catch (error) {
-        console.error('初始化熔断的api数据失败:', error);
-        throw error;
-    }
-};
-
-/**
  * 初始化需要权限的api数据
  * 初始化熔断的api数据
  */
@@ -103,7 +88,6 @@ async function InitApiData() {
             VALUES ${sql.join(values, sql`, `)}
         `);
     };
-    await InitFallbackApiData(fallbackApiKeys);
 };
 
 /**

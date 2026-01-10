@@ -1,4 +1,5 @@
 import { Context } from 'elysia';
+import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/common/result';
 import {
     InsertOne,
@@ -8,12 +9,13 @@ import {
     CreateQueryBuilder,
     FindPage,
     FindAll,
+    FindAllWithJoin,
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
-import { systemMenuSchema } from '@/schema/system_menu';
+import { systemMenuSchema, systemMenuBtnSchema } from '@/schema/system_menu';
 import { listToTree } from '@/common/function';
 
-export async function create(req: Context) {
+export async function createMenu(req: Context) {
     try {
         const data = req.body as typeof systemMenuSchema.$inferInsert;
         await InsertOne(systemMenuSchema, data);
@@ -24,25 +26,19 @@ export async function create(req: Context) {
     }
 };
 
+export async function createMenuBtn(req: Context) {
+    try {
+        const data = req.body as typeof systemMenuBtnSchema.$inferInsert;
+        await InsertOne(systemMenuBtnSchema, data);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
 export async function findSimple(req: Context) {
     try {
-        const {
-            title,
-            path,
-        } = req.query;
-        const where = CreateQueryBuilder(systemMenuSchema)
-            .eq('delFlag', false)
-            .like('title', title)
-            .like('path', path)
-            .build();
-        const data = await FindAll(systemMenuSchema, where);
-        const tree = listToTree(data, {
-            idKey: 'menuId',
-            parentKey: 'parentId',
-            childrenKey: 'children',
-            rootValue: 0,
-            sortKey: 'sort',
-        });
         const data2 = [
             {
                 "name": "Dashboard",
@@ -264,7 +260,40 @@ export async function findSimple(req: Context) {
     }
 };
 
-export async function update(req: Context) {
+export async function findTree(req: Context) {
+    try {
+        const {
+            title,
+            path,
+        } = req.query;
+        const builder = CreateQueryBuilder(systemMenuSchema)
+            .eq('delFlag', false)
+            .like('title', title)
+            .like('path', path)
+            .join({
+                joinSchema: systemMenuBtnSchema,
+                fieldName: 'authList',
+                foreignKey: 'menuId',
+                primaryKey: 'menuId',
+                defaultValue: [],
+                where: eq(systemMenuBtnSchema.delFlag, false),
+                multiple: true
+            });
+        const data = await FindAllWithJoin(systemMenuSchema, builder);
+        const tree = listToTree(data, {
+            idKey: 'menuId',
+            parentKey: 'parentId',
+            childrenKey: 'children',
+            rootValue: 0,
+            sortKey: 'sort',
+        });
+        return BaseResultData.ok(tree);
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function updateMenu(req: Context) {
     try {
         const data = ParseDateFields(req.body);
         await UpdateByKey(systemMenuSchema, 'menuId', data, true);
@@ -275,10 +304,32 @@ export async function update(req: Context) {
     }
 };
 
-export async function remove(req: Context) {
+export async function updateMenuBtn(req: Context) {
+    try {
+        const data = ParseDateFields(req.body);
+        await UpdateByKey(systemMenuBtnSchema, 'btnId', data, true);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function removeMenu(req: Context) {
     try {
         const ids = req.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemMenuSchema, 'menuId', ids);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function removeMenuBtn(req: Context) {
+    try {
+        const ids = req.params.ids.split(',').map(Number) as number[];
+        await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ids);
         return BaseResultData.ok();
     }
     catch (error) {

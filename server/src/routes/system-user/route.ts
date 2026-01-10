@@ -5,13 +5,13 @@ import { create, findAll, findList, findInfo, findOne, update, remove } from "./
 const SystemUserModule: IRouteModule = {
     tags: '系统用户',
     routes: [
-        { url: '/system/user', method: 'post', summary: '创建', isAuth: true, dto: CreateDto, handle: create, },
-        { url: '/system/user/all', method: 'get', summary: '查询所有', isAuth: true, handle: findAll, },
-        { url: '/system/user/list', method: 'get', summary: '查询列表', isAuth: true, dto: ListDto, handle: findList, },
-        { url: '/system/user/info', method: 'get', summary: '查询当前用户', isAuth: true, handle: findInfo, },
-        { url: '/system/user/:id', method: 'get', summary: '查询详情', isAuth: true, handle: findOne, },
-        { url: '/system/user', method: 'put', summary: '更新', isAuth: true, dto: UpdateDto, handle: update, },
-        { url: '/system/user/:ids', method: 'delete', isAuth: true, summary: '删除', handle: remove, },
+        { url: '/system/user', method: 'post', summary: '创建', isAuth: true, dto: CreateDto, handle: create, meta: { permission: 'system:user:create' } },
+        { url: '/system/user/all', method: 'get', summary: '查询所有', isAuth: true, handle: findAll, meta: { permission: 'system:user:query' } },
+        { url: '/system/user/list', method: 'get', summary: '查询列表', isAuth: true, dto: ListDto, handle: findList, meta: { permission: 'system:user:query' } },
+        { url: '/system/user/info', method: 'get', summary: '查询当前用户', isAuth: true, handle: findInfo, meta: { permission: 'system:user:info' } },
+        { url: '/system/user/:id', method: 'get', summary: '查询详情', isAuth: true, handle: findOne, meta: { permission: 'system:user:query' } },
+        { url: '/system/user', method: 'put', summary: '更新', isAuth: true, dto: UpdateDto, handle: update, meta: { permission: 'system:user:update' } },
+        { url: '/system/user/:ids', method: 'delete', isAuth: true, summary: '删除', handle: remove, meta: { permission: 'system:user:delete' } },
     ]
 };
 

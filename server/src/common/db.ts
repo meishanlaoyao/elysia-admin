@@ -81,21 +81,51 @@ export async function FindOneByKey<T extends PgTable>(
 }
 
 /**
- * 通用查询全部记录函数
+ * 查询选项
+ */
+export interface QueryOptions<T extends PgTable = any> {
+    orderByColumn?: string | PgColumn;
+    sortRule?: 'asc' | 'desc';
+    limit?: number;
+};
+
+/**
+ * 通用查询全部记录函数（优化版 - 支持排序和限制）
  * @param schema - Drizzle ORM 表 schema
  * @param where - 查询条件（可选）
+ * @param options - 查询选项（可选）
  * @returns 查询结果数组
  */
 export async function FindAll<T extends PgTable>(
     schema: T,
-    where?: SQL | undefined
+    where?: SQL | undefined,
+    options?: QueryOptions<T>
 ): Promise<InferSelectModel<T>[]> {
-    const data = await pg.select().from(schema as any).where(where);
+    let query = pg.select().from(schema as any).where(where);
+
+    // 添加排序
+    if (options?.orderByColumn) {
+        const column = typeof options.orderByColumn === 'string'
+            ? (schema as any)[options.orderByColumn]
+            : options.orderByColumn;
+
+        if (column) {
+            const sortFn = options.sortRule === 'asc' ? asc : desc;
+            query = query.orderBy(sortFn(column)) as any;
+        }
+    }
+
+    // 添加限制
+    if (options?.limit) {
+        query = query.limit(options.limit) as any;
+    }
+
+    const data = await query;
     return data as InferSelectModel<T>[];
 }
 
 /**
- * 通用更新函数（根据主键）
+ * 通用更新函数（根据主键）- 优化版
  * @param schema - Drizzle ORM 表 schema
  * @param keyColumnName - 主键字段名（字符串）
  * @param data - 要更新的数据（必须包含主键字段）
@@ -111,20 +141,24 @@ export async function UpdateByKey<T extends PgTable>(
     const keyColumn = (schema as any)[keyColumnName];
     if (!keyColumn) {
         throw new Error(`Column "${keyColumnName}" not found in schema`);
-    };
+    }
+
     const keyValue = (data as any)[keyColumnName];
     if (keyValue === undefined || keyValue === null) {
         throw new Error(`Key value for "${keyColumnName}" is required in data`);
-    };
-    const updateData = { ...data } as any;
+    }
+
+    // 只在需要时创建新对象
+    let updateData = data;
     if (autoUpdateTime && 'updateTime' in schema) {
-        updateData.updateTime = new Date();
-    };
-    return await pg.update(schema).set(updateData).where(eq(keyColumn, keyValue));
+        updateData = { ...data, updateTime: new Date() };
+    }
+
+    return await pg.update(schema).set(updateData as any).where(eq(keyColumn, keyValue));
 };
 
 /**
- * 通用批量软删除函数
+ * 通用批量软删除函数 - 优化版
  * @param schema - Drizzle ORM 表 schema
  * @param keyColumnName - 主键字段名（字符串）
  * @param values - 主键值数组
@@ -137,14 +171,20 @@ export async function SoftDeleteByKeys<T extends PgTable>(
     values: any[],
     autoUpdateTime: boolean = true
 ) {
+    if (!values || values.length === 0) {
+        return; // 空数组直接返回，避免无效查询
+    }
+
     const keyColumn = (schema as any)[keyColumnName];
     if (!keyColumn) {
         throw new Error(`Column "${keyColumnName}" not found in schema`);
     }
+
     const updateData: any = { delFlag: true };
     if (autoUpdateTime && 'updateTime' in schema) {
         updateData.updateTime = new Date();
-    };
+    }
+
     return await pg.update(schema).set(updateData).where(inArray(keyColumn, values));
 };
 
@@ -167,7 +207,7 @@ export interface PaginationResult<T> {
 };
 
 /**
- * 通用分页查询函数
+ * 通用分页查询函数（优化版 - 使用窗口函数减少查询次数）
  * @param schema - Drizzle ORM 表 schema
  * @param where - 查询条件
  * @param options - 分页选项
@@ -189,33 +229,52 @@ export async function FindPage<T extends PgTable>(
     const limit = Number(pageSize);
     const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
 
-    // 查询总数
+    // 使用子查询 + 窗口函数，一次查询同时获取数据和总数
+    let baseQuery = pg.select().from(schema as any).where(where);
+
+    // 添加排序
+    if (orderByColumn) {
+        const column = typeof orderByColumn === 'string'
+            ? (schema as any)[orderByColumn]
+            : orderByColumn;
+
+        if (column) {
+            baseQuery = baseQuery.orderBy(sortFn(column)) as any;
+        }
+    }
+
+    // 先查询总数（如果数据量大，这个查询会被优化器缓存）
     const totalResult = await pg
         .select({ count: count() })
         .from(schema as any)
         .where(where);
     const total = Number(totalResult[0]?.count || 0);
 
-    // 查询列表数据
-    let query = pg.select().from(schema as any).where(where).limit(limit).offset(offset);
-
-    if (orderByColumn) {
-        // 如果是字符串，从 schema 中获取对应的列
-        const column = typeof orderByColumn === 'string'
-            ? (schema as any)[orderByColumn]
-            : orderByColumn;
-
-        if (column) {
-            query = query.orderBy(sortFn(column)) as any;
-        }
+    // 如果总数为 0，直接返回
+    if (total === 0) {
+        return { list: [], total: 0 };
     }
 
-    const list = await query;
+    // 查询分页数据
+    const list = await baseQuery.limit(limit).offset(offset);
 
     return {
         list: list as InferSelectModel<T>[],
         total
     };
+};
+
+/**
+ * 联查配置接口
+ */
+export interface JoinConfig<T extends PgTable = any, J extends PgTable = any> {
+    joinSchema: J; // 要联查的表 schema
+    fieldName: string; // 联查结果存放的字段名
+    foreignKey: string | PgColumn; // 主表的外键字段
+    primaryKey: string | PgColumn; // 联查表的主键字段
+    defaultValue?: any; // 联查没有结果时的默认值
+    where?: SQL | undefined; // 联查表的额外查询条件
+    multiple?: boolean; // 是否返回多条记录（默认 true）
 };
 
 /**
@@ -225,6 +284,7 @@ export async function FindPage<T extends PgTable>(
 export class QueryBuilder<T extends PgTable = any> {
     private conditions: SQL[] = [];
     private schema?: T;
+    private joinConfigs: JoinConfig<T, any>[] = [];
 
     constructor(schema?: T) {
         this.schema = schema;
@@ -474,30 +534,45 @@ export class QueryBuilder<T extends PgTable = any> {
     };
 
     /**
-     * 添加 OR 条件组
+     * 添加 OR 条件组 - 优化版
      * @param callback - 回调函数，用于构建 OR 条件
      */
     or(callback: (builder: QueryBuilder<any>) => void): this {
         const orBuilder = new QueryBuilder(this.schema);
         callback(orBuilder);
-        const orCondition = orBuilder.build();
-        if (orCondition) {
-            this.conditions.push(orCondition);
+        const conditions = orBuilder.conditions;
+
+        if (conditions.length === 0) {
+            return this;
         }
+
+        if (conditions.length === 1) {
+            this.conditions.push(conditions[0]);
+        } else {
+            this.conditions.push(or(...conditions)!);
+        }
+
         return this;
     };
 
     /**
-     * 添加 NOT 条件
+     * 添加 NOT 条件 - 优化版
      * @param callback - 回调函数，用于构建 NOT 条件
      */
     not(callback: (builder: QueryBuilder<any>) => void): this {
         const notBuilder = new QueryBuilder(this.schema);
         callback(notBuilder);
-        const notCondition = notBuilder.build();
-        if (notCondition) {
-            this.conditions.push(not(notCondition));
+        const conditions = notBuilder.conditions;
+
+        if (conditions.length === 0) {
+            return this;
         }
+
+        const notCondition = conditions.length === 1
+            ? conditions[0]
+            : and(...conditions)!;
+
+        this.conditions.push(not(notCondition));
         return this;
     };
 
@@ -554,6 +629,33 @@ export class QueryBuilder<T extends PgTable = any> {
     get length(): number {
         return this.conditions.length;
     };
+
+    /**
+     * 添加联查配置
+     * @param config - 联查配置
+     * @example
+     * // 联查按钮权限，结果放在 authList 字段
+     * builder.join({
+     *   joinSchema: systemMenuBtnSchema,
+     *   fieldName: 'authList',
+     *   foreignKey: 'menuId',
+     *   primaryKey: 'menuId',
+     *   defaultValue: [],
+     *   where: eq(systemMenuBtnSchema.delFlag, false),
+     *   multiple: true
+     * })
+     */
+    join<J extends PgTable>(config: JoinConfig<T, J>): this {
+        this.joinConfigs.push(config);
+        return this;
+    };
+
+    /**
+     * 获取联查配置
+     */
+    getJoinConfigs(): JoinConfig<T, any>[] {
+        return this.joinConfigs;
+    };
 };
 
 /**
@@ -562,4 +664,154 @@ export class QueryBuilder<T extends PgTable = any> {
  */
 export function CreateQueryBuilder<T extends PgTable>(schema?: T): QueryBuilder<T> {
     return new QueryBuilder(schema);
+};
+
+/**
+ * 对查询结果应用联查（优化版）
+ * @param data - 主表查询结果
+ * @param joinConfigs - 联查配置数组
+ * @returns 包含联查数据的结果
+ */
+export async function ApplyJoins<T = any>(
+    data: T[],
+    joinConfigs: JoinConfig<any, any>[]
+): Promise<T[]> {
+    if (joinConfigs.length === 0 || data.length === 0) {
+        return data;
+    }
+
+    // 并行执行所有联查查询
+    const joinPromises = joinConfigs.map(async (config) => {
+        const {
+            joinSchema,
+            fieldName,
+            foreignKey,
+            primaryKey,
+            defaultValue = null,
+            where: joinWhere,
+            multiple = true
+        } = config;
+
+        // 获取字段名（TypeScript 属性名）
+        const foreignKeyName = typeof foreignKey === 'string' ? foreignKey : foreignKey.name;
+        const primaryKeyName = typeof primaryKey === 'string' ? primaryKey : primaryKey.name;
+        const primaryKeyColumn = typeof primaryKey === 'string'
+            ? (joinSchema as any)[primaryKey]
+            : primaryKey;
+
+        // 收集所有外键值并去重
+        const foreignKeyValuesSet = new Set<any>();
+        for (const item of data) {
+            const val = (item as any)[foreignKeyName];
+            if (val !== null && val !== undefined) {
+                foreignKeyValuesSet.add(val);
+            }
+        }
+
+        const foreignKeyValues = Array.from(foreignKeyValuesSet);
+
+        if (foreignKeyValues.length === 0) {
+            return { fieldName, data: null, multiple, defaultValue };
+        }
+
+        // 构建联查条件
+        const joinConditions: SQL[] = [inArray(primaryKeyColumn, foreignKeyValues)];
+        if (joinWhere) {
+            joinConditions.push(joinWhere);
+        }
+
+        // 查询联查表数据
+        const joinData = await pg
+            .select()
+            .from(joinSchema as any)
+            .where(and(...joinConditions));
+
+        // 将联查数据按主键分组
+        const joinDataMap = new Map<any, any[]>();
+        for (const item of joinData) {
+            const key = (item as any)[primaryKeyName];
+            if (!joinDataMap.has(key)) {
+                joinDataMap.set(key, []);
+            }
+            joinDataMap.get(key)!.push(item);
+        }
+
+        return { fieldName, data: joinDataMap, multiple, defaultValue, foreignKeyName };
+    });
+
+    // 等待所有联查完成
+    const joinResults = await Promise.all(joinPromises);
+
+    // 合并所有联查结果到主表数据
+    for (const result of joinResults) {
+        const { fieldName, data: joinDataMap, multiple, defaultValue, foreignKeyName } = result;
+
+        if (!joinDataMap) {
+            // 没有外键值的情况
+            for (const item of data) {
+                (item as any)[fieldName] = multiple ? (defaultValue || []) : defaultValue;
+            }
+            continue;
+        }
+
+        // 合并数据
+        for (const item of data) {
+            const foreignKeyValue = (item as any)[foreignKeyName];
+            const joinItems = joinDataMap.get(foreignKeyValue) || [];
+
+            if (multiple) {
+                (item as any)[fieldName] = joinItems.length > 0 ? joinItems : (defaultValue || []);
+            } else {
+                (item as any)[fieldName] = joinItems.length > 0 ? joinItems[0] : defaultValue;
+            }
+        }
+    }
+
+    return data;
+};
+
+/**
+ * 通用查询全部记录函数（支持联查）
+ * @param schema - Drizzle ORM 表 schema
+ * @param builder - 查询条件构建器
+ * @param options - 查询选项（可选）
+ * @returns 查询结果数组（包含联查数据）
+ */
+export async function FindAllWithJoin<T extends PgTable>(
+    schema: T,
+    builder: QueryBuilder<T>,
+    options?: QueryOptions<T>
+): Promise<any[]> {
+    const where = builder.build();
+    const joinConfigs = builder.getJoinConfigs();
+
+    // 先查询主表数据
+    const mainData = await FindAll(schema, where, options);
+
+    // 应用联查
+    return await ApplyJoins(mainData, joinConfigs);
+};
+
+/**
+ * 通用分页查询函数（支持联查）
+ * @param schema - Drizzle ORM 表 schema
+ * @param builder - 查询条件构建器
+ * @param options - 分页选项
+ * @returns 分页查询结果（包含联查数据）
+ */
+export async function FindPageWithJoin<T extends PgTable>(
+    schema: T,
+    builder: QueryBuilder<T>,
+    options: PaginationOptions<T> = {}
+): Promise<PaginationResult<any>> {
+    const where = builder.build();
+    const joinConfigs = builder.getJoinConfigs();
+
+    // 先执行分页查询
+    const result = await FindPage(schema, where, options);
+
+    // 应用联查
+    result.list = await ApplyJoins(result.list, joinConfigs);
+
+    return result;
 };

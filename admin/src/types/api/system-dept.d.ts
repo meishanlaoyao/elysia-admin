@@ -16,8 +16,7 @@ declare namespace Api {
         }
 
         type DeptSearchParams = Partial<
-            Pick<DeptListItem, 'deptName'> &
-            Api.Common.CommonSearchParams
+            Pick<DeptListItem, 'deptName'>
         >
     }
 }

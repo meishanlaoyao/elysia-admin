@@ -1,7 +1,6 @@
 import { pgTable, bigserial, varchar, boolean, bigint, integer } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
-import { systemApiSchema } from './system_api';
 
 export const systemMenuSchema = pgTable(
     'system_menu',
@@ -22,6 +21,7 @@ export const systemMenuSchema = pgTable(
         fixedTab: boolean('fixed_tab').default(false), // 是否固定标签页
         activePath: varchar('active_path', { length: 255 }), // 激活路径
         sort: integer('sort').default(0), // 排序
+        status: boolean('status').default(true), // 状态
         parentId: bigint('parent_id', { mode: 'number' }), // 父菜单ID
         ...BaseSchema,
     }
@@ -29,13 +29,16 @@ export const systemMenuSchema = pgTable(
 export const InsertSystemMenu = createInsertSchema(systemMenuSchema);
 export const SelectSystemMenu = createSelectSchema(systemMenuSchema);
 
-export const systemMenuApiSchema = pgTable(
-    'system_menu_api',
+export const systemMenuBtnSchema = pgTable(
+    'system_menu_btn',
     {
+        btnId: bigserial('btn_id', { mode: 'number' }).primaryKey(), // 按钮ID
         menuId: bigint('menu_id', { mode: 'number' }).references(() => systemMenuSchema.menuId), // 菜单ID
-        apiId: bigint('api_id', { mode: 'number' }).references(() => systemApiSchema.apiId), // APIID
         title: varchar('title', { length: 64 }), // 权限名称
+        sort: integer('sort').default(0), // 排序
+        permission: varchar('permission', { length: 64 }), // 权限标识
+        ...BaseSchema,
     }
 );
-export const InsertSystemMenuApi = createInsertSchema(systemMenuApiSchema);
-export const SelectSystemMenuApi = createSelectSchema(systemMenuApiSchema);
+export const InsertSystemMenuBtn = createInsertSchema(systemMenuBtnSchema);
+export const SelectSystemMenuBtn = createSelectSchema(systemMenuBtnSchema);
