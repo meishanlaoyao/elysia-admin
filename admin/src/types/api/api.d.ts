@@ -43,3 +43,4 @@
 /// <reference path="./system-user.d.ts" />
 /// <reference path="./system-role.d.ts" />
 /// <reference path="./system-api.d.ts" />
+/// <reference path="./system-menu.d.ts" />

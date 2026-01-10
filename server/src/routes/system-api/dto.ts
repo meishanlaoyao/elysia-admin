@@ -8,7 +8,7 @@ export const CreateDto = CrudDto.create(
     ['apiName', 'apiPath', 'apiMethod']
 );
 
-export const UpdateDto = CrudDto.update(SelectSystemApi);
+export const UpdateDto = CrudDto.update(SelectSystemApi, 'apiId');
 
 export const ListDto = CrudDto.list(
     SelectSystemApi,

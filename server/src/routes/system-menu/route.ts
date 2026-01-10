@@ -1,6 +1,6 @@
 import type { IRouteModule } from "@/common/route";
 import { findSimple, findTree, createMenu, createMenuBtn, updateMenu, removeMenu, updateMenuBtn, removeMenuBtn } from "./handle";
-import { CreateMenuDto, CreateMenuBtnDto, FindAllMenuDto, UpdateMenuDto } from './dto';
+import { CreateMenuDto, CreateMenuBtnDto, FindAllMenuDto, UpdateMenuDto, UpdateMenuBtnDto } from './dto';
 
 const SystemMenuModule: IRouteModule = {
     tags: '系统菜单',
@@ -12,7 +12,7 @@ const SystemMenuModule: IRouteModule = {
         { url: '/system/menu', method: 'put', isAuth: true, summary: '更新菜单', dto: UpdateMenuDto, handle: updateMenu, meta: { permission: 'system:menu:update' } },
         { url: '/system/menu/:ids', method: 'delete', isAuth: true, summary: '删除菜单', handle: removeMenu, meta: { permission: 'system:menu:delete' } },
         { url: '/system/menu/btn', method: 'post', summary: '创建按钮', isAuth: true, dto: CreateMenuBtnDto, handle: createMenuBtn, meta: { permission: 'system:menu:create' } },
-        { url: '/system/menu/btn', method: 'put', isAuth: true, summary: '更新按钮', dto: UpdateMenuDto, handle: updateMenuBtn, meta: { permission: 'system:menu:update' } },
+        { url: '/system/menu/btn', method: 'put', isAuth: true, summary: '更新按钮', dto: UpdateMenuBtnDto, handle: updateMenuBtn, meta: { permission: 'system:menu:update' } },
         { url: '/system/menu/btn/:ids', method: 'delete', isAuth: true, summary: '删除按钮', handle: removeMenuBtn, meta: { permission: 'system:menu:delete' } },
     ]
 };

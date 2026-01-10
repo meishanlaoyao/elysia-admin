@@ -59,13 +59,22 @@ export const BaseListQueryDto = (other?: any) => t.Object({
 });
 
 /**
- * 创建 Update DTO，自动处理日期字段为字符串
+ * 创建 Update DTO，自动处理日期字段为字符串，除主键外所有字段可选
  * @param schema Drizzle select schema
- * @returns Update DTO with date fields as strings
+ * @param primaryKey 主键字段名（默认为 'id'）
+ * @returns Update DTO with optional fields except primary key
  */
-export const CreateUpdateDto = (schema: any) => {
+export const CreateUpdateDto = (schema: any, primaryKey: string = 'id') => {
+    // 先将所有字段变为可选
+    const allOptional = t.Partial(schema);
+
+    // 提取主键字段并设为必填
+    const requiredPrimaryKey = t.Pick(schema, [primaryKey]);
+
+    // 合并：必填主键 + 其他可选字段
     return t.Composite([
-        t.Omit(schema, ['createTime', 'updateTime']),
+        requiredPrimaryKey,
+        t.Omit(allOptional, [primaryKey, 'createTime', 'updateTime']),
         t.Object({
             createTime: t.Optional(t.Union([t.String({ format: 'date-time' }), t.Null()])),
             updateTime: t.Optional(t.Union([t.String({ format: 'date-time' }), t.Null()])),
@@ -115,9 +124,10 @@ export const CrudDto = {
     /**
      * 创建 Update DTO
      * @param selectSchema Select schema
+     * @param primaryKey 主键字段名（默认为 'id'）
      */
-    update: (selectSchema: any) => ({
-        body: CreateUpdateDto(selectSchema),
+    update: (selectSchema: any, primaryKey: string = 'id') => ({
+        body: CreateUpdateDto(selectSchema, primaryKey),
         ...BaseResultDto(selectSchema),
     }),
 

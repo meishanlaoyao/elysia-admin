@@ -2,6 +2,9 @@ import { PgTable, TableConfig, PgColumn } from 'drizzle-orm/pg-core';
 import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count } from 'drizzle-orm';
 import pg from '@/client/pg';
 
+// 导出 db 实例供直接使用
+export const db = pg;
+
 type InferInsertModel<T extends PgTable> = T extends PgTable<infer Config extends TableConfig>
     ? Config['columns'] extends infer Columns
     ? {
@@ -186,6 +189,43 @@ export async function SoftDeleteByKeys<T extends PgTable>(
     }
 
     return await pg.update(schema).set(updateData).where(inArray(keyColumn, values));
+};
+
+/**
+ * 通用硬删除函数（根据条件）
+ * @param schema - Drizzle ORM 表 schema
+ * @param where - 删除条件
+ * @returns 删除操作的结果
+ */
+export async function HardDelete<T extends PgTable>(
+    schema: T,
+    where: SQL | undefined
+) {
+    return await pg.delete(schema).where(where);
+};
+
+/**
+ * 通用批量硬删除函数（根据主键）
+ * @param schema - Drizzle ORM 表 schema
+ * @param keyColumnName - 主键字段名（字符串）
+ * @param values - 主键值数组
+ * @returns 删除操作的结果
+ */
+export async function HardDeleteByKeys<T extends PgTable>(
+    schema: T,
+    keyColumnName: string,
+    values: any[]
+) {
+    if (!values || values.length === 0) {
+        return; // 空数组直接返回，避免无效查询
+    }
+
+    const keyColumn = (schema as any)[keyColumnName];
+    if (!keyColumn) {
+        throw new Error(`Column "${keyColumnName}" not found in schema`);
+    }
+
+    return await pg.delete(schema).where(inArray(keyColumn, values));
 };
 
 /**

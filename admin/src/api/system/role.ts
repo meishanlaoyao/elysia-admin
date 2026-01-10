@@ -21,11 +21,30 @@ export function fetchGetRoleList(params: Api.SystemRole.RoleSearchParams) {
 }
 
 /**
+ * 查询角色权限
+ */
+export function fetchGetRolePermission(roleId: number) {
+    return request.get<Api.SystemRole.RolePermission[]>({
+        url: `/api/system/role/permission/${roleId}`
+    })
+}
+
+/**
  * 更新
  */
 export function fetchUpdateRole(data: Api.SystemRole.RoleListItem) {
     return request.put({
         url: '/api/system/role',
+        data
+    })
+}
+
+/**
+ * 更新角色权限
+ */
+export function fetchUpdateRolePermission(data: Api.SystemRole.UpdateRolePermissionParams) {
+    return request.put({
+        url: '/api/system/role/permission',
         data
     })
 }

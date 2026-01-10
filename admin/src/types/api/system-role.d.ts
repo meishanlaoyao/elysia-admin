@@ -18,6 +18,22 @@ declare namespace Api {
             remark?: null | string;
         }
 
+        /** 角色权限项 */
+        interface RolePermission {
+            roleId?: number;
+            menuId?: number;
+            menuBtnId?: number; // 按钮ID（可选，有值表示按钮权限）
+        }
+
+        /** 更新角色权限参数 */
+        interface UpdateRolePermissionParams {
+            roleId: number;
+            permissions: Array<{
+                menuId: number;
+                menuBtnId?: number; // 按钮ID（可选）
+            }>;
+        }
+
         /** 角色搜索参数 */
         type RoleSearchParams = Partial<
             Pick<RoleListItem, 'roleId' | 'roleName' | 'roleCode' | 'description' | 'enabled'> &

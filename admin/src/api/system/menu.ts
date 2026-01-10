@@ -1,10 +1,22 @@
 import request from '@/utils/http'
 import { AppRouteRecord } from '@/types/router'
 
-// 获取菜单列表
+/**
+ * 获取菜单列表（用于路由生成）
+ */
 export function fetchGetMenuList() {
     return request.get<AppRouteRecord[]>({
         url: '/api/system/menu/simple'
+    })
+}
+
+/**
+ * 获取菜单树（用于菜单管理页面）
+ */
+export function fetchGetMenuTree(params?: Api.SystemMenu.MenuSearchParams) {
+    return request.get<Api.SystemMenu.MenuListItem[]>({
+        url: '/api/system/menu/tree',
+        params
     })
 }
 
@@ -15,16 +27,6 @@ export function fetchCreateMenu(data: Api.SystemMenu.MenuListItem) {
     return request.post({
         url: '/api/system/menu',
         data
-    })
-}
-
-/**
- * 查询完整菜单树
- */
-export function fetchGetMenuTree(params: Api.SystemMenu.MenuSearchParams) {
-    return request.get<Api.SystemMenu.MenuListItem[]>({
-        url: '/api/system/menu/tree',
-        params
     })
 }
 

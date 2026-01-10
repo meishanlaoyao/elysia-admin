@@ -19,4 +19,4 @@ export const ListDto = CrudDto.list(
     }
 );
 
-export const UpdateDto = CrudDto.update(SelectSystemUser);
+export const UpdateDto = CrudDto.update(SelectSystemUser, 'userId');

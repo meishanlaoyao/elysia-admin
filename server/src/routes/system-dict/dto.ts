@@ -13,7 +13,7 @@ export const CreateTypeDto = CrudDto.create(
     ['dictName', 'dictType']
 );
 
-export const UpdateTypeDto = CrudDto.update(SelectSystemDictType);
+export const UpdateTypeDto = CrudDto.update(SelectSystemDictType, 'dictId');
 
 export const ListTypeDto = CrudDto.list(
     SelectSystemDictType,
@@ -31,7 +31,7 @@ export const CreateDataDto = CrudDto.create(
     ['dictSort', 'dictValue', 'dictLabel', 'dictType']
 );
 
-export const UpdateDataDto = CrudDto.update(SelectSystemDictData);
+export const UpdateDataDto = CrudDto.update(SelectSystemDictData, 'dictCode');
 
 export const ListDataDto = CrudDto.list(
     SelectSystemDictData,

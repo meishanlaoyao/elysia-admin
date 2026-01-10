@@ -8,7 +8,7 @@ export const CreateDto = CrudDto.create(
     ['deptName', 'parentId']
 );
 
-export const UpdateDto = CrudDto.update(SelectSystemDept);
+export const UpdateDto = CrudDto.update(SelectSystemDept, 'deptId');
 
 export const TreeDto = {
     query: t.Object({

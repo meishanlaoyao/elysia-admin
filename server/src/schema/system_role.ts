@@ -1,7 +1,7 @@
 import { pgTable, bigserial, varchar, boolean, bigint, integer } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
-import { systemMenuSchema } from './system_menu';
+import { systemMenuSchema, systemMenuBtnSchema } from './system_menu';
 
 export const systemRoleSchema = pgTable(
     'system_role',
@@ -22,6 +22,7 @@ export const systemRoleMenuSchema = pgTable(
     {
         roleId: bigint('role_id', { mode: 'number' }).references(() => systemRoleSchema.roleId), // 角色ID
         menuId: bigint('menu_id', { mode: 'number' }).references(() => systemMenuSchema.menuId), // 菜单ID
+        menuBtnId: bigint('menu_btn_id', { mode: 'number' }).references(() => systemMenuBtnSchema.btnId), // 按钮ID
     }
 );
 export const InsertSystemRoleMenu = createInsertSchema(systemRoleMenuSchema);
