@@ -3,7 +3,8 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./server ./src/index.ts",
+    "build": "bun build --minify-whitespace --minify-syntax --target bun --outfile ./dist/index.js ./src/index.ts",
+    "build:binary": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./dist_binary/server ./src/index.ts",
     "db:push": " bunx drizzle-kit push",
     "db:pull": " bunx drizzle-kit pull",
     "docker:build": "docker build -t hnq1/xiaomei-elysia-server:latest .",
@@ -14,6 +15,7 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",
+    "@elysiajs/static": "^1.4.7",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.45.1",
     "drizzle-typebox": "^0.3.3",

@@ -11,8 +11,8 @@ export const BaseResultData = {
     }),
     fail: (code: number = 500, msg?: any) => {
         let isStr = typeof msg === 'string';
-        if (code == 500) {
-            console.error("BaseResultData.fail: ", isStr ? msg : JSON.stringify(msg));
+        if (code === 500) {
+            console.error("服务端错误: ", isStr ? msg : JSON.stringify(msg));
         };
         return {
             code,

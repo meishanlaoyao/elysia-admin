@@ -1,14 +1,34 @@
 import { Elysia } from "elysia";
+import { BunAdapter } from 'elysia/adapter/bun';
 import { cors } from '@elysiajs/cors';
+import { staticPlugin } from '@elysiajs/static';
 import { GetNowTime } from "@/utils/time";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';
 import { InitSeedData } from '@/utils/seed';
 
-const { port, id, prefix } = config.app;
-const app = new Elysia({ prefix });
+const { port, id, prefix, maxRequestBodySize, timeout } = config.app;
+const app = new Elysia({
+    prefix,
+    normalize: true,
+    adapter: BunAdapter,
+    aot: true,
+    nativeStaticResponse: true,
+    serve: {
+        maxRequestBodySize,
+        idleTimeout: timeout,
+    }
+});
 app.use(cors());
+app.use(await staticPlugin());
+app.derive(async ({ request, headers, server }) => {
+    const ip = server?.requestIP(request)?.address || '未知';
+    const auth = headers['authorization'] || null;
+    console.log("ip地址", ip, headers);
+
+    return {}
+})
 
 // 生产环境 记得注释掉文档
 import { openapi } from '@elysiajs/openapi';
@@ -20,7 +40,7 @@ app.use(openapi({
             description: `${id} description`,
         },
     },
-}))
+}));
 
 // 捕获错误
 app.onError(({ code, error }) => {
@@ -31,12 +51,6 @@ app.onError(({ code, error }) => {
         };
         return BaseResultData.fail(400, error.message);
     };
-});
-
-// 全局拦截器
-app.onRequest(({ request, server }) => {
-    const ip = server?.requestIP(request)?.address || '未知';
-    console.log("ip地址", ip);
 });
 
 // 注册路由

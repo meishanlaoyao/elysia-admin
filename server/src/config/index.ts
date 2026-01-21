@@ -7,6 +7,8 @@ export default {
         baseCacheTime: 5 * 60, // 基础缓存时间 5分钟
         forgetPasswordExpiresIn: 10 * 60, // 忘记密码过期时间 10分钟
         forgetPasswordUrl: 'http://192.168.2.112:3006/#/auth/reset-password', // 忘记密码重置URL
+        maxRequestBodySize: 10 * 1024 * 1024, // 最大请求体大小 10MB
+        timeout: 30, // 服务端超时时间 30秒
     },
     jwt: {
         accessToken: {

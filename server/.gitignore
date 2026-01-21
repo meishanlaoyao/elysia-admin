@@ -4,6 +4,8 @@
 /node_modules
 /.pnp
 /drizzle
+/dist_binary
+/dist
 .pnp.js
 
 # testing

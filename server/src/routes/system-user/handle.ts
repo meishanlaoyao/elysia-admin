@@ -9,7 +9,6 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
-    FindAll
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 
@@ -19,16 +18,6 @@ export async function create(req: Context) {
         data.password = BcryptHash(data.password);
         await InsertOne(systemUserSchema, data);
         return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findAll() {
-    try {
-        const where = CreateQueryBuilder(systemUserSchema).eq('delFlag', false).build();
-        const data = await FindAll(systemUserSchema, where);
-        return BaseResultData.ok(data.map(({ password, ...item }) => ({ ...item })));
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
