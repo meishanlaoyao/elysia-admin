@@ -116,18 +116,31 @@ export async function remove(req: Context) {
 
 // 获得用户信息
 export async function GetUserBy(key: string, val: any) {
-    const res = await FindOneByKey(systemUserSchema, key, val);
-    return res;
+    try {
+        const res = await FindOneByKey(systemUserSchema, key, val);
+        return res;
+    } catch (error) {
+        console.log('获得用户信息失败', error);
+        return null;
+    }
 };
 
 // 注册用户
 export async function RegisterUser(username: string, password: string) {
-    password = BcryptHash(password);
-    await InsertOne(systemUserSchema, { username, password });
+    try {
+        password = BcryptHash(password);
+        await InsertOne(systemUserSchema, { username, password });
+    } catch (error) {
+        console.log('注册用户失败', error);
+    }
 };
 
 // 设置用户密码
 export async function SetUserPassword(userId: number, password: string) {
-    password = BcryptHash(password);
-    await UpdateByKey(systemUserSchema, 'userId', { password, userId }, true);
+    try {
+        password = BcryptHash(password);
+        await UpdateByKey(systemUserSchema, 'userId', { password, userId }, true);
+    } catch (error) {
+        console.log('设置用户密码失败', error);
+    }
 };

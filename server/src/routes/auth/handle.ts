@@ -4,12 +4,14 @@ import { GenerateToken, VerifyToken } from '@/utils/jwt';
 import { BcryptCompare } from '@/utils/bcrypt';
 import { GetUserBy, RegisterUser, SetUserPassword } from '@/routes/system-user/handle';
 import { GenerateUUID } from '@/utils/uuid';
+import { GetClientIp } from '@/utils/ip';
 import { GetNowTime, ConvertTimeToSecond } from '@/utils/time';
 import { CacheEnum } from '@/common/enum';
 import { Get, Set, Del, Keys } from '@/client/redis';
 import { SendMail } from '@/client/smtp';
 import { GenerateForgetPasswordHtmlTemplate } from '@/utils/htmltemplate';
 import config from '@/config';
+import { InsertLoginLog } from '@/routes/system-login-log/handle';
 
 // 设置刷新令牌 Cookie
 function setRefreshTokenCookie(req: Context, refreshToken: string) {
@@ -66,7 +68,12 @@ export async function accountPasswordLogin(req: Context) {
         };
         const tokens = await generateAndStoreTokens(payload);
         if ('error' in tokens) return tokens.error;
-        const userInfo = { ...rest, loginTime: GetNowTime() };
+        const ip = GetClientIp(req.request, req.server);
+        console.log(ip)
+        const userInfo = {
+            ...rest,
+            loginTime: GetNowTime()
+        };
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');

@@ -25,7 +25,7 @@ app.use(await staticPlugin());
 app.derive(async ({ request, headers, server }) => {
     const ip = server?.requestIP(request)?.address || '未知';
     const auth = headers['authorization'] || null;
-    console.log("ip地址", ip, headers);
+    // console.log("ip地址", ip, headers);
 
     return {}
 })

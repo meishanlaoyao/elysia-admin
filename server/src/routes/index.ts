@@ -9,6 +9,7 @@ import SystemMenuModule from "./system-menu/route";
 import SystemRoleModule from "./system-role/route";
 import SystemDeptModule from "./system-dept/route";
 import SystemApiModule from "./system-api/route";
+import SystemLoginLogModule from "./system-login-log/route";
 
 export const RouteTree: IRouteModule[] = [
     AuthModule,
@@ -18,6 +19,7 @@ export const RouteTree: IRouteModule[] = [
     SystemRoleModule,
     SystemDeptModule,
     SystemApiModule,
+    SystemLoginLogModule,
 ];
 export const RouteList: { tags: string[], route: IRoute }[] = [];
 
