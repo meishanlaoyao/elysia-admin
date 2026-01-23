@@ -184,7 +184,7 @@ export function GetClientOs(userAgent: string): string {
         return 'HarmonyOS';
     };
     // Windows 系统检测
-    if (ua.includes('windows nt 10.0')) return 'Windows 10';
+    if (ua.includes('windows nt 10.0')) return 'Windows 10/11';
     if (ua.includes('windows nt 6.3')) return 'Windows 8.1';
     if (ua.includes('windows nt 6.2')) return 'Windows 8';
     if (ua.includes('windows nt 6.1')) return 'Windows 7';

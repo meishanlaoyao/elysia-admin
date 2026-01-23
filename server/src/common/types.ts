@@ -23,3 +23,8 @@ export type IClientPlatform =
  * 请求方法
  */
 export type IRequestMethod = 'get' | 'post' | 'put' | 'delete';
+
+/**
+ * 账号人员类型
+ */
+export type IAccountType = 'admin' | 'user' | 'anonymous';

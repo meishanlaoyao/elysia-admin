@@ -6,11 +6,11 @@ export interface IRouteMeta {
      */
     permission?: string
     /**
-     * 是否需要认证
+     * 是否需要认证 默认false
      */
-    isAuth: boolean
+    isAuth?: boolean
     /**
-     * 是否记录操作日志
+     * 是否记录操作日志 默认false
      */
     isLog?: boolean
 };
@@ -39,7 +39,7 @@ export interface IRoute {
     /**
      * 路由元信息
      */
-    meta: IRouteMeta
+    meta?: IRouteMeta
 };
 
 export interface IRouteModule {

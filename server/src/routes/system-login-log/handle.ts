@@ -14,6 +14,6 @@ export async function InsertLoginLog(data: typeof systemLoginLogSchema.$inferIns
     try {
         await InsertOne(systemLoginLogSchema, data);
     } catch (error) {
-        console.log('插入登陆日志失败', error);
+        console.error('插入登陆日志失败', error);
     }
 };

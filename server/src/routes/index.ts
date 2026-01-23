@@ -10,6 +10,7 @@ import SystemRoleModule from "./system-role/route";
 import SystemDeptModule from "./system-dept/route";
 import SystemApiModule from "./system-api/route";
 import SystemLoginLogModule from "./system-login-log/route";
+import SystemOperLogModule from "./system-oper-log/route";
 
 export const RouteTree: IRouteModule[] = [
     AuthModule,
@@ -20,6 +21,7 @@ export const RouteTree: IRouteModule[] = [
     SystemDeptModule,
     SystemApiModule,
     SystemLoginLogModule,
+    SystemOperLogModule,
 ];
 export const RouteList: { tags: string[], route: IRoute }[] = [];
 
@@ -33,7 +35,7 @@ export function RegisterRoutes(app: Elysia) {
     const AuthRoutes: { tags: string[], route: IRoute }[] = [];
     RouteTree.forEach(module => {
         module.routes.forEach(route => {
-            if (route.meta.isAuth) {
+            if (route?.meta?.isAuth) {
                 AuthRoutes.push({ tags: [module.tags], route });
             } else {
                 PublicRoutes.push({ tags: [module.tags], route });

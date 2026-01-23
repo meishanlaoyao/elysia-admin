@@ -34,7 +34,7 @@ export async function AddLoginLog(ctx: Context) {
         if (!clientInfo) return;
         const userId = (ctx.headers as any)?.userId || null;
         const res = (ctx as any)?.response || {};
-        InsertLoginLog({ ...clientInfo, userId, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
+        InsertLoginLog({ ...clientInfo, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
     }
     catch (error) {
         console.error('添加登陆日志失败:', error);

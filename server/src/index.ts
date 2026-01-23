@@ -22,25 +22,25 @@ const app = new Elysia({
 });
 app.use(cors());
 app.use(await staticPlugin());
-app.derive(async ({ request, headers, server }) => {
-    const ip = server?.requestIP(request)?.address || '未知';
-    const auth = headers['authorization'] || null;
-    // console.log("ip地址", ip, headers);
+app.derive(async (ctx) => {
+    const auth = ctx.headers['authorization'] || null;
 
     return {}
 });
 
-// 生产环境 记得注释掉文档
-import { openapi } from '@elysiajs/openapi';
-app.use(openapi({
-    documentation: {
-        info: {
-            title: `${id} API`,
-            version: '1.0.0',
-            description: `${id} description`,
+// 开发文档
+if (process.env.NODE_ENV !== 'production') {
+    const { openapi } = await import('@elysiajs/openapi');
+    app.use(openapi({
+        documentation: {
+            info: {
+                title: `${id} API`,
+                version: '1.0.0',
+                description: `${id} description`,
+            },
         },
-    },
-}));
+    }));
+};
 
 // 捕获错误
 app.onError(({ code, error }) => {
@@ -56,12 +56,24 @@ app.onError(({ code, error }) => {
 // 注册路由
 RegisterRoutes(app as Elysia);
 
+// 全局响应层
+app.onAfterResponse((ctx) => {
+    // 操作日志
+});
+
 // 初始化种子数据
 InitSeedData();
 
 app.listen(port);
-console.log(`${id} is running at http://localhost:${port}${prefix}
-OpenAPI JSON: http://localhost:${port}${prefix}/openapi/json
+
+let startLogStr = `${id} is running at http://localhost:${port}${prefix}
+`;
+if (process.env.NODE_ENV !== 'production') {
+    startLogStr += `OpenAPI JSON: http://localhost:${port}${prefix}/openapi/json
 OpenAPI: http://localhost:${port}${prefix}/openapi
-StartTime: ${GetNowTime()}
-PID: ${process.pid}`);
+`;
+};
+startLogStr += `StartTime: ${GetNowTime()}
+NODE_ENV: ${process.env.NODE_ENV}
+PID: ${process.pid}`;
+console.log(startLogStr);
