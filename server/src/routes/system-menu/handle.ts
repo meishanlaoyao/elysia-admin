@@ -15,9 +15,9 @@ import { ParseDateFields } from '@/common/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from '@/schema/system_menu';
 import { listToTree } from '@/common/function';
 
-export async function createMenu(req: Context) {
+export async function createMenu(ctx: Context) {
     try {
-        const data = req.body as typeof systemMenuSchema.$inferInsert;
+        const data = ctx.body as typeof systemMenuSchema.$inferInsert;
         await InsertOne(systemMenuSchema, data);
         return BaseResultData.ok();
     }
@@ -26,9 +26,9 @@ export async function createMenu(req: Context) {
     }
 };
 
-export async function createMenuBtn(req: Context) {
+export async function createMenuBtn(ctx: Context) {
     try {
-        const data = req.body as typeof systemMenuBtnSchema.$inferInsert;
+        const data = ctx.body as typeof systemMenuBtnSchema.$inferInsert;
         await InsertOne(systemMenuBtnSchema, data);
         return BaseResultData.ok();
     }
@@ -37,7 +37,7 @@ export async function createMenuBtn(req: Context) {
     }
 };
 
-export async function findSimple(req: Context) {
+export async function findSimple(ctx: Context) {
     try {
         const data2 = [
             {
@@ -260,12 +260,12 @@ export async function findSimple(req: Context) {
     }
 };
 
-export async function findTree(req: Context) {
+export async function findTree(ctx: Context) {
     try {
         const {
             title,
             path,
-        } = req.query;
+        } = ctx.query;
         const builder = CreateQueryBuilder(systemMenuSchema)
             .eq('delFlag', false)
             .like('title', title)
@@ -293,9 +293,9 @@ export async function findTree(req: Context) {
     }
 };
 
-export async function updateMenu(req: Context) {
+export async function updateMenu(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemMenuSchema, 'menuId', data, true);
         return BaseResultData.ok();
     }
@@ -304,9 +304,9 @@ export async function updateMenu(req: Context) {
     }
 };
 
-export async function updateMenuBtn(req: Context) {
+export async function updateMenuBtn(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemMenuBtnSchema, 'btnId', data, true);
         return BaseResultData.ok();
     }
@@ -315,9 +315,9 @@ export async function updateMenuBtn(req: Context) {
     }
 };
 
-export async function removeMenu(req: Context) {
+export async function removeMenu(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemMenuSchema, 'menuId', ids);
         return BaseResultData.ok();
     }
@@ -326,9 +326,9 @@ export async function removeMenu(req: Context) {
     }
 };
 
-export async function removeMenuBtn(req: Context) {
+export async function removeMenuBtn(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ids);
         return BaseResultData.ok();
     }

@@ -14,9 +14,9 @@ import { CacheEnum } from '@/common/enum';
 import { Del, Set } from '@/client/redis';
 import { SYSTEM_API_METHOD } from '@/common/dict';
 
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body as typeof systemApiSchema.$inferInsert;
+        const data = ctx.body as typeof systemApiSchema.$inferInsert;
         await InsertOne(systemApiSchema, data);
         return BaseResultData.ok();
     }
@@ -25,7 +25,7 @@ export async function create(req: Context) {
     }
 };
 
-export async function findList(req: Context) {
+export async function findList(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -37,7 +37,7 @@ export async function findList(req: Context) {
             apiName,
             apiPath,
             apiMethod,
-        } = req.query;
+        } = ctx.query;
         const whereCondition = CreateQueryBuilder(systemApiSchema)
             .eq('delFlag', false)
             .like('apiName', apiName)
@@ -58,9 +58,9 @@ export async function findList(req: Context) {
     }
 };
 
-export async function findOne(req: Context) {
+export async function findOne(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemApiSchema, 'apiId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         return BaseResultData.ok(data);
@@ -70,9 +70,9 @@ export async function findOne(req: Context) {
     }
 };
 
-export async function update(req: Context) {
+export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemApiSchema, 'apiId', data, true);
         const reverseMethodMap = Object.fromEntries(Object.entries(SYSTEM_API_METHOD).map(([key, value]) => [value, key]));
         if (data.status) {
@@ -89,9 +89,9 @@ export async function update(req: Context) {
     }
 };
 
-export async function remove(req: Context) {
+export async function remove(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemApiSchema, 'apiId', ids);
         return BaseResultData.ok();
     }

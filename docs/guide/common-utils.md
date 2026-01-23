@@ -371,9 +371,9 @@ import {
 import { userSchema } from '@/schema/user';
 
 // 创建用户
-export async function createUser(req: Context) {
+export async function createUser(ctx: Context) {
     try {
-        const { username, password, email } = req.body;
+        const { username, password, email } = ctx.body;
         
         // 加密密码
         const hashedPassword = BcryptHash(password);
@@ -394,9 +394,9 @@ export async function createUser(req: Context) {
 }
 
 // 查询用户列表
-export async function getUserList(req: Context) {
+export async function getUserList(ctx: Context) {
     try {
-        const { pageNum, pageSize, username } = req.query;
+        const { pageNum, pageSize, username } = ctx.query;
         
         // 构建查询条件
         const where = CreateQueryBuilder(userSchema)
@@ -419,10 +419,10 @@ export async function getUserList(req: Context) {
 }
 
 // 更新用户
-export async function updateUser(req: Context) {
+export async function updateUser(ctx: Context) {
     try {
-        const { id } = req.params;
-        const data = req.body;
+        const { id } = ctx.params;
+        const data = ctx.body;
         
         // 如果更新密码，需要加密
         if (data.password) {
@@ -437,9 +437,9 @@ export async function updateUser(req: Context) {
 }
 
 // 删除用户
-export async function deleteUser(req: Context) {
+export async function deleteUser(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number);
+        const ids = ctx.params.ids.split(',').map(Number);
         await SoftDeleteByKeys(userSchema, userSchema.id, ids);
         return BaseResultData.ok();
     } catch (error) {

@@ -162,9 +162,9 @@ import {
 } from '@/common/db';
 
 // 创建用户
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body;
+        const data = ctx.body;
         await InsertOne(systemUserSchema, data);
         return BaseResultData.ok();
     } catch (error) {
@@ -186,7 +186,7 @@ export async function findAll() {
 }
 
 // 分页查询
-export async function findList(req: Context) {
+export async function findList(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -197,7 +197,7 @@ export async function findList(req: Context) {
             endTime,
             username,
             nickname,
-        } = req.query;
+        } = ctx.query;
 
         const whereCondition = CreateQueryBuilder(systemUserSchema)
             .eq('delFlag', false)
@@ -220,9 +220,9 @@ export async function findList(req: Context) {
 }
 
 // 查询详情
-export async function findOne(req: Context) {
+export async function findOne(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemUserSchema, systemUserSchema.userId, id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         return BaseResultData.ok(data);
@@ -232,10 +232,10 @@ export async function findOne(req: Context) {
 }
 
 // 更新用户
-export async function update(req: Context) {
+export async function update(ctx: Context) {
     try {
-        const id = Number(req.params.id);
-        const data = req.body;
+        const id = Number(ctx.params.id);
+        const data = ctx.body;
         await UpdateByKey(systemUserSchema, systemUserSchema.userId, id, data);
         return BaseResultData.ok();
     } catch (error) {
@@ -244,9 +244,9 @@ export async function update(req: Context) {
 }
 
 // 删除用户（软删除）
-export async function remove(req: Context) {
+export async function remove(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number);
+        const ids = ctx.params.ids.split(',').map(Number);
         await SoftDeleteByKeys(systemUserSchema, systemUserSchema.userId, ids);
         return BaseResultData.ok();
     } catch (error) {
@@ -341,18 +341,18 @@ import { BaseResultData } from '@/common/result';
 import { yourTableSchema } from '@/schema/your_table';
 import { InsertOne, FindPage, CreateQueryBuilder } from '@/common/db';
 
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        await InsertOne(yourTableSchema, req.body);
+        await InsertOne(yourTableSchema, ctx.body);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
 }
 
-export async function findList(req: Context) {
+export async function findList(ctx: Context) {
     try {
-        const { pageNum = 1, pageSize = 10, name } = req.query;
+        const { pageNum = 1, pageSize = 10, name } = ctx.query;
         const where = CreateQueryBuilder(yourTableSchema)
             .eq('delFlag', false)
             .like('name', name)

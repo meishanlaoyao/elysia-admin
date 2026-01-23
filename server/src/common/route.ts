@@ -1,8 +1,18 @@
+import type { IRequestMethod } from './types';
+
 export interface IRouteMeta {
     /** 
      * 权限标识
      */
     permission?: string
+    /**
+     * 是否需要认证
+     */
+    isAuth: boolean
+    /**
+     * 是否记录操作日志
+     */
+    isLog?: boolean
 };
 
 export interface IRoute {
@@ -13,15 +23,11 @@ export interface IRoute {
     /**
      * 请求方法
      */
-    method: 'get' | 'post' | 'put' | 'delete'
+    method: IRequestMethod
     /**
      * 路由描述
      */
     summary: string
-    /**
-     * 是否需要认证
-     */
-    isAuth: boolean
     /**
      * 路由管道
      */
@@ -33,7 +39,7 @@ export interface IRoute {
     /**
      * 路由元信息
      */
-    meta?: IRouteMeta
+    meta: IRouteMeta
 };
 
 export interface IRouteModule {

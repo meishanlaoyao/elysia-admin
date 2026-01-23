@@ -329,9 +329,9 @@ app.use(openapi({
 }
 
 // 2. 业务处理
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body;
+        const data = ctx.body;
         data.password = BcryptHash(data.password);  // 数据处理
         await InsertOne(schema, data);              // 数据库操作
         return BaseResultData.ok();                 // 统一响应
@@ -451,7 +451,7 @@ try {
 
 ```typescript
 // 使用 ORM 生成的类型
-const data = req.body as typeof schema.$inferInsert;
+const data = ctx.body as typeof schema.$inferInsert;
 
 // 使用泛型函数
 await InsertOne<typeof schema>(schema, data);

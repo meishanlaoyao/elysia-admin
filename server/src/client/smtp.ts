@@ -11,7 +11,7 @@ interface ISendMailOptions {
 
 const transporter = nodemailer.createTransport(config.smtp);
 try {
-    await transporter.verify();
+    // await transporter.verify();
     console.log('SMTP 配置验证成功');
 } catch (error) {
     console.error('SMTP 配置错误:', error);

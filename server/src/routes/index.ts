@@ -33,7 +33,7 @@ export function RegisterRoutes(app: Elysia) {
     const AuthRoutes: { tags: string[], route: IRoute }[] = [];
     RouteTree.forEach(module => {
         module.routes.forEach(route => {
-            if (route.isAuth) {
+            if (route.meta.isAuth) {
                 AuthRoutes.push({ tags: [module.tags], route });
             } else {
                 PublicRoutes.push({ tags: [module.tags], route });

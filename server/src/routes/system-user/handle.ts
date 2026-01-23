@@ -12,9 +12,9 @@ import {
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body as typeof systemUserSchema.$inferInsert;
+        const data = ctx.body as typeof systemUserSchema.$inferInsert;
         data.password = BcryptHash(data.password);
         await InsertOne(systemUserSchema, data);
         return BaseResultData.ok();
@@ -23,7 +23,7 @@ export async function create(req: Context) {
     }
 };
 
-export async function findList(req: Context) {
+export async function findList(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -37,7 +37,7 @@ export async function findList(req: Context) {
             email,
             phone,
             sex
-        } = req.query;
+        } = ctx.query;
         const whereCondition = CreateQueryBuilder(systemUserSchema)
             .eq('delFlag', false)
             .eq('email', email)
@@ -60,7 +60,7 @@ export async function findList(req: Context) {
     }
 };
 
-export async function findInfo(req: Context) {
+export async function findInfo(ctx: Context) {
     try {
         const obj = {
             "userId": "1",
@@ -81,9 +81,9 @@ export async function findInfo(req: Context) {
     }
 };
 
-export async function findOne(req: Context) {
+export async function findOne(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemUserSchema, 'userId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         const { password, ...item } = data;
@@ -93,9 +93,9 @@ export async function findOne(req: Context) {
     }
 };
 
-export async function update(req: Context) {
+export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         const { password, ...rest } = data;
         await UpdateByKey(systemUserSchema, 'userId', rest, true);
         return BaseResultData.ok();
@@ -104,9 +104,9 @@ export async function update(req: Context) {
     }
 };
 
-export async function remove(req: Context) {
+export async function remove(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemUserSchema, 'userId', ids);
         return BaseResultData.ok();
     } catch (error) {

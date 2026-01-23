@@ -15,9 +15,9 @@ import {
 import { ParseDateFields } from '@/common/dto';
 import { systemRoleSchema, systemRoleMenuSchema } from '@/schema/system_role';
 
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body as typeof systemRoleSchema.$inferInsert;
+        const data = ctx.body as typeof systemRoleSchema.$inferInsert;
         await InsertOne(systemRoleSchema, data);
         return BaseResultData.ok();
     }
@@ -26,7 +26,7 @@ export async function create(req: Context) {
     }
 };
 
-export async function findList(req: Context) {
+export async function findList(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -38,7 +38,7 @@ export async function findList(req: Context) {
             roleName,
             roleCode,
             status,
-        } = req.query;
+        } = ctx.query;
         let Zstatus = undefined;
         if (status) {
             Zstatus = status === 'false' ? false : true;
@@ -62,9 +62,9 @@ export async function findList(req: Context) {
     }
 };
 
-export async function findOnePermission(req: Context) {
+export async function findOnePermission(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const where = CreateQueryBuilder(systemRoleMenuSchema)
             .eq('roleId', id)
             .build();
@@ -76,9 +76,9 @@ export async function findOnePermission(req: Context) {
     }
 };
 
-export async function findOne(req: Context) {
+export async function findOne(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemRoleSchema, 'roleId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         return BaseResultData.ok(data);
@@ -88,9 +88,9 @@ export async function findOne(req: Context) {
     }
 };
 
-export async function update(req: Context) {
+export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemRoleSchema, 'roleId', data, true);
         return BaseResultData.ok();
     }
@@ -99,9 +99,9 @@ export async function update(req: Context) {
     }
 };
 
-export async function updatePermission(req: Context) {
+export async function updatePermission(ctx: Context) {
     try {
-        const { roleId, permissions } = req.body as {
+        const { roleId, permissions } = ctx.body as {
             roleId: number;
             permissions: Array<{ menuId: number; menuBtnId?: number }>
         };
@@ -126,9 +126,9 @@ export async function updatePermission(req: Context) {
     }
 };
 
-export async function remove(req: Context) {
+export async function remove(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemRoleSchema, 'roleId', ids);
         return BaseResultData.ok();
     }

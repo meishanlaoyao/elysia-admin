@@ -1,5 +1,6 @@
 import { t } from 'elysia';
 import { BaseResultDto } from '@/common/dto';
+import { AddLoginLog } from '@/utils/log';
 
 export const AccountPasswordLoginDto = {
     body: t.Object({
@@ -8,7 +9,8 @@ export const AccountPasswordLoginDto = {
     }),
     ...BaseResultDto(t.Object({
         token: t.String(),
-    }))
+    })),
+    afterHandle: AddLoginLog,
 };
 
 export const RegisterUserDto = {

@@ -28,7 +28,7 @@ app.derive(async ({ request, headers, server }) => {
     // console.log("ip地址", ip, headers);
 
     return {}
-})
+});
 
 // 生产环境 记得注释掉文档
 import { openapi } from '@elysiajs/openapi';

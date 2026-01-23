@@ -4,21 +4,19 @@ import { GenerateToken, VerifyToken } from '@/utils/jwt';
 import { BcryptCompare } from '@/utils/bcrypt';
 import { GetUserBy, RegisterUser, SetUserPassword } from '@/routes/system-user/handle';
 import { GenerateUUID } from '@/utils/uuid';
-import { GetClientIp } from '@/utils/ip';
 import { GetNowTime, ConvertTimeToSecond } from '@/utils/time';
 import { CacheEnum } from '@/common/enum';
 import { Get, Set, Del, Keys } from '@/client/redis';
 import { SendMail } from '@/client/smtp';
 import { GenerateForgetPasswordHtmlTemplate } from '@/utils/htmltemplate';
 import config from '@/config';
-import { InsertLoginLog } from '@/routes/system-login-log/handle';
 
 // 设置刷新令牌 Cookie
-function setRefreshTokenCookie(req: Context, refreshToken: string) {
+function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
     const maxAge = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
 
     // 开发环境
-    req.cookie.refreshToken.set({
+    ctx.cookie.refreshToken.set({
         domain: 'localhost',
         value: refreshToken,
         httpOnly: true,
@@ -28,7 +26,7 @@ function setRefreshTokenCookie(req: Context, refreshToken: string) {
     });
 
     // 生产环境
-    // req.cookie.refreshToken.set({
+    // ctx.cookie.refreshToken.set({
     //     domain: 'localhost', // 生成时需要指定域名
     //     value: refreshToken,
     //     httpOnly: true,
@@ -50,9 +48,9 @@ async function generateAndStoreTokens(payload: any) {
     return { accessToken, refreshToken };
 };
 
-export async function accountPasswordLogin(req: Context) {
+export async function accountPasswordLogin(ctx: Context) {
     try {
-        const { username, password } = req.body as any;
+        const { username, password } = ctx.body as any;
         const user = await GetUserBy('username', username);
         if (!user) return BaseResultData.fail(404, '用户不存在');
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
@@ -68,8 +66,6 @@ export async function accountPasswordLogin(req: Context) {
         };
         const tokens = await generateAndStoreTokens(payload);
         if ('error' in tokens) return tokens.error;
-        const ip = GetClientIp(req.request, req.server);
-        console.log(ip)
         const userInfo = {
             ...rest,
             loginTime: GetNowTime()
@@ -78,16 +74,17 @@ export async function accountPasswordLogin(req: Context) {
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
         // 后台管理系统可以这样做，app、小程序、桌面端不能设置httpOnlycookie。然后需要同时返回双token。
-        setRefreshTokenCookie(req, tokens.refreshToken);
+        setRefreshTokenCookie(ctx, tokens.refreshToken);
+        (ctx.headers as any).userId = userInfo.userId || '';
         return BaseResultData.ok({ token: tokens.accessToken });
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
 };
 
-export async function refreshToken(req: Context) {
+export async function refreshToken(ctx: Context) {
     try {
-        const cookie = String(req.cookie?.refreshToken?.value || '');
+        const cookie = String(ctx.cookie?.refreshToken?.value || '');
         if (!cookie) return BaseResultData.fail(404, '刷新令牌不存在');
         const payload = await VerifyToken('refreshToken', cookie);
         if (!payload) return BaseResultData.fail(400, '刷新令牌无效');
@@ -98,16 +95,16 @@ export async function refreshToken(req: Context) {
         if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
-        setRefreshTokenCookie(req, tokens.refreshToken);
+        setRefreshTokenCookie(ctx, tokens.refreshToken);
         return BaseResultData.ok({ token: tokens.accessToken });
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
 };
 
-export async function registerUser(req: Context) {
+export async function registerUser(ctx: Context) {
     try {
-        const { username, password } = req.body as any;
+        const { username, password } = ctx.body as any;
         await RegisterUser(username, password)
         return BaseResultData.ok();
     } catch (error) {
@@ -115,9 +112,9 @@ export async function registerUser(req: Context) {
     }
 };
 
-export async function forgetPassword(req: Context) {
+export async function forgetPassword(ctx: Context) {
     try {
-        const { email } = req.body as any;
+        const { email } = ctx.body as any;
         const user = await GetUserBy('email', email);
         if (user?.email) {
             const key = CacheEnum.FORGET_PASSWORD + user.userId;
@@ -150,9 +147,9 @@ export async function forgetPassword(req: Context) {
     }
 };
 
-export async function resetPassword(req: Context) {
+export async function resetPassword(ctx: Context) {
     try {
-        const { uid, token, password } = req.body as any;
+        const { uid, token, password } = ctx.body as any;
         const key = CacheEnum.FORGET_PASSWORD + uid + ':' + token;
         const payload = await Get(key);
         if (!payload) return BaseResultData.fail(400, '重置令牌无效');

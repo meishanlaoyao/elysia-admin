@@ -14,9 +14,9 @@ import { CacheEnum } from '@/common/enum';
 import { WithCache } from '@/utils/cache';
 import { ParseDateFields } from '@/common/dto';
 
-export async function createType(req: Context) {
+export async function createType(ctx: Context) {
     try {
-        const data = req.body as typeof systemDictTypeSchema.$inferInsert;
+        const data = ctx.body as typeof systemDictTypeSchema.$inferInsert;
         await InsertOne(systemDictTypeSchema, data);
         return BaseResultData.ok();
     }
@@ -25,9 +25,9 @@ export async function createType(req: Context) {
     }
 };
 
-export async function createData(req: Context) {
+export async function createData(ctx: Context) {
     try {
-        const data = req.body as typeof systemDictDataSchema.$inferInsert;
+        const data = ctx.body as typeof systemDictDataSchema.$inferInsert;
         await InsertOne(systemDictDataSchema, data);
         return BaseResultData.ok();
     }
@@ -52,9 +52,9 @@ export async function findAllType() {
     }
 };
 
-export async function findAllData(req: Context) {
+export async function findAllData(ctx: Context) {
     try {
-        const { dictType } = req.query;
+        const { dictType } = ctx.query;
         const data = await WithCache(
             CacheEnum.DICT_DATA + dictType,
             async () => {
@@ -72,7 +72,7 @@ export async function findAllData(req: Context) {
     }
 };
 
-export async function findListType(req: Context) {
+export async function findListType(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -83,7 +83,7 @@ export async function findListType(req: Context) {
             endTime,
             dictName,
             dictType,
-        } = req.query;
+        } = ctx.query;
         const whereCondition = CreateQueryBuilder(systemDictTypeSchema)
             .eq('delFlag', false)
             .like('dictName', dictName)
@@ -103,7 +103,7 @@ export async function findListType(req: Context) {
     }
 };
 
-export async function findListData(req: Context) {
+export async function findListData(ctx: Context) {
     try {
         const {
             pageNum = 1,
@@ -114,7 +114,7 @@ export async function findListData(req: Context) {
             endTime,
             dictLabel,
             dictType,
-        } = req.query;
+        } = ctx.query;
         const whereCondition = CreateQueryBuilder(systemDictDataSchema)
             .eq('delFlag', false)
             .like('dictLabel', dictLabel)
@@ -134,9 +134,9 @@ export async function findListData(req: Context) {
     }
 };
 
-export async function findOneType(req: Context) {
+export async function findOneType(ctx: Context) {
     try {
-        const id = Number(req.params.id);
+        const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemDictTypeSchema, 'dictId', id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         return BaseResultData.ok(data);
@@ -146,9 +146,9 @@ export async function findOneType(req: Context) {
     }
 };
 
-export async function updateType(req: Context) {
+export async function updateType(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemDictTypeSchema, 'dictId', data, true);
         return BaseResultData.ok();
     }
@@ -157,9 +157,9 @@ export async function updateType(req: Context) {
     }
 };
 
-export async function updateData(req: Context) {
+export async function updateData(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemDictDataSchema, 'dictCode', data, true);
         return BaseResultData.ok();
     }
@@ -168,9 +168,9 @@ export async function updateData(req: Context) {
     }
 };
 
-export async function removeType(req: Context) {
+export async function removeType(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemDictTypeSchema, 'dictId', ids);
         return BaseResultData.ok();
     }
@@ -179,9 +179,9 @@ export async function removeType(req: Context) {
     }
 };
 
-export async function removeData(req: Context) {
+export async function removeData(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemDictDataSchema, 'dictCode', ids);
         return BaseResultData.ok();
     }

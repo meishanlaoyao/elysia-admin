@@ -11,9 +11,9 @@ import { ParseDateFields } from '@/common/dto';
 import { systemDeptSchema } from '@/schema/system_dept';
 import { listToTree } from '@/common/function';
 
-export async function create(req: Context) {
+export async function create(ctx: Context) {
     try {
-        const data = req.body as typeof systemDeptSchema.$inferInsert;
+        const data = ctx.body as typeof systemDeptSchema.$inferInsert;
         await InsertOne(systemDeptSchema, data);
         return BaseResultData.ok();
     }
@@ -22,11 +22,11 @@ export async function create(req: Context) {
     }
 };
 
-export async function findTree(req: Context) {
+export async function findTree(ctx: Context) {
     try {
         const {
             deptName,
-        } = req.query;
+        } = ctx.query;
         const where = CreateQueryBuilder(systemDeptSchema)
             .eq('delFlag', false)
             .like('deptName', deptName)
@@ -46,9 +46,9 @@ export async function findTree(req: Context) {
     }
 };
 
-export async function update(req: Context) {
+export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(req.body);
+        const data = ParseDateFields(ctx.body);
         await UpdateByKey(systemDeptSchema, 'deptId', data, true);
         return BaseResultData.ok();
     }
@@ -57,9 +57,9 @@ export async function update(req: Context) {
     }
 };
 
-export async function remove(req: Context) {
+export async function remove(ctx: Context) {
     try {
-        const ids = req.params.ids.split(',').map(Number) as number[];
+        const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemDeptSchema, 'deptId', ids);
         return BaseResultData.ok();
     }
