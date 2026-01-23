@@ -8,31 +8,51 @@
  - [redis 5+](https://redis.io/)
  - [postgresql 17+](https://www.postgresql.org/)
 
+## 运行项目
+1. 安装依赖
+```bash
+bun install
+```
+2. 运行项目
+```bash
+# 如果不是开发环境，需要设置回去
+$env:NODE_ENV="development"; bun dev
+
+# 运行项目
+bun dev
+```
+
 ## 部署
-### PM2部署
+
+### 普通 js 部署
 1. 构建项目
 ```bash
-bun run build
+# windows
+$env:NODE_ENV="production"; bun run build
+
+# linux | mac
+NODE_ENV="production"; bun run build
 ```
+
 2. 启动项目
 ```bash
+# 普通启动项目
+bun run dist/index.js
+
+# pm2启动项目
 pm2 start dist/ecosystem.config.cjs
 ```
 
-### 裸JS部署
+### 二进制部署
 1. 构建项目
 ```bash
-bun run build
+# 注意：无法进行跨平台编译成对应的二进制文件
+$env:NODE_ENV="production"; bun run build:binary
 ```
 2. 启动项目
-注意：
- - $env:NODE_ENV="production";这种写法只能临时设置一次PowerShell的值。如果想切换成开发环境，需要打开新的PowerShell窗口。
 ```bash
-# windows
-$env:NODE_ENV="production"; bun run dist/index.js
-
-# linux
-NODE_ENV=production bun run dist/index.js
+# windows mac 都可双击启动
+ ./dist_binary/server
 ```
 
-### Docker部署
+### docker 部署
