@@ -6,7 +6,7 @@ export const systemLoginLogSchema = pgTable(
     'system_login_log',
     {
         logId: bigserial('log_id', { mode: 'number' }).primaryKey(), // 登录日志 ID
-        userId: bigint('user_id', { mode: 'number' }).notNull(), // 用户 ID
+        userId: bigint('user_id', { mode: 'number' }), // 用户 ID
         loginType: varchar('login_type', { length: 32 }), // 登录类型 admin / user
         clientType: varchar('client_type', { length: 32 }), // 客户端类型
         clientPlatform: varchar('client_platform', { length: 32 }), // 客户端平台
