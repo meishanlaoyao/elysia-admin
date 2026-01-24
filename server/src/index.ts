@@ -3,6 +3,7 @@ import { BunAdapter } from 'elysia/adapter/bun';
 import { cors } from '@elysiajs/cors';
 import { staticPlugin } from '@elysiajs/static';
 import { GetNowTime } from "@/utils/time";
+import { GlobalMiddleware } from "@/middleware";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';
@@ -22,11 +23,7 @@ const app = new Elysia({
 });
 app.use(cors());
 app.use(await staticPlugin());
-app.derive(async (ctx) => {
-    const auth = ctx.headers['authorization'] || null;
-
-    return {}
-});
+GlobalMiddleware(app as Elysia);
 
 // 开发文档
 if (process.env.NODE_ENV !== 'production') {
