@@ -288,7 +288,11 @@
       "menu": "Menu Manage",
       "dict": "Dict Manage",
       "api": "Api Manage",
-      "dept": "Dept Manage"
+      "dept": "Dept Manage",
+      "blacklist": "Blacklist Manage",
+      "log": "Log Manage",
+      "loginLog": "Login Log",
+      "operLog": "Oper Log"
     }
   },
   "table": {

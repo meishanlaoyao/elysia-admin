@@ -38,7 +38,7 @@ type InferSelectModel<T extends PgTable> = T extends PgTable<infer Config extend
     : never;
 
 /**
- * 通用插入函数
+ * 通用插入函数 （不返回记录，性能更好）
  * @param schema - Drizzle ORM 表 schema
  * @param data - 要插入的数据
  * @returns 插入操作的结果
@@ -48,6 +48,20 @@ export async function InsertOne<T extends PgTable>(
     data: InferInsertModel<T>
 ) {
     return await pg.insert(schema).values(data as any);
+};
+
+/**
+ * 通用插入函数 （返回记录）
+ * @param schema - Drizzle ORM 表 schema
+ * @param data - 要插入的数据
+ * @returns 插入操作的结果
+ */
+export async function InsertOneAndRes<T extends PgTable>(
+    schema: T,
+    data: InferInsertModel<T>
+) {
+    const result = await pg.insert(schema).values(data as any).returning();
+    return result[0];
 };
 
 /**
@@ -81,7 +95,7 @@ export async function FindOneByKey<T extends PgTable>(
     }
     const data = await pg.select().from(schema as any).where(eq(keyColumn, value));
     return data.length > 0 ? (data[0] as InferSelectModel<T>) : null;
-}
+};
 
 /**
  * 查询选项
@@ -125,7 +139,7 @@ export async function FindAll<T extends PgTable>(
 
     const data = await query;
     return data as InferSelectModel<T>[];
-}
+};
 
 /**
  * 通用更新函数（根据主键）- 优化版
@@ -158,6 +172,40 @@ export async function UpdateByKey<T extends PgTable>(
     }
 
     return await pg.update(schema).set(updateData as any).where(eq(keyColumn, keyValue));
+};
+
+/**
+ * 通用更新函数（根据主键）- 返回更新后的完整记录
+ * @param schema - Drizzle ORM 表 schema
+ * @param keyColumnName - 主键字段名（字符串）
+ * @param data - 要更新的数据（必须包含主键字段）
+ * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
+ * @returns 更新后的完整记录
+ */
+export async function UpdateByKeyAndRes<T extends PgTable>(
+    schema: T,
+    keyColumnName: string,
+    data: Partial<InferInsertModel<T>> & Record<string, any>,
+    autoUpdateTime: boolean = true
+) {
+    const keyColumn = (schema as any)[keyColumnName];
+    if (!keyColumn) {
+        throw new Error(`Column "${keyColumnName}" not found in schema`);
+    }
+
+    const keyValue = (data as any)[keyColumnName];
+    if (keyValue === undefined || keyValue === null) {
+        throw new Error(`Key value for "${keyColumnName}" is required in data`);
+    }
+
+    // 只在需要时创建新对象
+    let updateData = data;
+    if (autoUpdateTime && 'updateTime' in schema) {
+        updateData = { ...data, updateTime: new Date() };
+    }
+
+    const result = await pg.update(schema).set(updateData as any).where(eq(keyColumn, keyValue)).returning();
+    return result[0]; // 返回更新后的第一条记录
 };
 
 /**

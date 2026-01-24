@@ -25,4 +25,8 @@ export const CacheEnum = {
      * 熔断的api
      */
     FALLBACK_API: `${config.app.id}:fallbackApi:`,
+    /**
+     * 系统IP黑名单
+     */
+    IP_BLACK: `${config.app.id}:ipBlack`,
 };

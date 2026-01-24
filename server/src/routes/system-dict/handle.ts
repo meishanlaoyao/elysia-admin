@@ -11,7 +11,7 @@ import {
     FindAll
 } from '@/common/db';
 import { CacheEnum } from '@/common/enum';
-import { WithCache } from '@/utils/cache';
+import { WithCache } from '@/common/cache';
 import { ParseDateFields } from '@/common/dto';
 
 export async function createType(ctx: Context) {

@@ -9,13 +9,17 @@
         <template #left>
           <ElSpace wrap>
             <ElButton @click="showDialog('add')" v-ripple>新增角色</ElButton>
+            <ElButton type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete" v-ripple>
+              批量删除
+            </ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
 
       <!-- 表格 -->
       <ArtTable :loading="loading" :data="data" :columns="columns" :pagination="pagination"
-        @pagination:size-change="handleSizeChange" @pagination:current-change="handleCurrentChange">
+        @selection-change="handleSelectionChange" @pagination:size-change="handleSizeChange"
+        @pagination:current-change="handleCurrentChange">
       </ArtTable>
     </ElCard>
 
@@ -42,6 +46,9 @@ import { ElTag, ElMessageBox } from 'element-plus'
 defineOptions({ name: 'Role' })
 
 type RoleListItem = Api.SystemRole.RoleListItem
+
+// 选中行
+const selectedRows = ref<RoleListItem[]>([])
 
 // 搜索表单
 const searchForm = ref({
@@ -204,5 +211,42 @@ const deleteRole = (row: RoleListItem) => {
     .catch(() => {
       ElMessage.info('已取消删除')
     })
+}
+
+/**
+ * 处理表格行选择变化
+ */
+const handleSelectionChange = (selection: RoleListItem[]): void => {
+  selectedRows.value = selection
+  console.log('选中行数据:', selectedRows.value)
+}
+
+/**
+ * 批量删除角色
+ */
+const handleBatchDelete = (): void => {
+  if (selectedRows.value.length === 0) {
+    ElMessage.warning('请选择要删除的数据')
+    return
+  }
+
+  const roleNames = selectedRows.value.map((item) => item.roleName).join('、')
+  ElMessageBox.confirm(`确定要删除以下角色吗？此操作不可恢复！\n${roleNames}`, '批量删除', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    const ids = selectedRows.value.map((item) => item.roleId as number)
+    fetchDeleteRole(ids)
+      .then(() => {
+        ElMessage.success('批量删除成功')
+        refreshData()
+      })
+      .catch(() => {
+        ElMessage.error('批量删除失败')
+      })
+  }).catch(() => {
+    ElMessage.info('已取消删除')
+  })
 }
 </script>

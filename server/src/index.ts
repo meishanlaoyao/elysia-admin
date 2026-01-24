@@ -47,6 +47,10 @@ app.onError(({ code, error }) => {
             return BaseResultData.fail(401, error.message);
         };
         return BaseResultData.fail(400, error.message);
+    }
+    // 处理资源不存在错误
+    else if (code === 'NOT_FOUND') {
+        return BaseResultData.fail(404, error.message);
     };
 });
 

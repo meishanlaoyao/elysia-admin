@@ -123,7 +123,7 @@ const form = reactive<MenuFormData>({
 const rules = reactive<FormRules>({
   title: [
     { required: true, message: '请输入名称', trigger: 'blur' },
-    { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+    { min: 2, max: 30, message: '长度在 2 到 30 个字符', trigger: 'blur' }
   ],
   path: [{ required: true, message: '请输入路由地址', trigger: 'blur' }],
   name: [{ required: true, message: '请输入路由名称', trigger: 'blur' }],

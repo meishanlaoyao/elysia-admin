@@ -1,4 +1,4 @@
-import { Context } from 'elysia'
+import { Context } from 'elysia';
 
 /**
  * 身份验证

@@ -178,6 +178,49 @@ export async function findSimple(ctx: Context) {
                                 "R_ADMIN"
                             ]
                         }
+                    },
+                    {
+                        "path": "blacklist",
+                        "name": "Blacklist",
+                        "component": "/system/blacklist",
+                        "meta": {
+                            "title": "menus.system.blacklist",
+                            "icon": "material-symbols:block-outline",
+                            "keepAlive": true,
+                            "roles": [
+                                "R_SUPER",
+                                "R_ADMIN"
+                            ]
+                        }
+                    },
+                    {
+                        "path": "log",
+                        "name": "Log",
+                        "component": "",
+                        "meta": {
+                            "title": "menus.system.log",
+                            "icon": "ri:file-list-3-line"
+                        },
+                        "children": [
+                            {
+                                "path": "loginLog",
+                                "name": "LoginLog",
+                                "component": "/system/log/loginlog",
+                                "meta": {
+                                    "title": "menus.system.loginLog",
+                                    "icon": "ri:login-circle-line"
+                                }
+                            },
+                            {
+                                "path": "operLog",
+                                "name": "OperLog",
+                                "component": "/system/log/operlog",
+                                "meta": {
+                                    "title": "menus.system.operLog",
+                                    "icon": "ri:settings-3-line"
+                                }
+                            }
+                        ]
                     }
                 ]
             },

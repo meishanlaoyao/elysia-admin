@@ -6,6 +6,10 @@
                 <template #left>
                     <ElSpace wrap>
                         <ElButton v-ripple @click="showDialogType('add')">新增类型</ElButton>
+                        <ElButton type="danger" :disabled="selectedRowsType.length === 0" @click="handleBatchDeleteType"
+                            v-ripple>
+                            批量删除
+                        </ElButton>
                     </ElSpace>
                 </template>
             </ArtTableHeader>
@@ -160,9 +164,38 @@ const deleteDictType = (row: DictTypeListItem): void => {
         fetchDeleteDictType(row.dictId as number).then(() => {
             ElMessage.success('删除成功')
             refreshDataType()
+            emit('refresh-cache')
         }).catch(() => {
             ElMessage.error('删除失败')
         })
+    })
+}
+
+/**
+ * 批量删除字典类型
+ */
+const handleBatchDeleteType = (): void => {
+    if (selectedRowsType.value.length === 0) {
+        ElMessage.warning('请选择要删除的数据')
+        return
+    }
+
+    const dictNames = selectedRowsType.value.map((item) => item.dictName).join('、')
+    ElMessageBox.confirm(`确定要删除以下字典类型吗？\n${dictNames}`, '批量删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+    }).then(() => {
+        const ids = selectedRowsType.value.map((item) => item.dictId as number)
+        fetchDeleteDictType(ids)
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                refreshDataType()
+                emit('refresh-cache')
+            })
+            .catch(() => {
+                ElMessage.error('批量删除失败')
+            })
     })
 }
 

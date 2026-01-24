@@ -1,6 +1,6 @@
 export default {
     app: {
-        id: "Elysia-Admin", // 应用ID (如果一台服务器部署了多个本项目，强烈建议为每个项目指定不同的ID)
+        id: "Elysia-Admin", // 应用ID (如果一台服务器部署了多个本项目，强烈建议为每个项目指定不同的ID，另外建议使用英文命名)
         port: 3000, // 端口
         lang: "zh", // 应用语言
         prefix: "/api", // API 前缀
@@ -60,4 +60,8 @@ export default {
         rateDelta: 1000, // 速率限制时间窗口（毫秒）
         rateLimit: 5, // 时间窗口内最多发送邮件数
     },
+    guard: {
+        ipBlacklist: true, // 是否启用IP黑名单
+        apiSwitch: true, // 是否启用api开关
+    }
 };

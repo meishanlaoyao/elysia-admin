@@ -11,6 +11,7 @@ import SystemDeptModule from "./system-dept/route";
 import SystemApiModule from "./system-api/route";
 import SystemLoginLogModule from "./system-login-log/route";
 import SystemOperLogModule from "./system-oper-log/route";
+import SystemIpBlackModule from "./system-ip-black/route";
 
 export const RouteTree: IRouteModule[] = [
     AuthModule,
@@ -22,9 +23,9 @@ export const RouteTree: IRouteModule[] = [
     SystemApiModule,
     SystemLoginLogModule,
     SystemOperLogModule,
+    SystemIpBlackModule,
 ];
 export const RouteList: { tags: string[], route: IRoute }[] = [];
-
 
 /**
  * 注册所有路由

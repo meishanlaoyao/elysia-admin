@@ -7,6 +7,10 @@
                 <template #left>
                     <ElSpace wrap>
                         <ElButton v-ripple @click="showDialogData('add')">新增数据</ElButton>
+                        <ElButton type="danger" :disabled="selectedRowsData.length === 0" @click="handleBatchDeleteData"
+                            v-ripple>
+                            批量删除
+                        </ElButton>
                     </ElSpace>
                 </template>
             </ArtTableHeader>
@@ -162,6 +166,33 @@ const deleteDictData = (row: DictDataListItem): void => {
         }).catch(() => {
             ElMessage.error('删除失败')
         })
+    })
+}
+
+/**
+ * 批量删除字典数据
+ */
+const handleBatchDeleteData = (): void => {
+    if (selectedRowsData.value.length === 0) {
+        ElMessage.warning('请选择要删除的数据')
+        return
+    }
+
+    const dictLabels = selectedRowsData.value.map((item) => item.dictLabel).join('、')
+    ElMessageBox.confirm(`确定要删除以下字典数据吗？\n${dictLabels}`, '批量删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+    }).then(() => {
+        const ids = selectedRowsData.value.map((item) => item.dictCode as number)
+        fetchDeleteDictData(ids)
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                refreshDataData()
+            })
+            .catch(() => {
+                ElMessage.error('批量删除失败')
+            })
     })
 }
 </script>

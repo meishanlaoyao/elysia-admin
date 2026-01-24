@@ -6,6 +6,10 @@
                 <template #left>
                     <ElSpace wrap>
                         <ElButton v-ripple @click="showDialog('add')">新增API</ElButton>
+                        <ElButton type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete"
+                            v-ripple>
+                            批量删除
+                        </ElButton>
                     </ElSpace>
                 </template>
             </ArtTableHeader>
@@ -165,6 +169,33 @@ const deleteDict = (row: ApiListItem): void => {
         }).catch(() => {
             ElMessage.error('删除失败')
         })
+    })
+}
+
+/**
+ * 批量删除
+ */
+const handleBatchDelete = (): void => {
+    if (selectedRows.value.length === 0) {
+        ElMessage.warning('请选择要删除的数据')
+        return
+    }
+
+    const apiNames = selectedRows.value.map((item) => item.apiName).join('、')
+    ElMessageBox.confirm(`确定要删除以下API吗？\n${apiNames}`, '批量删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+    }).then(() => {
+        const ids = selectedRows.value.map((item) => item.apiId as number)
+        fetchDeleteApi(ids)
+            .then(() => {
+                ElMessage.success('批量删除成功')
+                refreshData()
+            })
+            .catch(() => {
+                ElMessage.error('批量删除失败')
+            })
     })
 }
 </script>
