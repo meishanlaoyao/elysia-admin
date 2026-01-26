@@ -34,7 +34,11 @@ export function GlobalMiddleware(app: Elysia) {
         })
     };
     app.derive(async (ctx) => {
-        await AuthGuard(ctx);
+        const res = await AuthGuard(ctx);
+        if (res) {
+            ctx.set.status = res.code;
+            throw res;
+        };
         isPrint && console.log('通过了认证拦截器-->');
     });
     app.derive(async (ctx) => {

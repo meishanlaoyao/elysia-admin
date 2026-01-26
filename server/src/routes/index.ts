@@ -26,14 +26,14 @@ export const RouteTree: IRouteModule[] = [
     SystemIpBlackModule,
 ];
 export const RouteList: { tags: string[], route: IRoute }[] = [];
+export const PublicRoutes: { tags: string[], route: IRoute }[] = [];
+export const AuthRoutes: { tags: string[], route: IRoute }[] = [];
 
 /**
  * 注册所有路由
  * @param app Elysia 实例
  */
 export function RegisterRoutes(app: Elysia) {
-    const PublicRoutes: { tags: string[], route: IRoute }[] = [];
-    const AuthRoutes: { tags: string[], route: IRoute }[] = [];
     RouteTree.forEach(module => {
         module.routes.forEach(route => {
             if (route?.meta?.isAuth) {

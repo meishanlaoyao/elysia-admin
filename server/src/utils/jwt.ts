@@ -39,3 +39,40 @@ export async function VerifyToken(tokenType: tokenType, token: string): Promise<
         return null;
     }
 };
+
+/**
+ * 解析 JWT 令牌的payload部分
+ * @param token 要解析的 JWT 令牌
+ * @returns 令牌payload内容
+ */
+export async function ParseToken(token: string): Promise<any> {
+    try {
+        if (!token || typeof token !== 'string') {
+            throw new Error('无效的令牌');
+        };
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            throw new Error('无效的JWT格式，应包含三个部分');
+        };
+        const payloadBase64Url = parts[1];
+        let base64 = payloadBase64Url
+            .replace(/-/g, '+')
+            .replace(/_/g, '/');
+        const padLength = 4 - (base64.length % 4);
+        if (padLength < 4) {
+            base64 += '='.repeat(padLength);
+        };
+        const decodedString = atob(base64);
+        const jsonPayload = decodeURIComponent(
+            decodedString
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+        const payload = JSON.parse(jsonPayload);
+        return payload;
+    } catch (error) {
+        console.error('JWT内容解析失败', error);
+        return null;
+    }
+};
