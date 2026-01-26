@@ -1,6 +1,7 @@
-import { pgTable, bigserial, varchar, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, bigserial, varchar, boolean, bigint } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
+import { systemRoleSchema } from '@/schema/system_role';
 
 export const systemUserSchema = pgTable(
     'system_user',
@@ -19,3 +20,13 @@ export const systemUserSchema = pgTable(
 );
 export const InsertSystemUser = createInsertSchema(systemUserSchema);
 export const SelectSystemUser = createSelectSchema(systemUserSchema);
+
+export const systemUserRoleSchema = pgTable(
+    'system_user_role',
+    {
+        roleId: bigint('role_id', { mode: 'number' }).references(() => systemRoleSchema.roleId), // 角色ID
+        userId: bigint('user_id', { mode: 'number' }).references(() => systemUserSchema.userId), // 用户ID
+    }
+);
+export const InsertSystemUserRole = createInsertSchema(systemUserRoleSchema);
+export const SelectSystemUserRole = createSelectSchema(systemUserRoleSchema);

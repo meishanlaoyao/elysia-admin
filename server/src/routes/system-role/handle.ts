@@ -14,6 +14,8 @@ import {
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemRoleSchema, systemRoleMenuSchema } from '@/schema/system_role';
+import { systemUserRoleSchema } from '@/schema/system_user';
+import { GetMenuPermissionByRoleIds } from '@/routes/system-menu/handle';
 
 export async function create(ctx: Context) {
     try {
@@ -31,8 +33,8 @@ export async function findList(ctx: Context) {
         const {
             pageNum = 1,
             pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
+            orderByColumn = "sort",
+            sortRule = "asc",
             startTime,
             endTime,
             roleName,
@@ -134,5 +136,31 @@ export async function remove(ctx: Context) {
     }
     catch (error) {
         return BaseResultData.fail(500, error);
+    }
+};
+
+// 获取用户角色和权限
+export async function GetUserRoleAndPermission(userId: number): Promise<{
+    roles: string[];
+    permissions: string[];
+}> {
+    const backData = {
+        roles: [] as string[],
+        permissions: [] as string[],
+    };
+    if (!userId) return backData;
+    try {
+        const userRoleWhere = CreateQueryBuilder(systemUserRoleSchema).eq('userId', userId).build();
+        const userRoleData = await FindAll(systemUserRoleSchema, userRoleWhere);
+        const roleIds = userRoleData.map(item => item.roleId).filter(Boolean) as number[];
+        if (!roleIds?.length) return backData;
+        const roleWhere = CreateQueryBuilder(systemRoleSchema).in('roleId', roleIds).build();
+        const roleData = await FindAll(systemRoleSchema, roleWhere);
+        backData.roles = roleData.map(item => item.roleCode);
+        backData.permissions = await GetMenuPermissionByRoleIds(roleIds);
+        return backData;
+    } catch (error) {
+        console.error('获取用户角色和权限失败:', error);
+        return backData;
     }
 };

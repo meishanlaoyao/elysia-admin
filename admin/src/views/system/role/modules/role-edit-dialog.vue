@@ -51,7 +51,7 @@ const visible = computed({
  * 表单数据
  */
 const form = reactive<RoleListItem>({
-  roleId: 0,
+  roleId: undefined,
   roleName: '',
   roleCode: '',
   sort: 0,
@@ -131,7 +131,7 @@ const initFormData = () => {
   const row = props.roleData || {}
   Object.assign(form, {
     ...row,
-    roleId: isEdit && row.roleId ? row.roleId || 0 : 0,
+    roleId: isEdit && row.roleId ? row.roleId || undefined : undefined,
     roleName: isEdit && row.roleName ? row.roleName || '' : '',
     roleCode: isEdit && row.roleCode ? row.roleCode || '' : '',
     sort: isEdit && row.sort ? row.sort || 0 : 0,

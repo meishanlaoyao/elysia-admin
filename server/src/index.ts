@@ -23,7 +23,6 @@ const app = new Elysia({
 });
 app.use(cors());
 app.use(await staticPlugin());
-GlobalMiddleware(app as Elysia);
 
 // 开发文档
 if (process.env.NODE_ENV !== 'production') {
@@ -38,6 +37,7 @@ if (process.env.NODE_ENV !== 'production') {
         },
     }));
 };
+GlobalMiddleware(app as Elysia);
 
 // 捕获错误
 app.onError(({ code, error }) => {
@@ -50,12 +50,12 @@ app.onError(({ code, error }) => {
     }
     // 处理资源不存在错误
     else if (code === 'NOT_FOUND') {
-        return BaseResultData.fail(404, error.message);
+        return BaseResultData.fail(404);
     };
 });
 
 // 注册路由
-RegisterRoutes(app as Elysia);
+await RegisterRoutes(app as Elysia);
 
 // 全局响应层
 app.onAfterResponse((ctx) => {

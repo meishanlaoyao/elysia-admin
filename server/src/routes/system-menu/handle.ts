@@ -379,3 +379,14 @@ export async function removeMenuBtn(ctx: Context) {
         return BaseResultData.fail(500, error);
     }
 };
+
+// 根据角色IDS获取菜单权限
+export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<string[]> {
+    try {
+        return [];
+    }
+    catch (error) {
+        console.error('根据角色IDS获取菜单权限失败:', error);
+        return [];
+    }
+};

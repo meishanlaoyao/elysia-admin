@@ -1,12 +1,17 @@
 import { t } from 'elysia';
 import { InsertSystemUser, SelectSystemUser } from "@/schema/system_user";
 import { CrudDto } from '@/common/dto';
+import { BaseResultDto } from '@/common/dto';
 
-export const CreateDto = CrudDto.create(
-    InsertSystemUser,
-    SelectSystemUser,
-    ['username', 'password', 'email', 'phone']
-);
+export const CreateDto = {
+    body: t.Object({
+        username: t.String({ description: "用户名" }),
+        password: t.String({ description: "密码" }),
+        email: t.Optional(t.String({ description: "邮箱" })),
+        phone: t.Optional(t.String({ description: "手机号" })),
+        roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
+    })
+};
 
 export const ListDto = CrudDto.list(
     t.Omit(SelectSystemUser, ['password']),

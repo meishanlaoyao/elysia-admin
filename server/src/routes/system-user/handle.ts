@@ -11,6 +11,7 @@ import {
     FindPage,
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
+import { GetUserRoleAndPermission } from '@/routes/system-role/handle';
 
 export async function create(ctx: Context) {
     try {
@@ -62,6 +63,8 @@ export async function findList(ctx: Context) {
 
 export async function findInfo(ctx: Context) {
     try {
+        const userId = (ctx as any)?.user?.userId as number;
+        const res = await GetUserRoleAndPermission(userId);
         const obj = {
             "userId": "1",
             "userName": "Super",
