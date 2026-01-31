@@ -6,7 +6,7 @@ const SystemMenuModule: IRouteModule = {
     tags: '系统菜单',
     routes: [
         { url: '/system/menu', method: 'post', summary: '创建菜单', dto: CreateMenuDto, handle: createMenu, meta: { isAuth: true, isLog: true, permission: 'system:menu:create' } },
-        { url: '/system/menu/simple', method: 'get', summary: '查询用户菜单树', handle: findSimple, meta: { isAuth: true, isLog: true, permission: 'system:user:info' } },
+        { url: '/system/menu/simple', method: 'get', summary: '查询用户菜单树', handle: findSimple, meta: { isAuth: true, isLog: true, } },
         { url: '/system/menu/tree', method: 'get', summary: '查询完整菜单树', dto: FindAllMenuDto, handle: findTree, meta: { isAuth: true, isLog: true, permission: 'system:menu:query' } },
         { url: '/system/menu/:id', method: 'get', summary: '查询菜单详情', handle: () => { }, meta: { isAuth: true, isLog: true, permission: 'system:menu:query' } },
         { url: '/system/menu', method: 'put', summary: '更新菜单', dto: UpdateMenuDto, handle: updateMenu, meta: { isAuth: true, isLog: true, permission: 'system:menu:update' } },

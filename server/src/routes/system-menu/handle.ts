@@ -13,6 +13,7 @@ import {
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from '@/schema/system_menu';
+import { systemRoleMenuSchema } from '@/schema/system_role';
 import { listToTree } from '@/common/function';
 
 export async function createMenu(ctx: Context) {
@@ -383,6 +384,13 @@ export async function removeMenuBtn(ctx: Context) {
 // 根据角色IDS获取菜单权限
 export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<string[]> {
     try {
+        const roleMenuWhere = CreateQueryBuilder(systemRoleMenuSchema).in('roleId', roleIds).build();
+        const roleMenu = await FindAll(systemRoleMenuSchema, roleMenuWhere);
+        const menuBtnIds = new Set(roleMenu.map(item => item.menuBtnId).filter(id => id !== null));
+        const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
+        const menuBtns = await FindAll(systemMenuBtnSchema, menuBtnWhere);
+        const permission = new Set(menuBtns.map(item => item.permission).filter(per => per !== null));
+        if (permission.size) return [...permission];
         return [];
     }
     catch (error) {

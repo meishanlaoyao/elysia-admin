@@ -7,6 +7,7 @@ export const CreateDto = {
     body: t.Object({
         username: t.String({ description: "用户名" }),
         password: t.String({ description: "密码" }),
+        nickname: t.Optional(t.String({ description: "昵称" })),
         email: t.Optional(t.String({ description: "邮箱" })),
         phone: t.Optional(t.String({ description: "手机号" })),
         roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),

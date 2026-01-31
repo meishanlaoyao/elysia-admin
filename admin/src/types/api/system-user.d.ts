@@ -5,19 +5,22 @@ declare namespace Api {
 
         /** 用户列表项 */
         interface UserListItem {
-            id: number
-            avatar: string
-            status: string
-            userName: string
-            userGender: string
-            nickName: string
-            userPhone: string
-            userEmail: string
-            userRoles: string[]
-            createBy: string
-            createTime: string
-            updateBy: string
-            updateTime: string
+            userId?: number;
+            username?: string;
+            password?: string;
+            nickname?: string;
+            email?: string;
+            phone?: string;
+            sex?: string;
+            avatar?: string;
+            deptId?: number;
+            status?: boolean;
+            createTime?: Date;
+            createBy?: number | null;
+            updateTime?: null | Date;
+            updateBy?: null | number;
+            delFlag?: boolean;
+            remark?: null | string;
         }
 
         /** 用户搜索参数 */

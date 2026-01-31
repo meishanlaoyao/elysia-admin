@@ -35,7 +35,7 @@ export async function VerifyToken(tokenType: tokenType, token: string): Promise<
         const { payload } = await jwtVerify(token, encoder);
         return payload;
     } catch (error) {
-        console.error('VerifyToken error:', error);
+        console.error('JWT验证失败:', error);
         return null;
     }
 };

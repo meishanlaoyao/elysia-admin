@@ -40,6 +40,9 @@ import UserSearch from './modules/user-search.vue'
 import UserDialog from './modules/user-dialog.vue'
 import { ElTag, ElMessageBox, ElImage } from 'element-plus'
 import { DialogType } from '@/types'
+import { useDictStore } from '@/store/modules/dict';
+
+const dictStore = useDictStore()
 
 defineOptions({ name: 'User' })
 
@@ -101,13 +104,13 @@ const {
     apiParams: {
       current: 1,
       size: 20,
-      ...searchForm.value
+      // ...searchForm.value
     },
     // 自定义分页字段映射，未设置时将使用全局配置 tableConfig.ts 中的 paginationKey
-    // paginationKey: {
-    //   current: 'pageNum',
-    //   size: 'pageSize'
-    // },
+    paginationKey: {
+      current: 'pageNum',
+      size: 'pageSize'
+    },
     columnsFactory: () => [
       { type: 'selection' }, // 勾选列
       { type: 'index', width: 60, label: '序号' }, // 序号
@@ -115,19 +118,18 @@ const {
         prop: 'userInfo',
         label: '用户名',
         width: 280,
-        // visible: false, // 默认是否显示列
         formatter: (row) => {
           return h('div', { class: 'user flex-c' }, [
             h(ElImage, {
               class: 'size-9.5 rounded-md',
-              src: row.avatar,
-              previewSrcList: [row.avatar],
+              src: row.avatar || '',
+              previewSrcList: [row.avatar || ''],
               // 图片预览是否插入至 body 元素上，用于解决表格内部图片预览样式异常
               previewTeleported: true
             }),
             h('div', { class: 'ml-2' }, [
-              h('p', { class: 'user-name' }, row.userName),
-              h('p', { class: 'email' }, row.userEmail)
+              h('p', { class: 'user-name' }, row.username),
+              h('p', { class: 'email' }, row.email)
             ])
           ])
         }
@@ -136,16 +138,16 @@ const {
         prop: 'userGender',
         label: '性别',
         sortable: true,
-        formatter: (row) => row.userGender
+        formatter: (row) => dictStore.getDictLabel('system_user_sex', row.sex)
       },
       { prop: 'userPhone', label: '手机号' },
       {
         prop: 'status',
         label: '状态',
-        formatter: (row) => {
-          const statusConfig = getUserStatusConfig(row.status)
-          return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
-        }
+        // formatter: (row) => {
+        //   const statusConfig = getUserStatusConfig(row.status)
+        //   return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
+        // }
       },
       {
         prop: 'createTime',

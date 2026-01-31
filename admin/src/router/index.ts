@@ -20,4 +20,4 @@ export function initRouter(app: App<Element>): void {
 }
 
 // 主页路径，默认使用菜单第一个有效路径，配置后使用此路径
-export const HOME_PAGE_PATH = ''
+export const HOME_PAGE_PATH = '/dashboard/console'

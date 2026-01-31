@@ -2,6 +2,7 @@ import { pgTable, bigserial, varchar, boolean, bigint } from 'drizzle-orm/pg-cor
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@/common/schema';
 import { systemRoleSchema } from '@/schema/system_role';
+import { systemDeptSchema } from './system_dept';
 
 export const systemUserSchema = pgTable(
     'system_user',
@@ -14,6 +15,7 @@ export const systemUserSchema = pgTable(
         phone: varchar('phone', { length: 11 }), // 手机号
         sex: varchar('sex', { length: 1 }).default('0'), // 性别 0未知 1男 2女
         avatar: varchar('avatar', { length: 255 }), // 头像
+        deptId: bigint('dept_id', { mode: 'number' }).references(() => systemDeptSchema.deptId), // 部门ID
         status: boolean('status').default(true), // 状态
         ...BaseSchema,
     }

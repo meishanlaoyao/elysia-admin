@@ -10,6 +10,7 @@ import { Get, Set, Del, Keys } from '@/client/redis';
 import { SendMail } from '@/client/smtp';
 import { GenerateForgetPasswordHtmlTemplate } from '@/utils/htmltemplate';
 import config from '@/config';
+import { GetUserRoleAndPermission } from '@/routes/system-role/handle';
 
 // 设置刷新令牌 Cookie
 function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
@@ -56,7 +57,6 @@ export async function accountPasswordLogin(ctx: Context) {
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
         if (user?.delFlag) return BaseResultData.fail(410, '用户已删除');
         if (!BcryptCompare(password, user?.password || '')) return BaseResultData.fail(400, '密码错误');
-        const { password: _, ...rest } = user;
         const payload = { userId: user.userId };
         const baseKey = CacheEnum.REFRESH_TOKEN + `${user.userId}:`;
         const oldkeys = await Keys(baseKey);
@@ -66,8 +66,16 @@ export async function accountPasswordLogin(ctx: Context) {
         };
         const tokens = await generateAndStoreTokens(payload);
         if ('error' in tokens) return tokens.error;
+        const { roles, permissions } = await GetUserRoleAndPermission(user.userId);
         const userInfo = {
-            ...rest,
+            userId: user.userId,
+            username: user.username,
+            email: user.email,
+            phone: user.phone,
+            sex: user.sex,
+            avatar: user.avatar,
+            roles,
+            permissions,
             loginTime: GetNowTime()
         };
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;

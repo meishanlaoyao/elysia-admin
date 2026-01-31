@@ -55,9 +55,22 @@ export const useDictStore = defineStore(
             return toRefs(result)
         }
 
+        /**
+         * 根据值回显label
+         * @param dictType 字典类型
+         * @param value 字典值
+         * @returns 字典label
+         */
+        const getDictLabel = (dictType: string, value: string = '') => {
+            const dict = getDictData([dictType])[dictType]
+            const item = dict.value?.find(item => item.dictValue === value)
+            return item?.dictLabel || ''
+        }
+
         return {
             dictData,
             getDictData,
+            getDictLabel,
         }
     }
 )

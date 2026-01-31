@@ -20,7 +20,10 @@ function getPublicRouteSet() {
  */
 export async function AuthGuard(ctx: Context) {
     const routeKey = `${ctx.request.method}:${ctx.route}`;
-    if (getPublicRouteSet().has(routeKey)) return;
+    if (getPublicRouteSet().has(routeKey)) {
+        (ctx as any).isPublic = true;
+        return
+    };
     const auth = ctx.headers['authorization'];
     if (!auth) return BaseResultData.fail(401);
     const token = auth.split(' ')[1];
