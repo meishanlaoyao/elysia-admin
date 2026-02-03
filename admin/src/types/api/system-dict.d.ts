@@ -19,9 +19,9 @@ declare namespace Api {
         interface DictDataListItem {
             dictCode?: number;
             dictSort?: number;
-            dictValue?: string;
-            dictLabel?: string;
-            dictType?: string;
+            dictValue: string;
+            dictLabel: string;
+            dictType: string;
             tagType?: ElTagType;
             customClass?: string;
             status?: boolean;

@@ -21,6 +21,15 @@ export function fetchGetDeptTree(params: Api.SystemDept.DeptSearchParams) {
 }
 
 /**
+ * 下拉选项数据
+ */
+export function fetchGetDeptOptions() {
+    return request.get<Api.SystemDept.DeptListItem[]>({
+        url: '/api/system/dept/options',
+    })
+}
+
+/**
  * 更新
  */
 export function fetchUpdateDept(data: Api.SystemDept.DeptListItem) {

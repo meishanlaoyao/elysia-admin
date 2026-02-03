@@ -32,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { ACCOUNT_TABLE_DATA } from '@/mock/temp/formData'
 import { useTable } from '@/hooks/core/useTable'
@@ -58,32 +59,12 @@ const selectedRows = ref<UserListItem[]>([])
 
 // 搜索表单
 const searchForm = ref({
-  userName: undefined,
+  username: undefined,
   userGender: undefined,
   userPhone: undefined,
   userEmail: undefined,
   status: '1'
 })
-
-// 用户状态配置
-const USER_STATUS_CONFIG = {
-  '1': { type: 'success' as const, text: '在线' },
-  '2': { type: 'info' as const, text: '离线' },
-  '3': { type: 'warning' as const, text: '异常' },
-  '4': { type: 'danger' as const, text: '注销' }
-} as const
-
-/**
- * 获取用户状态配置
- */
-const getUserStatusConfig = (status: string) => {
-  return (
-    USER_STATUS_CONFIG[status as keyof typeof USER_STATUS_CONFIG] || {
-      type: 'info' as const,
-      text: '未知'
-    }
-  )
-}
 
 const {
   columns,
@@ -128,7 +109,7 @@ const {
               previewTeleported: true
             }),
             h('div', { class: 'ml-2' }, [
-              h('p', { class: 'user-name' }, row.username),
+              h('p', { class: 'user-name' }, row.nickname),
               h('p', { class: 'email' }, row.email)
             ])
           ])
@@ -140,19 +121,17 @@ const {
         sortable: true,
         formatter: (row) => dictStore.getDictLabel('system_user_sex', row.sex)
       },
-      { prop: 'userPhone', label: '手机号' },
+      { prop: 'phone', label: '手机号' },
       {
         prop: 'status',
         label: '状态',
-        // formatter: (row) => {
-        //   const statusConfig = getUserStatusConfig(row.status)
-        //   return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
-        // }
+        formatter: (row) => h(ElTag, { type: row.status ? 'success' : 'danger' }, () => row.status ? '启用' : '停用')
       },
       {
         prop: 'createTime',
         label: '创建日期',
-        sortable: true
+        sortable: true,
+        formatter: (row) => dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss')
       },
       {
         prop: 'operation',

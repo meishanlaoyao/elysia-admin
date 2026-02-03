@@ -11,6 +11,8 @@ export const CreateDto = {
         email: t.Optional(t.String({ description: "邮箱" })),
         phone: t.Optional(t.String({ description: "手机号" })),
         roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
+        deptId: t.Optional(t.Number({ description: "部门ID" })),
+        sex: t.Optional(t.String({ description: "性别" })),
     })
 };
 

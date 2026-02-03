@@ -13,6 +13,8 @@ import {
     HardDelete
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
+import { CacheEnum } from '@/common/enum';
+import { WithCache } from '@/common/cache';
 import { systemRoleSchema, systemRoleMenuSchema } from '@/schema/system_role';
 import { systemUserRoleSchema } from '@/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/routes/system-menu/handle';
@@ -60,6 +62,22 @@ export async function findList(ctx: Context) {
         });
         return BaseResultData.ok(res);
     } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function findOptions() {
+    try {
+        const data = await WithCache(
+            CacheEnum.BASE_OPTIONS + 'systemRole',
+            async () => {
+                const where = CreateQueryBuilder(systemRoleSchema).eq('delFlag', false).build();
+                return await FindAll(systemRoleSchema, where);
+            }
+        );
+        return BaseResultData.ok(data);
+    }
+    catch (error) {
         return BaseResultData.fail(500, error);
     }
 };

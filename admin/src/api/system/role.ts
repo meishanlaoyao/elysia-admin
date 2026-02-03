@@ -21,6 +21,15 @@ export function fetchGetRoleList(params: Api.SystemRole.RoleSearchParams) {
 }
 
 /**
+ * 查询下拉选项数据
+ */
+export function fetchGetRoleOptions() {
+    return request.get<Api.SystemRole.RoleListItem[]>({
+        url: '/api/system/role/options'
+    })
+}
+
+/**
  * 查询角色权限
  */
 export function fetchGetRolePermission(roleId: number) {

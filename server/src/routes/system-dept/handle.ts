@@ -7,6 +7,8 @@ import {
     CreateQueryBuilder,
     FindAll,
 } from '@/common/db';
+import { CacheEnum } from '@/common/enum';
+import { WithCache } from '@/common/cache';
 import { ParseDateFields } from '@/common/dto';
 import { systemDeptSchema } from '@/schema/system_dept';
 import { listToTree } from '@/common/function';
@@ -40,6 +42,32 @@ export async function findTree(ctx: Context) {
             sortKey: 'sort',
         });
         return BaseResultData.ok(tree);
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function findOptions() {
+    try {
+        const data = await WithCache(
+            CacheEnum.BASE_OPTIONS + 'systemDeptTree',
+            async () => {
+                const where = CreateQueryBuilder(systemDeptSchema)
+                    .eq('delFlag', false)
+                    .build();
+                const list = await FindAll(systemDeptSchema, where);
+                const tree = listToTree(list, {
+                    idKey: 'deptId',
+                    parentKey: 'parentId',
+                    childrenKey: 'children',
+                    rootValue: 0,
+                    sortKey: 'sort',
+                });
+                return tree;
+            }
+        );
+        return BaseResultData.ok(data);
     }
     catch (error) {
         return BaseResultData.fail(500, error);

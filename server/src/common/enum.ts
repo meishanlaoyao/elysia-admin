@@ -29,4 +29,8 @@ export const CacheEnum = {
      * 系统IP黑名单
      */
     IP_BLACK: `${config.app.id}:ipBlack`,
+    /**
+     * 缓存的下拉选项数据
+     */
+    BASE_OPTIONS: `${config.app.id}:baseOptions:`,
 };
