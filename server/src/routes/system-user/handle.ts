@@ -11,7 +11,7 @@ import {
     FindPage,
 } from '@/common/db';
 import { ParseDateFields } from '@/common/dto';
-import { GetUserRoleAndPermission } from '@/routes/system-role/handle';
+import { GetUserRoleAndPermission, GetUserRoleIds } from '@/routes/system-role/handle';
 
 export async function create(ctx: Context) {
     try {
@@ -88,9 +88,10 @@ export async function findOne(ctx: Context) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemUserSchema, 'userId', id);
+        const roles = await GetUserRoleIds(id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
         const { password, ...item } = data;
-        return BaseResultData.ok(item);
+        return BaseResultData.ok({ ...item, roles });
     } catch (error) {
         return BaseResultData.fail(500, error);
     }

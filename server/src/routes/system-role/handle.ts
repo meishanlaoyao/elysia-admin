@@ -157,6 +157,20 @@ export async function remove(ctx: Context) {
     }
 };
 
+// 获取用户角色IDs
+export async function GetUserRoleIds(userId: number): Promise<number[]> {
+    if (!userId) return [];
+    try {
+        const userRoleWhere = CreateQueryBuilder(systemUserRoleSchema).eq('userId', userId).build();
+        const userRoleData = await FindAll(systemUserRoleSchema, userRoleWhere);
+        const roleIds = userRoleData.map(item => item.roleId).filter(Boolean) as number[];
+        return roleIds;
+    } catch (error) {
+        console.error('获取用户角色IDs失败:', error);
+        return [];
+    }
+};
+
 // 获取用户角色和权限
 export async function GetUserRoleAndPermission(userId: number): Promise<{
     roles: string[];
@@ -168,9 +182,7 @@ export async function GetUserRoleAndPermission(userId: number): Promise<{
     };
     if (!userId) return backData;
     try {
-        const userRoleWhere = CreateQueryBuilder(systemUserRoleSchema).eq('userId', userId).build();
-        const userRoleData = await FindAll(systemUserRoleSchema, userRoleWhere);
-        const roleIds = userRoleData.map(item => item.roleId).filter(Boolean) as number[];
+        const roleIds = await GetUserRoleIds(userId);
         if (!roleIds?.length) return backData;
         const roleWhere = CreateQueryBuilder(systemRoleSchema).in('roleId', roleIds).build();
         const roleData = await FindAll(systemRoleSchema, roleWhere);

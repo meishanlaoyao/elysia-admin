@@ -25,7 +25,7 @@
       </ArtTable>
 
       <!-- 用户弹窗 -->
-      <UserDialog v-model:visible="dialogVisible" :type="dialogType" :user-data="currentUserData"
+      <UserDialog v-model:visible="dialogVisible" :type="dialogType" :data="currentUserData"
         @submit="handleDialogSubmit" />
     </ElCard>
   </div>
@@ -215,7 +215,7 @@ const deleteUser = (row: UserListItem): void => {
  */
 const handleDialogSubmit = async () => {
   try {
-    dialogVisible.value = false
+    await refreshData()
     currentUserData.value = {}
   } catch (error) {
     console.error('提交失败:', error)
