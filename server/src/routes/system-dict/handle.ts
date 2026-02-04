@@ -9,7 +9,7 @@ import {
     CreateQueryBuilder,
     FindPage,
     FindAll
-} from '@/common/db';
+} from '@/common/pg/db';
 import { CacheEnum } from '@/common/enum';
 import { WithCache } from '@/common/cache';
 import { ParseDateFields } from '@/common/dto';

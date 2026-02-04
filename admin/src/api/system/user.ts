@@ -3,7 +3,7 @@ import request from '@/utils/http'
 /**
  * 创建
  */
-export function fetchCreateUser(data: Api.SystemUser.UserListItem & { roleIds: number[] }) {
+export function fetchCreateUser(data: Api.SystemUser.UserListItem & { roles: number[] }) {
     return request.post({
         url: '/api/system/user',
         data
@@ -30,7 +30,7 @@ export function fetchGetUserDetail(id: number) {
 /**
  * 更新
  */
-export function fetchUpdateUser(data: Api.SystemUser.UserListItem & { roleIds: number[] }) {
+export function fetchUpdateUser(data: Api.SystemUser.UserListItem & { roles: number[] }) {
     return request.put({
         url: '/api/system/user',
         data

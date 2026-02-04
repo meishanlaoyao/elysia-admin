@@ -5,11 +5,11 @@ import { create, findTree, findOptions, update, remove } from './handle';
 const SystemDeptModule: IRouteModule = {
     tags: '系统部门',
     routes: [
-        { url: '/system/dept', method: 'post', summary: '创建', dto: CreateDto, handle: create, meta: { isAuth: true, isLog: true, permission: 'system:dept:create' } },
-        { url: '/system/dept/tree', method: 'get', summary: '查询部门树', dto: TreeDto, handle: findTree, meta: { isAuth: true, isLog: true, permission: 'system:dept:query' } },
-        { url: '/system/dept/options', method: 'get', summary: '下拉选项数据', handle: findOptions, meta: { isAuth: true, permission: 'system:dept:query' } },
-        { url: '/system/dept', method: 'put', summary: '更新', dto: UpdateDto, handle: update, meta: { isAuth: true, isLog: true, permission: 'system:dept:update' } },
-        { url: '/system/dept/:ids', method: 'delete', summary: '删除', handle: remove, meta: { isAuth: true, isLog: true, permission: 'system:dept:delete' } },
+        { url: '/system/dept', method: 'post', summary: '创建', dto: CreateDto, handle: create, meta: { isAuth: true, isLog: true, permission: 'system:dept:create', } },
+        { url: '/system/dept/tree', method: 'get', summary: '查询部门树', dto: TreeDto, handle: findTree, meta: { isAuth: true, permission: 'system:dept:query', } },
+        { url: '/system/dept/options', method: 'get', summary: '下拉选项数据', handle: findOptions, meta: { isAuth: true, permission: 'system:dept:query', } },
+        { url: '/system/dept', method: 'put', summary: '更新', dto: UpdateDto, handle: update, meta: { isAuth: true, isLog: true, permission: 'system:dept:update', } },
+        { url: '/system/dept/:ids', method: 'delete', summary: '删除', handle: remove, meta: { isAuth: true, isLog: true, permission: 'system:dept:delete', } },
     ]
 };
 

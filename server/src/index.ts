@@ -3,7 +3,7 @@ import { BunAdapter } from 'elysia/adapter/bun';
 import { cors } from '@elysiajs/cors';
 import { staticPlugin } from '@elysiajs/static';
 import { GetNowTime } from "@/utils/time";
-import { GlobalMiddleware } from "@/middleware";
+import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 import config from "@/config";
 import { RegisterRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';
@@ -38,6 +38,7 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 };
 GlobalMiddleware(app as Elysia);
+GlobalResponseMiddleware(app as Elysia);
 
 // 捕获错误
 app.onError(({ code, error }) => {
@@ -57,10 +58,7 @@ app.onError(({ code, error }) => {
 // 注册路由
 await RegisterRoutes(app as Elysia);
 
-// 全局响应层
-app.onAfterResponse((ctx) => {
-    // 操作日志
-});
+
 
 // 初始化种子数据
 InitSeedData();

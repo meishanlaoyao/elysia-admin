@@ -24,7 +24,10 @@ export const ListDto = CrudDto.list(
         email: t.Optional(t.String({ description: "邮箱" })),
         phone: t.Optional(t.String({ description: "手机号" })),
         sex: t.Optional(t.String({ description: "性别" })),
+        status: t.Optional(t.String({ description: "状态" })),
     }
 );
 
-export const UpdateDto = CrudDto.update(SelectSystemUser, 'userId');
+export const UpdateDto = CrudDto.update(SelectSystemUser, 'userId', {
+    roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
+});

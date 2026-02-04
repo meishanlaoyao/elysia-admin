@@ -1,9 +1,12 @@
 import { Context } from 'elysia';
 import { GetClientIp, GetClientOs, GetClientPlatform, GetClientType, GetIpLocation } from '@/utils/ip';
-import { InsertLoginLog } from '@/routes/system-login-log/handle';
 
-// 获取客户端信息
-async function getClientInfo(ctx: Context): Promise<{
+/**
+ * 获取客户端信息
+ * @param ctx 请求上下文
+ * @returns 客户端信息
+ */
+export async function GetClientInfo(ctx: Context): Promise<{
     ipaddr: string;
     userAgent: string;
     loginLocation: string;
@@ -22,21 +25,5 @@ async function getClientInfo(ctx: Context): Promise<{
     } catch (error) {
         console.error('获取客户端信息失败:', error);
         return null;
-    }
-};
-
-/**
- * 添加登陆日志
- */
-export async function AddLoginLog(ctx: Context) {
-    try {
-        const clientInfo = await getClientInfo(ctx);
-        if (!clientInfo) return;
-        const userId = (ctx.headers as any)?.userId || null;
-        const res = (ctx as any)?.response || {};
-        InsertLoginLog({ ...clientInfo, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
-    }
-    catch (error) {
-        console.error('添加登陆日志失败:', error);
     }
 };

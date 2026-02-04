@@ -18,6 +18,8 @@ declare namespace Api {
         /** 登录响应 */
         interface LoginResponse {
             token: string
+            accessToken: string
+            // refreshToken 通过 HTTP-only Cookie 返回，不在响应体中
         }
 
         /** 用户信息 */

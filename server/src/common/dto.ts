@@ -125,9 +125,12 @@ export const CrudDto = {
      * 创建 Update DTO
      * @param selectSchema Select schema
      * @param primaryKey 主键字段名（默认为 'id'）
+     * @param extraFields 额外的字段定义
      */
-    update: (selectSchema: any, primaryKey: string = 'id') => ({
-        body: CreateUpdateDto(selectSchema, primaryKey),
+    update: (selectSchema: any, primaryKey: string = 'id', extraFields?: any) => ({
+        body: extraFields
+            ? t.Composite([CreateUpdateDto(selectSchema, primaryKey), t.Object(extraFields)])
+            : CreateUpdateDto(selectSchema, primaryKey),
         ...BaseResultDto(selectSchema),
     }),
 

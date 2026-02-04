@@ -57,3 +57,10 @@ export function fetchResetPassword(params: Api.Auth.ResetPasswordParams) {
     showSuccessMessage: true // 显示成功消息
   })
 }
+
+// 刷新token
+export function fetchRefreshToken() {
+  return request.post({
+    url: '/api/auth/refresh',
+  })
+}

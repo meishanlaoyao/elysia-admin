@@ -1,4 +1,5 @@
 import { t } from 'elysia';
+import config from '@/config';
 import type { Elysia } from "elysia";
 import type { IRouteModule, IRoute } from "@/common/route";
 import { readdirSync, statSync } from 'node:fs';
@@ -34,29 +35,38 @@ async function loadRouteModules(): Promise<IRouteModule[]> {
     return modules;
 };
 
-export let RouteTree: IRouteModule[] = [];
 export const RouteList: { tags: string[], route: IRoute }[] = [];
-export const PublicRoutes: { tags: string[], route: IRoute }[] = [];
-export const AuthRoutes: { tags: string[], route: IRoute }[] = [];
+export let RouteMap: Map<string, number> = new Map();
+export let AuthRoutes: { tags: string[], route: IRoute }[] = [];
+
+/**
+ * 把路由转为Map
+ * @param routes 路由数组
+ * @returns Map<string, number> 路由键-索引映射
+ */
+function routeToMap(routes: { tags: string[], route: IRoute }[]) {
+    const prefix = config.app.prefix;
+    return new Map(routes.map(({ route }, index) => [`${route.method.toUpperCase()}:${prefix}${route.url}`, index]));
+};
 
 /**
  * 注册所有路由
  * @param app Elysia 实例
  */
 export async function RegisterRoutes(app: Elysia) {
-    // 自动加载所有路由模块
-    RouteTree = await loadRouteModules();
-
+    const RouteTree = await loadRouteModules();
+    const authRoutes: { tags: string[], route: IRoute }[] = [];
+    const publicRoutes: { tags: string[], route: IRoute }[] = [];
     RouteTree.forEach(module => {
         module.routes.forEach(route => {
             if (route?.meta?.isAuth) {
-                AuthRoutes.push({ tags: [module.tags], route });
+                authRoutes.push({ tags: [module.tags], route });
             } else {
-                PublicRoutes.push({ tags: [module.tags], route });
+                publicRoutes.push({ tags: [module.tags], route });
             };
         });
     });
-    PublicRoutes.forEach(({ tags, route }) => {
+    publicRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
@@ -67,12 +77,14 @@ export async function RegisterRoutes(app: Elysia) {
             authorization: t.String({ description: 'Bearer Token令牌', minLength: 1, error: '请先登陆后访问' }),
         }),
     });
-    AuthRoutes.forEach(({ tags, route }) => {
+    authRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
         });
     });
-    RouteList.push(...PublicRoutes, ...AuthRoutes);
-    console.log(`✓ 接口已注册: 公共${PublicRoutes.length}个 权限${AuthRoutes.length}个`);
+    RouteList.push(...publicRoutes, ...authRoutes);
+    RouteMap = routeToMap(RouteList);
+    AuthRoutes = authRoutes;
+    console.log(`✓ 接口已注册: 公共${publicRoutes.length}个 权限${authRoutes.length}个`);
 };

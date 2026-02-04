@@ -7,7 +7,7 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
-} from '@/common/db';
+} from '@/common/pg/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemApiSchema } from '@/schema/system_api';
 import { CacheEnum } from '@/common/enum';

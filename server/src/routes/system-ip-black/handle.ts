@@ -7,7 +7,7 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindAll,
-} from '@/common/db';
+} from '@/common/pg/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemIpBlackSchema } from '@/schema/system_ip_black';
 import { IsIpAddress } from '@/common/check';

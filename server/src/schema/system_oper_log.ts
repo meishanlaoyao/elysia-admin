@@ -1,13 +1,12 @@
 import { pgTable, bigserial, varchar, boolean, integer, bigint } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
-import { BaseSchema } from '@/common/schema';
+import { BaseSchema } from '@/common/pg/schema';
 
 export const systemOperLogSchema = pgTable(
     'system_oper_log',
     {
         operId: bigserial('oper_id', { mode: 'number' }).primaryKey(), // 操作日志 ID
         title: varchar('title', { length: 255 }), // 模块标题
-        businessType: varchar('business_type', { length: 32 }), // 业务类型 CREATE / UPDATE / DELETE / IMPORT / EXPORT / GRANT
         requestMethod: varchar('request_method', { length: 10 }), // 请求方式 GET / POST / PUT / DELETE
         operatorType: varchar('operator_type', { length: 32 }), // 操作人类型 admin / user / anonymous
         userId: bigint('user_id', { mode: 'number' }), // 操作人 ID

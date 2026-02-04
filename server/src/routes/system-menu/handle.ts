@@ -10,7 +10,7 @@ import {
     FindPage,
     FindAll,
     FindAllWithJoin,
-} from '@/common/db';
+} from '@/common/pg/db';
 import { ParseDateFields } from '@/common/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from '@/schema/system_menu';
 import { systemRoleMenuSchema } from '@/schema/system_role';

@@ -11,7 +11,7 @@ import {
     FindAll,
     InsertMany,
     HardDelete
-} from '@/common/db';
+} from '@/common/pg/db';
 import { ParseDateFields } from '@/common/dto';
 import { CacheEnum } from '@/common/enum';
 import { WithCache } from '@/common/cache';

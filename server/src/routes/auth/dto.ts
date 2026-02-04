@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { BaseResultDto } from '@/common/dto';
-import { AddLoginLog } from '@/utils/log';
+import { AddLoginLog } from '@/routes/system-login-log/handle';
 
 export const AccountPasswordLoginDto = {
     body: t.Object({
@@ -39,4 +39,13 @@ export const ResetPasswordDto = {
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
     ...BaseResultDto(t.Null()),
+};
+
+export const RefreshTokenDto = {
+    cookie: t.Object({
+        refreshToken: t.String({ error: '刷新令牌格式错误', minLength: 5 }),
+    }),
+    ...BaseResultDto(t.Object({
+        token: t.String(),
+    })),
 };

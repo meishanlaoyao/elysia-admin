@@ -5,6 +5,8 @@
 </template>
 
 <script setup lang="ts">
+import { useDictStore } from '@/store/modules/dict'
+
 interface Props {
   modelValue: Record<string, any>
 }
@@ -23,6 +25,9 @@ const formData = computed({
   set: (val) => emit('update:modelValue', val)
 })
 
+const dictStore = useDictStore()
+const { system_user_sex } = dictStore.getDictData(['system_user_sex'])
+
 // 校验规则
 const rules = {
   // userName: [{ required: true, message: '请输入用户名', trigger: 'blur' }]
@@ -31,42 +36,33 @@ const rules = {
 // 动态 options
 const statusOptions = ref<{ label: string; value: string; disabled?: boolean }[]>([])
 
-// 模拟接口返回状态数据
-function fetchStatusOptions(): Promise<typeof statusOptions.value> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { label: '在线', value: '1' },
-        { label: '离线', value: '2' },
-        { label: '异常', value: '3' },
-        { label: '注销', value: '4' }
-      ])
-    }, 1000)
-  })
-}
 
-onMounted(async () => {
-  statusOptions.value = await fetchStatusOptions()
-})
 
 // 表单配置
 const formItems = computed(() => [
   {
     label: '用户名',
-    key: 'userName',
+    key: 'username',
     type: 'input',
     placeholder: '请输入用户名',
     clearable: true
   },
   {
+    label: '昵称',
+    key: 'nickname',
+    type: 'input',
+    placeholder: '请输入昵称',
+    clearable: true
+  },
+  {
     label: '手机号',
-    key: 'userPhone',
+    key: 'phone',
     type: 'input',
     props: { placeholder: '请输入手机号', maxlength: '11' }
   },
   {
     label: '邮箱',
-    key: 'userEmail',
+    key: 'email',
     type: 'input',
     props: { placeholder: '请输入邮箱' }
   },
@@ -76,20 +72,12 @@ const formItems = computed(() => [
     type: 'select',
     props: {
       placeholder: '请选择状态',
-      options: statusOptions.value
-    }
-  },
-  {
-    label: '性别',
-    key: 'userGender',
-    type: 'radiogroup',
-    props: {
       options: [
-        { label: '男', value: '1' },
-        { label: '女', value: '2' }
+        { label: '启用', value: true },
+        { label: '停用', value: false },
       ]
     }
-  }
+  },
 ])
 
 // 事件

@@ -11,6 +11,7 @@ import { SendMail } from '@/client/smtp';
 import { GenerateForgetPasswordHtmlTemplate } from '@/utils/htmltemplate';
 import config from '@/config';
 import { GetUserRoleAndPermission } from '@/routes/system-role/handle';
+import type { IAccountType } from '@/common/types';
 
 // 设置刷新令牌 Cookie
 function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
@@ -68,15 +69,16 @@ export async function accountPasswordLogin(ctx: Context) {
         if ('error' in tokens) return tokens.error;
         const { roles, permissions } = await GetUserRoleAndPermission(user.userId);
         const userInfo = {
-            userId: user.userId,
+            userId: user.userId, // 用户 ID [必须]
             username: user.username,
             email: user.email,
             phone: user.phone,
             sex: user.sex,
             avatar: user.avatar,
-            roles,
-            permissions,
-            loginTime: GetNowTime()
+            roles, // 角色列表 [必须]
+            permissions, // 权限列表 [必须]
+            userType: 'admin' as IAccountType, // 用户类型 [必须]
+            loginTime: GetNowTime(), // 登录时间 [必须]
         };
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);

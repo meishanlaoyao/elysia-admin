@@ -17,7 +17,7 @@ import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
 import { useDictStore } from '@/store/modules/dict'
-import { fetchCreateUser, fetchUpdateUser } from '@/api/system/user'
+import { fetchCreateUser, fetchUpdateUser, fetchGetUserDetail } from '@/api/system/user'
 import { fetchGetRoleOptions } from '@/api/system/role'
 import { fetchGetDeptOptions } from '@/api/system/dept'
 
@@ -65,7 +65,7 @@ const formData = reactive({
   phone: '',
   sex: undefined,
   deptId: undefined,
-  roleIds: [] as number[],
+  roles: [] as number[],
   status: true,
   remark: ''
 })
@@ -138,7 +138,7 @@ const formItems = computed<FormItem[]>(() => [
   },
   {
     label: '角色',
-    key: 'roleIds',
+    key: 'roles',
     type: 'select',
     props: {
       placeholder: '请选择角色',
@@ -189,7 +189,7 @@ const rules = computed<FormRules>(() => ({
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
   ],
   sex: [{ required: true, message: '请选择性别', trigger: 'change' }],
-  roleIds: [{ required: true, message: '请选择角色', trigger: 'change' }]
+  roles: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }))
 
 // 获取角色下拉选项数据
@@ -215,20 +215,11 @@ const handleGetDeptOptions = async () => {
 const initFormData = () => {
   const isEdit = props.type === 'edit' && props.data
   const row = props.data || {}
-
-  Object.assign(formData, {
-    userId: isEdit ? row.userId : undefined,
-    username: isEdit && row.username ? row.username : '',
-    password: '',
-    nickname: isEdit && row.nickname ? row.nickname : '',
-    email: isEdit && row.email ? row.email : '',
-    phone: isEdit && row.phone ? row.phone : '',
-    sex: isEdit ? row.sex : undefined,
-    deptId: isEdit ? row.deptId : undefined,
-    roleIds: [],
-    status: isEdit ? row.status : true,
-    remark: isEdit && row.remark ? row.remark : ''
-  })
+  if (isEdit && row.userId) {
+    fetchGetUserDetail(row.userId).then(res => {
+      if (res) Object.assign(formData, res)
+    })
+  }
 }
 
 /**

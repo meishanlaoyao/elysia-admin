@@ -1,6 +1,7 @@
 import { Context } from 'elysia';
+import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/common/result';
-import { systemUserSchema } from '@/schema/system_user';
+import { systemUserSchema, systemUserRoleSchema } from '@/schema/system_user';
 import { BcryptHash } from '@/utils/bcrypt';
 import {
     InsertOne,
@@ -9,15 +10,24 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
-} from '@/common/db';
+} from '@/common/pg/db';
 import { ParseDateFields } from '@/common/dto';
 import { GetUserRoleAndPermission, GetUserRoleIds } from '@/routes/system-role/handle';
+import { RunTransaction } from '@/common/pg/transaction';
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemUserSchema.$inferInsert;
+        const { roles, ...rest } = ctx.body as any;
+        const data = rest as typeof systemUserSchema.$inferInsert;
         data.password = BcryptHash(data.password);
-        await InsertOne(systemUserSchema, data);
+        await RunTransaction(async (tx) => {
+            const [user] = await tx.insert(systemUserSchema).values(data).returning();
+            if (!roles?.length) return;
+            await tx.insert(systemUserRoleSchema).values(roles.map((roleId: number) => ({
+                userId: user.userId,
+                roleId
+            })));
+        });
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -37,15 +47,17 @@ export async function findList(ctx: Context) {
             nickname,
             email,
             phone,
-            sex
+            sex,
+            status
         } = ctx.query;
         const whereCondition = CreateQueryBuilder(systemUserSchema)
             .eq('delFlag', false)
-            .eq('email', email)
-            .eq('phone', phone)
             .eq('sex', sex)
+            .eq('status', status)
             .like('username', username)
             .like('nickname', nickname)
+            .like('email', email)
+            .like('phone', phone)
             .dateRange('createTime', startTime, endTime)
             .build();
         const { list, total } = await FindPage(systemUserSchema, whereCondition, {
@@ -100,8 +112,16 @@ export async function findOne(ctx: Context) {
 export async function update(ctx: Context) {
     try {
         const data = ParseDateFields(ctx.body);
-        const { password, ...rest } = data;
-        await UpdateByKey(systemUserSchema, 'userId', rest, true);
+        const { password, roles, ...rest } = data;
+        const user = rest as typeof systemUserSchema.$inferSelect;
+        await RunTransaction(async (tx) => {
+            await tx.update(systemUserSchema).set(rest).where(eq(systemUserSchema.userId, user.userId));
+            await tx.delete(systemUserRoleSchema).where(eq(systemUserRoleSchema.userId, user.userId));
+            if (roles?.length) await tx.insert(systemUserRoleSchema).values(roles.map((roleId: number) => ({
+                userId: user.userId,
+                roleId
+            })));
+        });
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

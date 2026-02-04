@@ -68,32 +68,6 @@ export interface TransactionOptions {
  * @param callback - 事务回调函数
  * @param options - 事务选项
  * @returns 事务执行结果
- * 
- * @example
- * // 基础用法
- * const result = await RunTransaction(async (tx) => {
- *   await tx.insert(userSchema).values({ name: 'John' });
- *   await tx.insert(orderSchema).values({ userId: 1 });
- *   return { success: true };
- * });
- * 
- * @example
- * // 使用隔离级别
- * await RunTransaction(async (tx) => {
- *   // 事务逻辑
- * }, {
- *   isolationLevel: 'serializable'
- * });
- * 
- * @example
- * // 使用钩子
- * await RunTransaction(async (tx) => {
- *   // 事务逻辑
- * }, {
- *   onBegin: () => console.log('Transaction started'),
- *   onCommit: () => console.log('Transaction committed'),
- *   onRollback: (err) => console.error('Transaction rolled back:', err)
- * });
  */
 export async function RunTransaction<T = any>(
     callback: TransactionCallback<T>,
@@ -116,15 +90,24 @@ export async function RunTransaction<T = any>(
         }
 
         // 执行事务
-        const result = await pg.transaction(
-            async (tx) => {
-                return await callback(tx as TransactionContext);
-            },
-            {
-                isolationLevel,
-                accessMode
-            } as any
-        );
+        // 注意：postgres-js 驱动不支持通过选项对象设置 isolationLevel 和 accessMode
+        // 如果需要设置隔离级别，需要在事务内手动执行 SQL
+        const result = await pg.transaction(async (tx) => {
+            // 如果指定了隔离级别或访问模式，手动设置
+            if (isolationLevel || accessMode) {
+                const parts: string[] = [];
+                if (isolationLevel) {
+                    parts.push(`ISOLATION LEVEL ${isolationLevel.toUpperCase().replace(' ', ' ')}`);
+                }
+                if (accessMode) {
+                    parts.push(accessMode.toUpperCase());
+                }
+                if (parts.length > 0) {
+                    await tx.execute(`SET TRANSACTION ${parts.join(', ')}`);
+                }
+            }
+            return await callback(tx as TransactionContext);
+        });
 
         // 执行事务提交钩子
         if (onCommit) {

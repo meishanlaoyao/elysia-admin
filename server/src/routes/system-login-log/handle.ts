@@ -5,12 +5,13 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
-} from '@/common/db';
+} from '@/common/pg/db';
 import { systemLoginLogSchema } from '@/schema/system_login_log';
+import { GetClientInfo } from '@/utils/log';
 
 
 // 插入登陆日志
-export async function InsertLoginLog(data: typeof systemLoginLogSchema.$inferInsert) {
+export async function create(data: typeof systemLoginLogSchema.$inferInsert) {
     try {
         await InsertOne(systemLoginLogSchema, data);
     } catch (error) {
@@ -53,5 +54,21 @@ export async function remove(ctx: Context) {
     }
     catch (error) {
         return BaseResultData.fail(500, error);
+    }
+};
+
+/**
+ * 添加登陆日志
+ */
+export async function AddLoginLog(ctx: Context) {
+    try {
+        const clientInfo = await GetClientInfo(ctx);
+        if (!clientInfo) return;
+        const userId = (ctx.headers as any)?.userId || null;
+        const res = (ctx as any)?.response || {};
+        create({ ...clientInfo, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
+    }
+    catch (error) {
+        console.error('添加登陆日志失败:', error);
     }
 };

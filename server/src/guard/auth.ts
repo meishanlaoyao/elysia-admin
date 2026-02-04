@@ -1,29 +1,16 @@
 import { Context } from 'elysia';
-import config from '@/config';
-import { PublicRoutes } from '@/routes';
 import { BaseResultData } from '@/common/result';
 import { VerifyToken, ParseToken } from '@/utils/jwt';
 import { CacheEnum } from '@/common/enum';
 import { Get } from '@/client/redis';
 
-let publicRouteSet: Set<string> | null = null;
-
-function getPublicRouteSet() {
-    if (!publicRouteSet) {
-        publicRouteSet = new Set(PublicRoutes.map(({ route }) => `${route.method.toUpperCase()}:${config.app.prefix}${route.url}`));
-    };
-    return publicRouteSet;
-};
-
 /**
  * 身份验证守卫
  */
 export async function AuthGuard(ctx: Context) {
-    const routeKey = `${ctx.request.method}:${ctx.route}`;
-    if (getPublicRouteSet().has(routeKey)) {
-        (ctx as any).isPublic = true;
-        return
-    };
+    const routeInfo = (ctx as any).routeInfo;
+    const isAuth = routeInfo?.meta?.isAuth || false;
+    if (!isAuth) return;
     const auth = ctx.headers['authorization'];
     if (!auth) return BaseResultData.fail(401);
     const token = auth.split(' ')[1];

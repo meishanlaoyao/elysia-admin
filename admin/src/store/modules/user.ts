@@ -64,7 +64,7 @@ export const useUserStore = defineStore(
     const searchHistory = ref<AppRouteRecord[]>([])
     // 访问令牌
     const accessToken = ref('')
-    // 刷新令牌
+    // 刷新令牌（由后端 HTTP-only Cookie 管理，前端不存储）
     const refreshToken = ref('')
 
     // 计算属性：获取用户信息
@@ -126,13 +126,12 @@ export const useUserStore = defineStore(
     /**
      * 设置令牌
      * @param newAccessToken 访问令牌
-     * @param newRefreshToken 刷新令牌（可选）
+     * @param newRefreshToken 刷新令牌（可选，保留参数兼容性但不使用）
      */
     const setToken = (newAccessToken: string, newRefreshToken?: string) => {
       accessToken.value = newAccessToken
-      if (newRefreshToken) {
-        refreshToken.value = newRefreshToken
-      }
+      // refreshToken 由后端 HTTP-only Cookie 管理，前端不存储
+      // 保留 newRefreshToken 参数仅为向后兼容
     }
 
     /**
@@ -157,8 +156,7 @@ export const useUserStore = defineStore(
       lockPassword.value = ''
       // 清空访问令牌
       accessToken.value = ''
-      // 清空刷新令牌
-      refreshToken.value = ''
+      // refreshToken 在 HTTP-only Cookie 中，由后端清除
       // 注意：不清空工作台标签页，等下次登录时根据用户判断
       // 移除iframe路由缓存
       sessionStorage.removeItem('iframeRoutes')

@@ -60,10 +60,10 @@ const selectedRows = ref<UserListItem[]>([])
 // 搜索表单
 const searchForm = ref({
   username: undefined,
-  userGender: undefined,
-  userPhone: undefined,
-  userEmail: undefined,
-  status: '1'
+  nickname: undefined,
+  email: undefined,
+  phone: undefined,
+  status: undefined
 })
 
 const {
@@ -82,11 +82,7 @@ const {
   // 核心配置
   core: {
     apiFn: fetchGetUserList,
-    apiParams: {
-      current: 1,
-      size: 20,
-      // ...searchForm.value
-    },
+    apiParams: searchForm.value,
     // 自定义分页字段映射，未设置时将使用全局配置 tableConfig.ts 中的 paginationKey
     paginationKey: {
       current: 'pageNum',

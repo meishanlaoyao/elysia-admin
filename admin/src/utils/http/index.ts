@@ -32,6 +32,11 @@ const UNAUTHORIZED_DEBOUNCE_TIME = 3000
 let isUnauthorizedErrorShown = false
 let unauthorizedTimer: NodeJS.Timeout | null = null
 
+/** 双token机制状态 */
+let isRefreshing = false
+let refreshPromise: Promise<string> | null = null
+const pendingRequests: Array<(token: string) => void> = []
+
 /** 扩展 AxiosRequestConfig */
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
   showErrorMessage?: boolean
@@ -85,11 +90,13 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse<BaseResponse>) => {
     const { code, msg } = response.data
     if (code === ApiStatus.success) return response
-    if (code === ApiStatus.unauthorized) handleUnauthorizedError(msg)
+    if (code === ApiStatus.unauthorized) return handleUnauthorizedResponse(response)
     throw createHttpError(msg || $t('httpMsg.requestFailed'), code)
   },
-  (error) => {
-    if (error.response?.status === ApiStatus.unauthorized) handleUnauthorizedError()
+  async (error) => {
+    if (error.response?.status === ApiStatus.unauthorized) {
+      return handleUnauthorizedResponse(error.response, error.config)
+    }
     return Promise.reject(handleError(error))
   }
 )
@@ -97,6 +104,91 @@ axiosInstance.interceptors.response.use(
 /** 统一创建HttpError */
 function createHttpError(message: string, code: number) {
   return new HttpError(message, code)
+}
+
+/** 刷新token */
+async function refreshAccessToken(): Promise<string> {
+  const userStore = useUserStore()
+
+  try {
+    // refreshToken 通过 HTTP-only Cookie 自动携带，无需手动设置
+    const response = await axios.post<BaseResponse<Api.Auth.LoginResponse>>(
+      `${VITE_API_URL}/api/auth/refresh`,
+      {},
+      {
+        withCredentials: true // 确保携带 Cookie
+      }
+    )
+
+    const { code, data, msg } = response.data
+
+    if (code === ApiStatus.success && data) {
+      // 后端返回新的 accessToken，refreshToken 仍在 Cookie 中
+      const newAccessToken = data.accessToken || data.token
+      if (newAccessToken) {
+        userStore.setToken(newAccessToken)
+        return newAccessToken
+      }
+    }
+
+    throw createHttpError(msg || $t('httpMsg.refreshTokenFailed'), code)
+  } catch (error) {
+    // 刷新失败，清空 accessToken
+    userStore.setToken('')
+    throw error
+  }
+}
+
+/** 处理401响应（双token机制） */
+async function handleUnauthorizedResponse(
+  response: AxiosResponse,
+  originalConfig?: InternalAxiosRequestConfig
+): Promise<any> {
+  // 如果是刷新接口本身失败，直接登出
+  if (originalConfig?.url?.includes('/api/auth/refresh')) {
+    handleUnauthorizedError()
+    return Promise.reject(response)
+  }
+
+  // 如果正在刷新token，将请求加入队列
+  if (isRefreshing && refreshPromise) {
+    return new Promise((resolve) => {
+      pendingRequests.push((token: string) => {
+        if (originalConfig) {
+          originalConfig.headers.set('Authorization', `Bearer ${token}`)
+          resolve(axiosInstance.request(originalConfig))
+        }
+      })
+    })
+  }
+
+  // 开始刷新token
+  isRefreshing = true
+  refreshPromise = refreshAccessToken()
+
+  try {
+    const newToken = await refreshPromise
+
+    // 重试所有等待的请求
+    pendingRequests.forEach((callback) => callback(newToken))
+    pendingRequests.length = 0
+
+    // 重试当前请求
+    if (originalConfig) {
+      originalConfig.headers.set('Authorization', `Bearer ${newToken}`)
+      return axiosInstance.request(originalConfig)
+    }
+
+    return response
+  } catch (error) {
+    // 刷新失败，清空队列并登出
+    pendingRequests.length = 0
+    handleUnauthorizedError()
+    return Promise.reject(error)
+  } finally {
+    isRefreshing = false
+    refreshPromise = null
+  }
 }
 
 /** 处理401错误（带防抖） */
