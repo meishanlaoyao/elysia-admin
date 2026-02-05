@@ -15,6 +15,7 @@ import { ParseDateFields } from '@/types/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from 'database/schema/system_menu';
 import { systemRoleMenuSchema } from 'database/schema/system_role';
 import { listToTree } from '@/core/function';
+import { logger } from '@/shared/logger';
 
 export async function createMenu(ctx: Context) {
     try {
@@ -394,7 +395,7 @@ export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<str
         return [];
     }
     catch (error) {
-        console.error('根据角色IDS获取菜单权限失败:', error);
+        logger.error('根据角色IDS获取菜单权限失败:' + error);
         return [];
     }
 };

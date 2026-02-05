@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import config from '@/config';
 import { GenerateUUID } from '@/shared/uuid';
+import { logger } from '@/shared/logger';
 
 type tokenType = 'accessToken' | 'refreshToken';
 
@@ -35,7 +36,7 @@ export async function VerifyToken(tokenType: tokenType, token: string): Promise<
         const { payload } = await jwtVerify(token, encoder);
         return payload;
     } catch (error) {
-        console.error('JWT验证失败:', error);
+        logger.error('JWT验证失败:' + error);
         return null;
     }
 };
@@ -72,7 +73,7 @@ export async function ParseToken(token: string): Promise<any> {
         const payload = JSON.parse(jsonPayload);
         return payload;
     } catch (error) {
-        console.error('JWT内容解析失败', error);
+        logger.error('JWT内容解析失败' + error);
         return null;
     }
 };

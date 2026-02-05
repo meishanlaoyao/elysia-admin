@@ -18,6 +18,7 @@ import { WithCache } from '@/core/cache';
 import { systemRoleSchema, systemRoleMenuSchema } from 'database/schema/system_role';
 import { systemUserRoleSchema } from 'database/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
+import { logger } from '@/shared/logger';
 
 export async function create(ctx: Context) {
     try {
@@ -166,7 +167,7 @@ export async function GetUserRoleIds(userId: number): Promise<number[]> {
         const roleIds = userRoleData.map(item => item.roleId).filter(Boolean) as number[];
         return roleIds;
     } catch (error) {
-        console.error('获取用户角色IDs失败:', error);
+        logger.error('获取用户角色IDs失败:' + error);
         return [];
     }
 };
@@ -190,7 +191,7 @@ export async function GetUserRoleAndPermission(userId: number): Promise<{
         backData.permissions = await GetMenuPermissionByRoleIds(roleIds);
         return backData;
     } catch (error) {
-        console.error('获取用户角色和权限失败:', error);
+        logger.error('获取用户角色和权限失败:' + error);
         return backData;
     }
 };

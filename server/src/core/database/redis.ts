@@ -1,14 +1,15 @@
 import Redis from "ioredis";
 import config from "@/config";
+import { logger } from "@/shared/logger";
 
 const redis = new Redis(config.redis);
 
 redis.on("connect", () => {
-    console.log("Redis connected");
+    logger.success("Redis 连接成功");
 });
 
 redis.on("error", (error) => {
-    console.error("Redis connect error:", error);
+    logger.error("Redis 连接失败", { error: error.message });
 });
 
 /**
@@ -27,7 +28,7 @@ export async function Set(key: string, value: any, expire?: number): Promise<boo
         };
         return true;
     } catch (error) {
-        console.error("Redis set error:", error);
+        logger.error("Redis set error:" + error);
         return false;
     }
 };
@@ -50,7 +51,7 @@ export async function SetMulti(items: Array<{ key: string, value: any, expire?: 
         await pipeline.exec();
         return true;
     } catch (error) {
-        console.error("Redis set multi error:", error);
+        logger.error("Redis set multi error:" + error);
         return false;
     }
 };
@@ -66,7 +67,7 @@ export async function Get(key: string): Promise<any> {
         if (value) return JSON.parse(value);
         return null;
     } catch (error) {
-        console.error("Redis get error:", error);
+        logger.error("Redis get error:" + error);
         return null;
     }
 };
@@ -85,7 +86,7 @@ export async function Del(key: string | string[]): Promise<boolean> {
         };
         return true;
     } catch (error) {
-        console.error("Redis del error:", error);
+        logger.error("Redis del error:" + error);
         return false;
     }
 };
@@ -114,7 +115,7 @@ export async function Keys(pattern: string): Promise<string[]> {
 
         return keys;
     } catch (error) {
-        console.error("Redis keys error:", error);
+        logger.error("Redis keys error:" + error);
         return [];
     }
 };

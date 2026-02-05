@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import config from '@/config';
+import { logger } from '@/shared/logger';
 
 interface ISendMailOptions {
     from?: string; // 发送者邮箱
@@ -12,9 +13,9 @@ interface ISendMailOptions {
 const transporter = nodemailer.createTransport(config.smtp);
 try {
     // await transporter.verify();
-    console.log('SMTP 配置验证成功');
+    logger.success('SMTP 配置验证成功');
 } catch (error) {
-    console.error('SMTP 配置错误:', error);
+    logger.error('SMTP 配置错误', { error });
     throw error;
 };
 

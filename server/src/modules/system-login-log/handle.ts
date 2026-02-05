@@ -7,6 +7,7 @@ import {
     FindPage,
 } from '@/core/database/repository';
 import { systemLoginLogSchema } from 'database/schema/system_login_log';
+import { logger } from '@/shared/logger';
 
 
 // 插入登陆日志
@@ -14,7 +15,7 @@ export async function create(data: typeof systemLoginLogSchema.$inferInsert) {
     try {
         await InsertOne(systemLoginLogSchema, data);
     } catch (error) {
-        console.error('插入登陆日志失败', error);
+        logger.error('插入登陆日志失败' + error);
     }
 };
 
@@ -68,6 +69,6 @@ export async function AddLoginLog(ctx: Context) {
         create({ ...clientInfo, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
     }
     catch (error) {
-        console.error('添加登陆日志失败:', error);
+        logger.error('添加登陆日志失败:' + error);
     }
 };

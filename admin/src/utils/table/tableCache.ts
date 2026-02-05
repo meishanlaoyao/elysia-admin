@@ -96,7 +96,7 @@ export class TableCache<T> {
     return hash(params)
   }
 
-  // 🔧 优化：增强类型安全性
+  // 优化：增强类型安全性
   private generateTags(params: Record<string, unknown>): Set<string> {
     const tags = new Set<string>()
 
@@ -124,7 +124,7 @@ export class TableCache<T> {
     return tags
   }
 
-  // 🔧 优化：LRU 缓存清理
+  // 优化：LRU 缓存清理
   private evictLRU(): void {
     if (this.cache.size <= this.maxSize) return
 

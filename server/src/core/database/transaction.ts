@@ -2,6 +2,7 @@ import { PgTransaction } from 'drizzle-orm/pg-core';
 import { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js';
 import { ExtractTablesWithRelations } from 'drizzle-orm';
 import pg from '@/core/database/pg';
+import { logger } from '@/shared/logger';
 
 /**
  * 事务上下文类型
@@ -125,8 +126,8 @@ export async function RunTransaction<T = any>(
 
         // 错误日志
         if (enableErrorLog) {
-            console.error('[Transaction Error]:', err.message);
-            console.error('[Transaction Stack]:', err.stack);
+            logger.error('[Transaction Error]:' + err.message);
+            logger.error('[Transaction Stack]:' + err.stack);
         }
 
         // 自定义错误处理

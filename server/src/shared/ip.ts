@@ -1,4 +1,5 @@
 import { Context } from 'elysia';
+import { logger } from '@/shared/logger';
 import type { IClientType, IClientPlatform } from '@/types/common';
 
 /**
@@ -58,7 +59,7 @@ export async function GetIpLocation(ip: string): Promise<string> {
         const data = await response.json();
         return `${data?.region || ''} ${data?.city || ''}`;
     } catch (error) {
-        console.error('查询 IP 地址地区信息失败:', error);
+        logger.error('查询 IP 地址地区信息失败:' + error);
         return '未知';
     }
 };
@@ -278,7 +279,7 @@ export async function GetClientInfo(ctx: Context): Promise<{
         const os = GetClientOs(userAgent);
         return { ipaddr, userAgent, loginLocation, clientType, clientPlatform, os };
     } catch (error) {
-        console.error('获取客户端信息失败:', error);
+        logger.error('获取客户端信息失败:' + error);
         return null;
     }
 };

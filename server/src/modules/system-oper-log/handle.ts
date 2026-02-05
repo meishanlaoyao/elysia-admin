@@ -9,12 +9,13 @@ import {
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { systemOperLogSchema } from 'database/schema/system_oper_log';
 import { SanitizeObject } from '@/core/function';
+import { logger } from '@/shared/logger';
 
 export async function create(data: typeof systemOperLogSchema.$inferInsert) {
     try {
         await InsertOne(systemOperLogSchema, data);
     } catch (error) {
-        console.error('插入操作日志失败', error);
+        logger.error('插入操作日志失败' + error);
     }
 };
 

@@ -5,6 +5,7 @@ import config from '@/config';
 import { RouteList } from '@/modules';
 import { CacheEnum } from '@/constants/enum';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
+import { logger } from '@/shared/logger';
 
 /**
  * 初始化pg数据库
@@ -13,11 +14,14 @@ async function InitPgData() {
     try {
         const result = await pg.execute(sql`SELECT COUNT(*) as count FROM "system_user"`);
         const count = result[0]?.count;
-        if (count && Number(count) > 0) return console.log('PostgreSQL数据库已有数据，跳过初始化');
-        console.log('PostgreSQL数据库无数据，开始初始化...');
+        if (count && Number(count) > 0) {
+            logger.success('PostgreSQL 数据库已有数据，跳过初始化');
+            return;
+        }
+        logger.info('PostgreSQL 数据库无数据，开始初始化...');
         await executeSqlFile();
     } catch (error) {
-        console.error('查询PostgreSQL数据库失败，尝试初始化数据库');
+        logger.warn('查询 PostgreSQL 数据库失败，尝试初始化数据库');
         await executeSqlFile();
     }
 };
@@ -41,9 +45,9 @@ async function executeSqlFile() {
             console.log = originalLog;
             console.error = originalError;
         }
-        console.log('PostgreSQL数据库初始化成功');
+        logger.success('PostgreSQL 数据库初始化成功');
     } catch (error) {
-        console.error('PostgreSQL执行 SQL 文件失败:', error);
+        logger.error('PostgreSQL 执行 SQL 文件失败', { error });
         throw error;
     } finally {
         await sqlClient.end();

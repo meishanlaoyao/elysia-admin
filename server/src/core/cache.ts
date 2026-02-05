@@ -1,5 +1,6 @@
 import { Get, Set, Del } from '@/core/database/redis';
 import config from '@/config';
+import { logger } from '@/shared/logger';
 
 /**
  * 通用缓存包装函数
@@ -49,7 +50,7 @@ export async function CacheInsert(
         return await Set(cacheKey, newData);
     }
     catch (error) {
-        console.error('更新缓存-插入新数据失败', error);
+        logger.error('更新缓存-插入新数据失败' + error);
         return false;
     }
 };
@@ -74,7 +75,7 @@ export async function CacheDelete(
         return await Del(cacheKey);
     }
     catch (error) {
-        console.error('更新缓存-删除指定数据失败', error);
+        logger.error('更新缓存-删除指定数据失败' + error);
         return false;
     }
 };
@@ -101,7 +102,7 @@ export async function CacheUpdate(
         return await Set(cacheKey, newData);
     }
     catch (error) {
-        console.error('更新缓存-更新指定数据失败', error);
+        logger.error('更新缓存-更新指定数据失败' + error);
         return false;
     }
 };

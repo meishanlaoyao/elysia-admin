@@ -1,78 +1,32 @@
-import { Elysia } from "elysia";
-import { BunAdapter } from 'elysia/adapter/bun';
-import { cors } from '@elysiajs/cors';
-import { staticPlugin } from '@elysiajs/static';
-import { GetNowTime } from "@/shared/time";
-import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
-import config from "@/config";
-import { RegisterRoutes } from '@/modules';
-import { BaseResultData } from '@/core/result';
+import { createApp } from '@/app';
 import { InitSeedData } from 'script/seed';
+import { logger } from '@/shared/logger';
+import config from "@/config";
 
-const { port, id, prefix, maxRequestBodySize, timeout } = config.app;
-const app = new Elysia({
-    prefix,
-    normalize: true,
-    adapter: BunAdapter,
-    aot: true,
-    nativeStaticResponse: true,
-    serve: {
-        maxRequestBodySize,
-        idleTimeout: timeout,
-    }
-});
-app.use(cors());
-app.use(await staticPlugin());
-
-// 开发文档
-if (process.env.NODE_ENV !== 'production') {
-    const { openapi } = await import('@elysiajs/openapi');
-    app.use(openapi({
-        documentation: {
-            info: {
-                title: `${id} API`,
-                version: '1.0.0',
-                description: `${id} description`,
-            },
-        },
-    }));
-};
-GlobalMiddleware(app as Elysia);
-GlobalResponseMiddleware(app as Elysia);
-
-// 捕获错误
-app.onError(({ code, error }) => {
-    // 处理验证错误
-    if (code === 'VALIDATION') {
-        if (error.message == '请先登陆后访问') {
-            return BaseResultData.fail(401, error.message);
-        };
-        return BaseResultData.fail(400, error.message);
-    }
-    // 处理资源不存在错误
-    else if (code === 'NOT_FOUND') {
-        return BaseResultData.fail(404);
+/**
+ * 应用启动入口
+ */
+async function bootstrap() {
+    try {
+        const app = await createApp();
+        await InitSeedData();
+        const { port, id } = config.app;
+        app.listen(port);
+        logger.logStartup({
+            appId: id,
+            port,
+            prefix: config.app.prefix,
+            env: process.env.NODE_ENV || 'development',
+            pid: process.pid,
+            openApiEnabled: process.env.NODE_ENV !== 'production',
+        });
+    } catch (error) {
+        logger.error('应用启动失败', {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+        process.exit(1);
     };
-});
-
-// 注册路由
-await RegisterRoutes(app as Elysia);
-
-
-
-// 初始化种子数据
-InitSeedData();
-
-app.listen(port);
-
-let startLogStr = `${id} is running at http://localhost:${port}${prefix}
-`;
-if (process.env.NODE_ENV !== 'production') {
-    startLogStr += `OpenAPI JSON: http://localhost:${port}${prefix}/openapi/json
-OpenAPI: http://localhost:${port}${prefix}/openapi
-`;
 };
-startLogStr += `StartTime: ${GetNowTime()}
-NODE_ENV: ${process.env.NODE_ENV}
-PID: ${process.pid}`;
-console.log(startLogStr);
+
+bootstrap();

@@ -1,6 +1,7 @@
 import { rmSync, mkdirSync, existsSync, cpSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import appConfig from '@/config';
+import { logger } from '@/shared/logger';
 
 const distDir = './dist';
 const publicDir = './public';
@@ -21,7 +22,7 @@ const buildResult = Bun.spawnSync([
     './src/index.ts'
 ]);
 if (buildResult.exitCode !== 0) {
-    console.error('✗ 构建失败:', buildResult.stderr.toString());
+    logger.error('✗ 构建失败:' + buildResult.stderr.toString());
     process.exit(1);
 };
 if (existsSync(publicDir)) {
@@ -60,4 +61,4 @@ module.exports = {
 };
 `;
 writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
-console.log(`✓ Build completed → ${appConfig.app.id}:${appConfig.app.port}`);
+logger.success(`✓ Build completed → ${appConfig.app.id}:${appConfig.app.port}`);

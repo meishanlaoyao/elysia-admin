@@ -4,6 +4,7 @@ import type { Elysia } from "elysia";
 import type { IRouteModule, IRoute } from "@/core/route";
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { logger } from '@/shared/logger';
 
 /**
  * 自动扫描并加载所有路由模块
@@ -30,7 +31,7 @@ async function loadRouteModules(): Promise<IRouteModule[]> {
             }
         }
     } catch (error) {
-        console.error('扫描路由目录失败:', error);
+        logger.error('扫描路由目录失败:' + error);
     }
     return modules;
 };
@@ -57,6 +58,7 @@ export async function RegisterRoutes(app: Elysia) {
     const RouteTree = await loadRouteModules();
     const authRoutes: { tags: string[], route: IRoute }[] = [];
     const publicRoutes: { tags: string[], route: IRoute }[] = [];
+
     RouteTree.forEach(module => {
         module.routes.forEach(route => {
             if (route?.meta?.isAuth) {
@@ -66,25 +68,34 @@ export async function RegisterRoutes(app: Elysia) {
             };
         });
     });
+
     publicRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
         });
     });
+
     app.guard({
         headers: t.Object({
             authorization: t.String({ description: 'Bearer Token令牌', minLength: 1, error: '请先登陆后访问' }),
         }),
     });
+
     authRoutes.forEach(({ tags, route }) => {
         (app as any)[route.method](route.url, route.handle, {
             detail: { tags, summary: route.summary },
             ...route.dto
         });
     });
+
     RouteList.push(...publicRoutes, ...authRoutes);
     RouteMap = routeToMap(RouteList);
     AuthRoutes = authRoutes;
-    console.log(`✓ 接口已注册: 公共${publicRoutes.length}个 权限${authRoutes.length}个`);
+
+    return {
+        moduleCount: RouteTree.length,
+        publicCount: publicRoutes.length,
+        authCount: authRoutes.length
+    };
 };
