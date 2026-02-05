@@ -28,21 +28,21 @@ export default {
         secretKey: 'minioadmin',
     },
     redis: {
-        host: 'localhost', // redis 主机
-        port: 6379, // redis 端口
-        password: '', // redis 密码
-        username: '', // redis 用户名
-        db: 0, // redis 数据库编号
+        host: 'localhost', // 主机
+        port: 6379, // 端口
+        password: '', // 密码
+        username: '', // 用户名
+        db: 0, // 数据库编号
     },
     pg: {
-        host: 'localhost', // 数据库主机
-        port: 5432, // 数据库端口
-        username: 'postgres', // 数据库用户名
-        user: 'postgres', // 数据库用户名
-        password: '123456', // 数据库密码
-        database: 'elysia-admin', // 数据库名称
-        max: 20, // 最大连接数
-        idle_timeout: 20, // 空闲连接超时时间 (秒)
+        host: 'localhost', // 主机
+        port: 5432, // 端口
+        username: 'postgres', // 用户名
+        user: 'postgres', // 用户名
+        password: '123456', // 密码
+        database: 'elysia-admin', // 名称
+        max: 10, // 最大连接数（避免过多连接占用内存）
+        idle_timeout: 30, // 空闲连接超时时间 30秒（更快释放空闲连接）
         connect_timeout: 10, // 连接超时时间 (秒)
         ssl: false, // 是否启用 SSL 连接
     },

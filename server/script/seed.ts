@@ -15,9 +15,9 @@ async function InitPgData() {
         const result = await pg.execute(sql`SELECT COUNT(*) as count FROM "system_user"`);
         const count = result[0]?.count;
         if (count && Number(count) > 0) {
-            logger.success('PostgreSQL 数据库已有数据，跳过初始化');
+            logger.info('PostgreSQL 数据库已有数据，跳过初始化');
             return;
-        }
+        };
         logger.info('PostgreSQL 数据库无数据，开始初始化...');
         await executeSqlFile();
     } catch (error) {

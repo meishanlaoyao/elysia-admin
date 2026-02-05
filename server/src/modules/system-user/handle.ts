@@ -14,6 +14,8 @@ import {
 import { ParseDateFields } from '@/types/dto';
 import { GetUserRoleAndPermission, GetUserRoleIds } from '@/modules/system-role/handle';
 import { RunTransaction } from '@/core/database/transaction';
+import { logger } from '@/shared/logger';
+import { GetDeptInfoById } from '@/modules/system-dept/handle';
 
 export async function create(ctx: Context) {
     try {
@@ -96,6 +98,20 @@ export async function findInfo(ctx: Context) {
     }
 };
 
+export async function findBasic(ctx: Context) {
+    try {
+        const userId = (ctx as any)?.user?.userId as number;
+        const res = await FindOneByKey(systemUserSchema, 'userId', userId);
+        if (!res || res.delFlag) return BaseResultData.fail(404);
+        const { password, ...item } = res;
+        let dept = undefined;
+        if (item.deptId) dept = await GetDeptInfoById(item.deptId);
+        return BaseResultData.ok({ ...item, deptName: dept?.deptName });
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
 export async function findOne(ctx: Context) {
     try {
         const id = Number(ctx.params.id);
@@ -128,6 +144,8 @@ export async function update(ctx: Context) {
     }
 };
 
+export async function updateBasic(ctx: Context) { };
+
 export async function remove(ctx: Context) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
@@ -144,7 +162,7 @@ export async function GetUserBy(key: string, val: any) {
         const res = await FindOneByKey(systemUserSchema, key, val);
         return res;
     } catch (error) {
-        console.log('获得用户信息失败', error);
+        logger.error('获得用户信息失败' + error);
         return null;
     }
 };
@@ -155,7 +173,7 @@ export async function RegisterUser(username: string, password: string) {
         password = BcryptHash(password);
         await InsertOne(systemUserSchema, { username, password });
     } catch (error) {
-        console.log('注册用户失败', error);
+        logger.error('注册用户失败' + error);
     }
 };
 
@@ -165,6 +183,6 @@ export async function SetUserPassword(userId: number, password: string) {
         password = BcryptHash(password);
         await UpdateByKey(systemUserSchema, 'userId', { password, userId }, true);
     } catch (error) {
-        console.log('设置用户密码失败', error);
+        logger.error('设置用户密码失败' + error);
     }
 };

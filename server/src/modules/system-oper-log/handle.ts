@@ -10,6 +10,7 @@ import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { systemOperLogSchema } from 'database/schema/system_oper_log';
 import { SanitizeObject } from '@/core/function';
 import { logger } from '@/shared/logger';
+import { SensitiveFields } from '@/constants/base';
 
 export async function create(data: typeof systemOperLogSchema.$inferInsert) {
     try {
@@ -56,8 +57,6 @@ export async function remove(ctx: Context) {
         return BaseResultData.fail(500, error);
     }
 };
-
-const SensitiveFields = ['password', 'token']; // 敏感字段名列表
 
 // 插入操作日志
 export async function AddOperLog(ctx: Context) {

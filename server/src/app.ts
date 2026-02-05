@@ -32,9 +32,7 @@ export async function createApp() {
     app.use(await staticPlugin());
 
     // 开发环境：启用 OpenAPI 文档
-    if (process.env.NODE_ENV !== 'production') {
-        await configureOpenAPI(app as Elysia);
-    }
+    if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app as Elysia);
 
     // 注册全局中间件
     GlobalMiddleware(app as Elysia);
@@ -45,7 +43,7 @@ export async function createApp() {
 
     // 注册业务路由
     const routeStats = await RegisterRoutes(app as Elysia);
-    logger.success(`路由注册完成: 公共接口 ${routeStats.publicCount} 个, 权限接口 ${routeStats.authCount} 个`);
+    logger.info(`✓ 路由注册完成: 公共接口 ${routeStats.publicCount} 个, 权限接口 ${routeStats.authCount} 个`);
 
     return app;
 };
@@ -65,11 +63,11 @@ async function configureOpenAPI(app: Elysia) {
                 },
             },
         }));
-        logger.success('OpenAPI 文档已启用');
+        logger.info('OpenAPI 文档已启用');
     } catch (error) {
         logger.error('OpenAPI 配置失败', { error });
     }
-}
+};
 
 /**
  * 配置全局错误处理器
@@ -100,4 +98,4 @@ function configureErrorHandler(app: Elysia) {
 
         return BaseResultData.fail(500, '服务器内部错误');
     });
-}
+};

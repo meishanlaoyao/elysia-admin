@@ -24,10 +24,10 @@ async function loadRouteModules(): Promise<IRouteModule[]> {
                 const routeModule = module.default;
                 if (routeModule && routeModule.tags && Array.isArray(routeModule.routes)) {
                     modules.push(routeModule);
-                    console.log(`✓ 加载路由模块: ${routeModule.tags} (${routeModule.routes.length}个路由)`);
+                    logger.info(`✓ 加载路由模块: ${routeModule.tags} (${routeModule.routes.length}个路由)`);
                 }
             } catch (error) {
-                console.warn(`⚠ 跳过目录 ${entry}: 未找到有效的 route.ts`);
+                logger.warn(`⚠ 跳过目录 ${entry}: 未找到有效的 route.ts`);
             }
         }
     } catch (error) {

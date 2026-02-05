@@ -6,6 +6,7 @@ import { IpBlackGuard } from '@/guards/ipblack';
 import { ApiGuard } from '@/guards/api';
 import { AnalysisRoute } from './analysis';
 import { AddOperLog } from '@/modules/system-oper-log/handle';
+import { logger } from '@/shared/logger';
 
 const { guard } = config;
 const isPrint = false; // 是否打印日志
@@ -19,7 +20,7 @@ async function executeGuard(guardFn: Function, ctx: any, logMessage?: string) {
         ctx.set.status = result.code;
         throw result;
     }
-    if (isPrint && logMessage) console.log(logMessage);
+    if (isPrint && logMessage) logger.info(logMessage);
 };
 
 /**
@@ -44,6 +45,7 @@ export function GlobalResponseMiddleware(app: Elysia) {
         (ctx as any).startTime = Date.now();
     });
     app.onAfterResponse((ctx) => {
+        process.env.NODE_ENV !== 'production' && logger.logRequest(ctx);
         AddOperLog(ctx);
     });
 };

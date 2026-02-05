@@ -34,3 +34,13 @@ export const CacheEnum = {
      */
     BASE_OPTIONS: `${config.app.id}:baseOptions:`,
 };
+
+/**
+ * 日志级别
+ */
+export enum LogLevel {
+    DEBUG = 'DEBUG',
+    INFO = 'INFO',
+    WARN = 'WARN',
+    ERROR = 'ERROR',
+};

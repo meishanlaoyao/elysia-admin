@@ -22,7 +22,7 @@ const buildResult = Bun.spawnSync([
     './src/index.ts'
 ]);
 if (buildResult.exitCode !== 0) {
-    logger.error('✗ 构建失败:' + buildResult.stderr.toString());
+    logger.error('构建失败:' + buildResult.stderr.toString());
     process.exit(1);
 };
 if (existsSync(publicDir)) {
@@ -61,4 +61,4 @@ module.exports = {
 };
 `;
 writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
-logger.success(`✓ Build completed → ${appConfig.app.id}:${appConfig.app.port}`);
+logger.success(`构建完成 → ${appConfig.app.id}:${appConfig.app.port}`);

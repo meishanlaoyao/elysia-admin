@@ -18,6 +18,13 @@ export function fetchGetUserList(params: Api.SystemUser.UserSearchParams) {
     })
 }
 
+// 查询个人基本信息
+export function fetchGetUserBasic() {
+    return request.get<Api.SystemUser.UserListItem & { deptName: string }>({
+        url: '/api/system/user/basic'
+    })
+}
+
 /**
  * 查询详情
  */

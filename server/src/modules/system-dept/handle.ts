@@ -6,6 +6,7 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindAll,
+    FindOneByKey,
 } from '@/core/database/repository';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
@@ -94,4 +95,9 @@ export async function remove(ctx: Context) {
     catch (error) {
         return BaseResultData.fail(500, error);
     }
+};
+
+// 根据部门ID查询部门信息
+export async function GetDeptInfoById(deptId: number) {
+    return await FindOneByKey(systemDeptSchema, 'deptId', deptId);
 };

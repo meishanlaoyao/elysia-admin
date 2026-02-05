@@ -31,3 +31,5 @@ export const ListDto = CrudDto.list(
 export const UpdateDto = CrudDto.update(SelectSystemUser, 'userId', {
     roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
 });
+
+export const UpdateBasicDto = CrudDto.update(SelectSystemUser, 'userId');

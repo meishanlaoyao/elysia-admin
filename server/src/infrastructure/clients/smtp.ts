@@ -13,7 +13,7 @@ interface ISendMailOptions {
 const transporter = nodemailer.createTransport(config.smtp);
 try {
     // await transporter.verify();
-    logger.success('SMTP 配置验证成功');
+    logger.info('SMTP 配置验证成功');
 } catch (error) {
     logger.error('SMTP 配置错误', { error });
     throw error;

@@ -2,14 +2,57 @@ import Redis from "ioredis";
 import config from "@/config";
 import { logger } from "@/shared/logger";
 
-const redis = new Redis(config.redis);
+// 使用 globalThis 确保跨模块单例
+declare global {
+    var __redisInstance: Redis | undefined;
+    var __redisConnected: boolean | undefined;
+}
 
-redis.on("connect", () => {
-    logger.success("Redis 连接成功");
+function getRedisInstance(): Redis {
+    if (!globalThis.__redisInstance) {
+        globalThis.__redisInstance = new Redis({
+            ...config.redis,
+            // 连接池配置
+            maxRetriesPerRequest: 3, // 每个请求最大重试次数
+            enableReadyCheck: true, // 启用就绪检查
+            enableOfflineQueue: true, // 启用离线队列
+            connectTimeout: 10000, // 连接超时 10秒
+            // 性能优化
+            lazyConnect: false, // 立即连接
+            keepAlive: 30000, // 保持连接 30秒
+        });
+        globalThis.__redisConnected = false;
+
+        // 只注册一次事件监听器
+        globalThis.__redisInstance.once("connect", () => {
+            logger.info("Redis 连接成功");
+            globalThis.__redisConnected = true;
+        });
+
+        globalThis.__redisInstance.on("error", (error) => {
+            logger.error("Redis 连接失败", { error: error.message });
+        });
+
+        globalThis.__redisInstance.on("close", () => {
+            globalThis.__redisConnected = false;
+        });
+    }
+    return globalThis.__redisInstance;
+}
+
+const redis = getRedisInstance();
+
+// 优雅关闭 Redis 连接
+process.on('SIGINT', async () => {
+    logger.info('正在关闭 Redis 连接...');
+    await redis.quit();
+    logger.info('Redis 连接已关闭');
 });
 
-redis.on("error", (error) => {
-    logger.error("Redis 连接失败", { error: error.message });
+process.on('SIGTERM', async () => {
+    logger.info('正在关闭 Redis 连接...');
+    await redis.quit();
+    logger.info('Redis 连接已关闭');
 });
 
 /**
