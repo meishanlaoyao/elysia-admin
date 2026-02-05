@@ -67,10 +67,22 @@ export const useDictStore = defineStore(
             return item?.dictLabel || ''
         }
 
+
+        /**
+         * 根据值回显tagType
+         */
+        type tagType = "success" | "info" | "primary" | "warning" | "danger"
+        const getTagType = (dictType: string, value: string = ''): tagType => {
+            const dict = getDictData([dictType])[dictType]
+            const item = dict.value?.find(item => item.dictValue === value)
+            return item?.tagType || 'primary'
+        }
+
         return {
             dictData,
             getDictData,
             getDictLabel,
+            getTagType,
         }
     }
 )

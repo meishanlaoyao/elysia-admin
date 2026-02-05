@@ -10,6 +10,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@database/*": [
+        "database/*"
       ]
     },
     "esModuleInterop": true,

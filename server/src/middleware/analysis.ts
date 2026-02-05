@@ -1,6 +1,6 @@
 import { Context } from 'elysia';
-import { RouteMap, RouteList } from '@/routes';
-import { BaseResultData } from '@/common/result';
+import { RouteMap, RouteList } from '@/modules';
+import { BaseResultData } from '@/core/result';
 
 /**
  * 解析路由信息

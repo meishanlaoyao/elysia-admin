@@ -3,7 +3,7 @@
 # dependencies
 /node_modules
 /.pnp
-/drizzle
+/database/drizzle
 /dist_binary
 /dist
 .pnp.js

@@ -1,11 +1,11 @@
 import { Elysia } from 'elysia'
 import config from '@/config';
-import { AuthGuard } from '@/guard/auth';
-import { PermissionGuard } from '@/guard/permission';
-import { IpBlackGuard } from '@/guard/ipblack';
-import { ApiGuard } from '@/guard/api';
+import { AuthGuard } from '@/guards/auth';
+import { PermissionGuard } from '@/guards/permission';
+import { IpBlackGuard } from '@/guards/ipblack';
+import { ApiGuard } from '@/guards/api';
 import { AnalysisRoute } from './analysis';
-import { AddOperLog } from '@/routes/system-oper-log/handle';
+import { AddOperLog } from '@/modules/system-oper-log/handle';
 
 const { guard } = config;
 const isPrint = false; // 是否打印日志
@@ -40,6 +40,9 @@ export function GlobalMiddleware(app: Elysia) {
  * 全局响应层
  */
 export function GlobalResponseMiddleware(app: Elysia) {
+    app.onRequest((ctx) => {
+        (ctx as any).startTime = Date.now();
+    });
     app.onAfterResponse((ctx) => {
         AddOperLog(ctx);
     });

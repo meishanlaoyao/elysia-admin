@@ -2,12 +2,12 @@ import { Elysia } from "elysia";
 import { BunAdapter } from 'elysia/adapter/bun';
 import { cors } from '@elysiajs/cors';
 import { staticPlugin } from '@elysiajs/static';
-import { GetNowTime } from "@/utils/time";
+import { GetNowTime } from "@/shared/time";
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 import config from "@/config";
-import { RegisterRoutes } from '@/routes';
-import { BaseResultData } from '@/common/result';
-import { InitSeedData } from '@/utils/seed';
+import { RegisterRoutes } from '@/modules';
+import { BaseResultData } from '@/core/result';
+import { InitSeedData } from 'script/seed';
 
 const { port, id, prefix, maxRequestBodySize, timeout } = config.app;
 const app = new Elysia({

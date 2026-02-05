@@ -1,6 +1,6 @@
 <template>
     <ElDialog v-model="dialogVisible" title="登录日志详情" width="750px" align-center>
-        <ElDescriptions :column="2" border>
+        <ElDescriptions :column="2" border label-width="120px">
             <ElDescriptionsItem label="日志ID">
                 {{ data?.logId || '-' }}
             </ElDescriptionsItem>
