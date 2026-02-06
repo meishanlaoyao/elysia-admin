@@ -10,6 +10,10 @@ export const CacheEnum = {
      */
     ONLINE_USER: `${config.app.id}:onlineUser:`,
     /**
+     * 管理员后台菜单缓存key
+     */
+    ADMIN_MENU: `${config.app.id}:adminMenu:`,
+    /**
      * 字典所有类型
      */
     DICT_TYPE: `${config.app.id}:dictType`,

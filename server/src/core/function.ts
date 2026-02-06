@@ -22,7 +22,7 @@ export interface TreeOptions {
  * @param options 配置选项
  * @returns 树结构数据
  */
-export function listToTree<T extends Record<string, any>>(
+export function ListToTree<T extends Record<string, any>>(
     list: T[],
     options: TreeOptions = {}
 ): T[] {
@@ -85,7 +85,7 @@ export function listToTree<T extends Record<string, any>>(
  * @param options 配置选项
  * @returns 扁平列表数据
  */
-export function treeToList<T extends Record<string, any>>(
+export function TreeToList<T extends Record<string, any>>(
     tree: T[],
     options: TreeOptions = {}
 ): T[] {

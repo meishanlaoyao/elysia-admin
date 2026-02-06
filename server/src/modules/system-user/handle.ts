@@ -83,20 +83,7 @@ export async function findPerm(ctx: Context) {
         const user = await Get(CacheEnum.ONLINE_USER + userId);
         if (!user) return BaseResultData.fail(404);
         const { loginLocation, ipaddr, userType, loginTime, ...rest } = user;
-        const obj = {
-            "userId": "1",
-            "userName": "Super",
-            "roles": [
-                "R_SUPER"
-            ],
-            "buttons": [
-                "B_CODE1",
-                "B_CODE2",
-                "B_CODE3"
-            ],
-            "email": "art.design@gmail.com"
-        };
-        return BaseResultData.ok(obj);
+        return BaseResultData.ok(rest);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }

@@ -3,19 +3,20 @@ import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
-    FindOneByKey,
     UpdateByKey,
     SoftDeleteByKeys,
     CreateQueryBuilder,
-    FindPage,
     FindAll,
     FindAllWithJoin,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from 'database/schema/system_menu';
 import { systemRoleMenuSchema } from 'database/schema/system_role';
-import { listToTree } from '@/core/function';
+import { ListToTree } from '@/core/function';
+import { WithCache } from '@/core/cache';
+import { CacheEnum } from '@/constants/enum';
 import { logger } from '@/shared/logger';
+import { GetRoleMenuIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: Context) {
     try {
@@ -41,265 +42,14 @@ export async function createMenuBtn(ctx: Context) {
 
 export async function findSimple(ctx: Context) {
     try {
-        const data2 = [
-            {
-                "name": "Dashboard",
-                "path": "/dashboard",
-                "component": "/index/index",
-                "meta": {
-                    "title": "menus.dashboard.title",
-                    "icon": "ri:pie-chart-line"
-                },
-                "children": [
-                    {
-                        "path": "console",
-                        "name": "Console",
-                        "component": "/dashboard/console",
-                        "meta": {
-                            "title": "menus.dashboard.console",
-                            "icon": "ri:home-smile-2-line",
-                            "keepAlive": false,
-                            "fixedTab": true
-                        }
-                    }
-                ]
-            },
-            {
-                "path": "/system",
-                "name": "System",
-                "component": "/index/index",
-                "meta": {
-                    "title": "menus.system.title",
-                    "icon": "ri:user-3-line"
-                },
-                "children": [
-                    {
-                        "path": "user",
-                        "name": "User",
-                        "component": "/system/user",
-                        "meta": {
-                            "title": "menus.system.user",
-                            "icon": "ri:user-line",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER",
-                                "R_ADMIN"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "role",
-                        "name": "Role",
-                        "component": "/system/role",
-                        "meta": {
-                            "title": "menus.system.role",
-                            "icon": "ri:user-settings-line",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "user-center",
-                        "name": "UserCenter",
-                        "component": "/system/user-center",
-                        "meta": {
-                            "title": "menus.system.userCenter",
-                            "icon": "ri:user-line",
-                            "isHide": true,
-                            "keepAlive": true,
-                            "isHideTab": true
-                        }
-                    },
-                    {
-                        "path": "menu",
-                        "name": "Menus",
-                        "component": "/system/menu",
-                        "meta": {
-                            "title": "menus.system.menu",
-                            "icon": "ri:menu-line",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER"
-                            ],
-                            "authList": [
-                                {
-                                    "title": "新增",
-                                    "authMark": "add"
-                                },
-                                {
-                                    "title": "编辑",
-                                    "authMark": "edit"
-                                },
-                                {
-                                    "title": "删除",
-                                    "authMark": "delete"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "path": "dept",
-                        "name": "Dept",
-                        "component": "/system/dept",
-                        "meta": {
-                            "title": "menus.system.dept",
-                            "icon": "material-symbols:groups-2-outline",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER",
-                                "R_ADMIN"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "dict",
-                        "name": "Dict",
-                        "component": "/system/dict",
-                        "meta": {
-                            "title": "menus.system.dict",
-                            "icon": "material-symbols:book-2-outline",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER",
-                                "R_ADMIN"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "api",
-                        "name": "Api",
-                        "component": "/system/api",
-                        "meta": {
-                            "title": "menus.system.api",
-                            "icon": "tabler:api",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER",
-                                "R_ADMIN"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "blacklist",
-                        "name": "Blacklist",
-                        "component": "/system/blacklist",
-                        "meta": {
-                            "title": "menus.system.blacklist",
-                            "icon": "material-symbols:block-outline",
-                            "keepAlive": true,
-                            "roles": [
-                                "R_SUPER",
-                                "R_ADMIN"
-                            ]
-                        }
-                    },
-                    {
-                        "path": "log",
-                        "name": "Log",
-                        "component": "",
-                        "meta": {
-                            "title": "menus.system.log",
-                            "icon": "ri:file-list-3-line"
-                        },
-                        "children": [
-                            {
-                                "path": "loginLog",
-                                "name": "LoginLog",
-                                "component": "/system/log/loginlog",
-                                "meta": {
-                                    "title": "menus.system.loginLog",
-                                    "icon": "ri:login-circle-line"
-                                }
-                            },
-                            {
-                                "path": "operLog",
-                                "name": "OperLog",
-                                "component": "/system/log/operlog",
-                                "meta": {
-                                    "title": "menus.system.operLog",
-                                    "icon": "ri:settings-3-line"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "path": "/result",
-                "name": "Result",
-                "component": "/index/index",
-                "meta": {
-                    "title": "menus.result.title",
-                    "icon": "ri:checkbox-circle-line"
-                },
-                "children": [
-                    {
-                        "path": "success",
-                        "name": "ResultSuccess",
-                        "component": "/result/success",
-                        "meta": {
-                            "title": "menus.result.success",
-                            "icon": "ri:checkbox-circle-line",
-                            "keepAlive": true
-                        }
-                    },
-                    {
-                        "path": "fail",
-                        "name": "ResultFail",
-                        "component": "/result/fail",
-                        "meta": {
-                            "title": "menus.result.fail",
-                            "icon": "ri:close-circle-line",
-                            "keepAlive": true
-                        }
-                    }
-                ]
-            },
-            {
-                "path": "/exception",
-                "name": "Exception",
-                "component": "/index/index",
-                "meta": {
-                    "title": "menus.exception.title",
-                    "icon": "ri:error-warning-line"
-                },
-                "children": [
-                    {
-                        "path": "403",
-                        "name": "403",
-                        "component": "/exception/403",
-                        "meta": {
-                            "title": "menus.exception.forbidden",
-                            "keepAlive": true,
-                            "isFullPage": true
-                        }
-                    },
-                    {
-                        "path": "404",
-                        "name": "404",
-                        "component": "/exception/404",
-                        "meta": {
-                            "title": "menus.exception.notFound",
-                            "keepAlive": true,
-                            "isFullPage": true
-                        }
-                    },
-                    {
-                        "path": "500",
-                        "name": "500",
-                        "component": "/exception/500",
-                        "meta": {
-                            "title": "menus.exception.serverError",
-                            "keepAlive": true,
-                            "isFullPage": true
-                        }
-                    }
-                ]
-            }
-        ];
-        return BaseResultData.ok(data2);
+        const { userId } = (ctx as any)?.user;
+        const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => {
+            const menuIds = await GetRoleMenuIds(userId);
+            const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
+            const menuData = await FindAll(systemMenuSchema, menuWhere);
+            return handleMenuListToTree(menuData);
+        });
+        return BaseResultData.ok(data);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -325,7 +75,7 @@ export async function findTree(ctx: Context) {
                 multiple: true
             });
         const data = await FindAllWithJoin(systemMenuSchema, builder);
-        const tree = listToTree(data, {
+        const tree = ListToTree(data, {
             idKey: 'menuId',
             parentKey: 'parentId',
             childrenKey: 'children',
@@ -398,4 +148,44 @@ export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<str
         logger.error('根据角色IDS获取菜单权限失败:' + error);
         return [];
     }
+};
+
+// 把菜单列表转成后台生成菜单的树
+export function handleMenuListToTree(menuList: typeof systemMenuSchema.$inferSelect[]) {
+    if (!menuList || menuList.length === 0) return [];
+    const menuMap = new Map<number, any>();
+    const rootMenus: any[] = [];
+    const sortedMenuList = [...menuList].sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    sortedMenuList.forEach(menu => {
+        const menuNode: any = {
+            name: menu.name,
+            path: menu.path,
+            component: menu.component,
+            meta: {
+                title: menu.title,
+            }
+        };
+        if (menu.icon) menuNode.meta.icon = menu.icon;
+        if (menu.keepAlive !== null && menu.keepAlive !== undefined) menuNode.meta.keepAlive = menu.keepAlive;
+        if (menu.fixedTab) menuNode.meta.fixedTab = menu.fixedTab;
+        if (menu.isHide) menuNode.meta.isHide = menu.isHide;
+        if (menu.isHideTab) menuNode.meta.isHideTab = menu.isHideTab;
+        if (menu.isFullPage) menuNode.meta.isFullPage = menu.isFullPage;
+        if (menu.showBadge) menuNode.meta.showBadge = menu.showBadge;
+        if (menu.showTextBadge) menuNode.meta.showTextBadge = menu.showTextBadge;
+        if (menu.link) menuNode.meta.link = menu.link;
+        if (menu.isIframe) menuNode.meta.isIframe = menu.isIframe;
+        if (menu.activePath) menuNode.meta.activePath = menu.activePath;
+        menuMap.set(menu.menuId, menuNode);
+        if (menu.parentId === null || menu.parentId === undefined || menu.parentId === 0) {
+            rootMenus.push(menuNode);
+        } else {
+            const parentNode = menuMap.get(menu.parentId);
+            if (parentNode) {
+                if (!parentNode.children) parentNode.children = [];
+                parentNode.children.push(menuNode);
+            };
+        };
+    });
+    return rootMenus;
 };

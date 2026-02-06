@@ -12,7 +12,7 @@ import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
 import { ParseDateFields } from '@/types/dto';
 import { systemDeptSchema } from 'database/schema/system_dept';
-import { listToTree } from '@/core/function';
+import { ListToTree } from '@/core/function';
 
 export async function create(ctx: Context) {
     try {
@@ -35,7 +35,7 @@ export async function findTree(ctx: Context) {
             .like('deptName', deptName)
             .build();
         const data = await FindAll(systemDeptSchema, where);
-        const tree = listToTree(data, {
+        const tree = ListToTree(data, {
             idKey: 'deptId',
             parentKey: 'parentId',
             childrenKey: 'children',
@@ -58,7 +58,7 @@ export async function findOptions() {
                     .eq('delFlag', false)
                     .build();
                 const list = await FindAll(systemDeptSchema, where);
-                const tree = listToTree(list, {
+                const tree = ListToTree(list, {
                     idKey: 'deptId',
                     parentKey: 'parentId',
                     childrenKey: 'children',

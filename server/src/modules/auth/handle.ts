@@ -100,7 +100,7 @@ export async function accountPasswordLogin(ctx: Context) {
 
 export async function refreshToken(ctx: Context) {
     try {
-        const cookie = String(ctx.cookie?.refreshToken?.value || '');
+        const cookie = String(ctx.cookie?.refreshToken?.value || '');// 这里还有bug,好像是登陆时，refreshToken设置不上去吧
         if (!cookie) return BaseResultData.fail(404, '刷新令牌不存在');
         const payload = await VerifyToken('refreshToken', cookie);
         if (!payload) return BaseResultData.fail(400, '刷新令牌无效');
