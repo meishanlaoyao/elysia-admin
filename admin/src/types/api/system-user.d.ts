@@ -25,7 +25,7 @@ declare namespace Api {
 
         /** 用户搜索参数 */
         type UserSearchParams = Partial<
-            Pick<UserListItem, 'id' | 'userName' | 'userGender' | 'userPhone' | 'userEmail' | 'status'> &
+            Pick<UserListItem, 'id' | 'username' | 'userGender' | 'userPhone' | 'userEmail' | 'status'> &
             Api.Common.CommonSearchParams
         >
     }

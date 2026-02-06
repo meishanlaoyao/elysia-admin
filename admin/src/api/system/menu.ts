@@ -26,7 +26,9 @@ export function fetchGetMenuTree(params?: Api.SystemMenu.MenuSearchParams) {
 export function fetchCreateMenu(data: Api.SystemMenu.MenuListItem) {
     return request.post({
         url: '/api/system/menu',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -36,7 +38,9 @@ export function fetchCreateMenu(data: Api.SystemMenu.MenuListItem) {
 export function fetchUpdateMenu(data: Api.SystemMenu.MenuListItem) {
     return request.put({
         url: '/api/system/menu',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -46,7 +50,9 @@ export function fetchUpdateMenu(data: Api.SystemMenu.MenuListItem) {
 export function fetchDeleteMenu(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/menu/${str}`
+        url: `/api/system/menu/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -56,7 +62,9 @@ export function fetchDeleteMenu(ids: number | number[]) {
 export function fetchCreateMenuBtn(data: Api.SystemMenu.AuthListItem) {
     return request.post({
         url: '/api/system/menu/btn',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -66,7 +74,9 @@ export function fetchCreateMenuBtn(data: Api.SystemMenu.AuthListItem) {
 export function fetchUpdateMenuBtn(data: Api.SystemMenu.AuthListItem) {
     return request.put({
         url: '/api/system/menu/btn',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -76,6 +86,8 @@ export function fetchUpdateMenuBtn(data: Api.SystemMenu.AuthListItem) {
 export function fetchDeleteMenuBtn(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/menu/btn/${str}`
+        url: `/api/system/menu/btn/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

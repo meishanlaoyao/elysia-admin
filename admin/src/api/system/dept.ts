@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateDept(data: Api.SystemDept.DeptListItem) {
     return request.post({
         url: '/api/system/dept',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -35,7 +37,9 @@ export function fetchGetDeptOptions() {
 export function fetchUpdateDept(data: Api.SystemDept.DeptListItem) {
     return request.put({
         url: '/api/system/dept',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -45,6 +49,8 @@ export function fetchUpdateDept(data: Api.SystemDept.DeptListItem) {
 export function fetchDeleteDept(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/dept/${str}`
+        url: `/api/system/dept/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

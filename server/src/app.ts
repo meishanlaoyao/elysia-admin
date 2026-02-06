@@ -92,7 +92,6 @@ function configureErrorHandler(app: Elysia) {
 
         // 资源不存在
         else if (code === 'NOT_FOUND') {
-            logger.warn('资源不存在', { url });
             return BaseResultData.fail(404);
         }
 

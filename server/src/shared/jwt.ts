@@ -36,7 +36,7 @@ export async function VerifyToken(tokenType: tokenType, token: string): Promise<
         const { payload } = await jwtVerify(token, encoder);
         return payload;
     } catch (error) {
-        logger.error('JWT验证失败:' + error);
+        // jwt验证失败，包含时间过期等情况
         return null;
     }
 };
@@ -73,7 +73,7 @@ export async function ParseToken(token: string): Promise<any> {
         const payload = JSON.parse(jsonPayload);
         return payload;
     } catch (error) {
-        logger.error('JWT内容解析失败' + error);
+        // JWT内容解析失败
         return null;
     }
 };

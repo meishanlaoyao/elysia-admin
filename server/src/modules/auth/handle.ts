@@ -132,7 +132,7 @@ export async function forgetPassword(ctx: Context) {
     try {
         const { email } = ctx.body as any;
         const user = await GetUserBy('email', email);
-        if (user?.email) {
+        if (user?.email && user?.status && !user?.delFlag) {
             const key = CacheEnum.FORGET_PASSWORD + user.userId;
             const oldKeys = await Keys(`${key}:*`);
             if (oldKeys.length) await Del(oldKeys);

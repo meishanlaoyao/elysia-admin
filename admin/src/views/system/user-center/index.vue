@@ -33,7 +33,6 @@
       <div class="flex-1 overflow-hidden max-md:w-full max-md:mt-3.5">
         <div class="art-card-sm">
           <h1 class="p-4 text-xl font-normal border-b border-g-300">基本设置</h1>
-
           <ElForm :model="form"
             class="box-border p-5 [&>.el-row_.el-form-item]:w-[calc(50%-10px)] [&>.el-row_.el-input]:w-full [&>.el-row_.el-select]:w-full"
             ref="ruleFormRef" :rules="rules" label-width="86px" label-position="top">
@@ -69,9 +68,10 @@
 
         <div class="art-card-sm my-5">
           <h1 class="p-4 text-xl font-normal border-b border-g-300">更改密码</h1>
-          <ElForm :model="pwdForm" class="box-border p-5" label-width="86px" label-position="top">
-            <ElFormItem label="当前密码" prop="password">
-              <ElInput v-model="pwdForm.password" type="password" :disabled="!isEditPwd" show-password />
+          <ElForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" class="box-border p-5" label-width="86px"
+            label-position="top">
+            <ElFormItem label="当前密码" prop="oldPassword">
+              <ElInput v-model="pwdForm.oldPassword" type="password" :disabled="!isEditPwd" show-password />
             </ElFormItem>
             <ElFormItem label="新密码" prop="newPassword">
               <ElInput v-model="pwdForm.newPassword" type="password" :disabled="!isEditPwd" show-password />
@@ -92,44 +92,42 @@
 </template>
 
 <script setup lang="ts">
-import { useUserStore } from '@/store/modules/user'
-import { fetchGetUserBasic } from '@/api/system/user'
+import { fetchGetUserBasic, fetchUpdateUserBasic, fetchUpdateUserPassword } from '@/api/system/user'
 import { useDictStore } from '@/store/modules/dict'
+import { useUserStore } from '@/store/modules/user'
 import defaultAvatar from '@imgs/user/avatar.webp'
 import type { FormInstance, FormRules } from 'element-plus'
 
 defineOptions({ name: 'UserCenter' })
 
 const userStore = useUserStore()
-const userInfo = computed(() => userStore.getUserInfo)
-
 const dictStore = useDictStore()
 const { system_user_sex } = dictStore.getDictData(['system_user_sex'])
 
 const isEdit = ref(false)
 const isEditPwd = ref(false)
 const ruleFormRef = ref<FormInstance>()
+const pwdFormRef = ref<FormInstance>()
 let baseUserInfo = ref<Api.SystemUser.UserListItem & { deptName: string }>()
 
 /**
  * 用户信息表单
  */
 const form = reactive({
-  realName: 'John Snow',
   nickname: '',
   email: '',
   phone: '',
-  sex: '2',
-  remark: 'Elysia Admin 是一款兼具设计美学与高效开发的后台系统.'
+  sex: '',
+  remark: ''
 })
 
 /**
  * 密码修改表单
  */
 const pwdForm = reactive({
-  password: '123456',
-  newPassword: '123456',
-  confirmPassword: '123456'
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
 })
 
 /**
@@ -146,18 +144,23 @@ const rules = reactive<FormRules>({
   sex: [{ required: true, message: '请选择性别', trigger: 'blur' }]
 })
 
-/**
- * 性别选项
- */
-const options = [
-  { value: '1', label: '男' },
-  { value: '2', label: '女' }
-]
-
-/**
- * 用户标签列表
- */
-const lableList: Array<string> = ['专注设计', '很有想法', '辣~', '大长腿', '川妹子', '海纳百川']
+const pwdRules = reactive<FormRules>({
+  oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+  newPassword: [{ required: true, message: '请输入新密码', trigger: 'blur' }],
+  confirmPassword: [
+    { required: true, message: '请确认新密码', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (value !== pwdForm.newPassword) {
+          callback(new Error('两次输入密码不一致'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ]
+})
 
 onMounted(() => {
   getDate()
@@ -181,14 +184,35 @@ const getDate = () => {
  * 切换用户信息编辑状态
  */
 const edit = () => {
-  isEdit.value = !isEdit.value
-
+  if (!isEdit.value) {
+    isEdit.value = true
+  } else {
+    ruleFormRef.value?.validate().then(() => {
+      fetchUpdateUserBasic(form).then(() => {
+        getDate()
+        isEdit.value = false
+      })
+    }).catch(() => {
+      console.log('验证失败')
+    })
+  }
 };
 
 /**
  * 切换密码编辑状态
  */
 const editPwd = () => {
-  isEditPwd.value = !isEditPwd.value
+  if (!isEditPwd.value) {
+    isEditPwd.value = true
+  } else {
+    pwdFormRef.value?.validate().then(() => {
+      fetchUpdateUserPassword(pwdForm).then(() => {
+        isEditPwd.value = false
+        userStore.logOut()
+      })
+    }).catch(() => {
+      console.log('验证失败')
+    })
+  }
 };
 </script>

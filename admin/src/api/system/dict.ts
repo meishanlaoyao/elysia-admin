@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateDictType(data: Api.SystemDict.DictTypeListItem) {
     return request.post({
         url: '/api/system/dict/type',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -16,7 +18,9 @@ export function fetchCreateDictType(data: Api.SystemDict.DictTypeListItem) {
 export function fetchCreateDictData(data: Api.SystemDict.DictDataListItem) {
     return request.post({
         url: '/api/system/dict/data',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -46,7 +50,9 @@ export function fetchGetDictDataList(params: Api.SystemDict.DictDataSearchParams
 export function fetchUpdateDictType(data: Api.SystemDict.DictTypeListItem) {
     return request.put({
         url: '/api/system/dict/type',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -56,7 +62,9 @@ export function fetchUpdateDictType(data: Api.SystemDict.DictTypeListItem) {
 export function fetchUpdateDictData(data: Api.SystemDict.DictDataListItem) {
     return request.put({
         url: '/api/system/dict/data',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -66,9 +74,13 @@ export function fetchUpdateDictData(data: Api.SystemDict.DictDataListItem) {
 export function fetchDeleteDictType(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/dict/type/${str}`
+        url: `/api/system/dict/type/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
+
+
 
 /**
  * 删除-数据
@@ -76,7 +88,9 @@ export function fetchDeleteDictType(ids: number | number[]) {
 export function fetchDeleteDictData(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/dict/data/${str}`
+        url: `/api/system/dict/data/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 

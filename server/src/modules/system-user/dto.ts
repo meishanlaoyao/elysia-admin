@@ -1,7 +1,6 @@
 import { t } from 'elysia';
-import { InsertSystemUser, SelectSystemUser } from "database/schema/system_user";
+import { SelectSystemUser } from "database/schema/system_user";
 import { CrudDto } from '@/types/dto';
-import { BaseResultDto } from '@/types/dto';
 
 export const CreateDto = {
     body: t.Object({
@@ -32,4 +31,11 @@ export const UpdateDto = CrudDto.update(SelectSystemUser, 'userId', {
     roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
 });
 
-export const UpdateBasicDto = CrudDto.update(SelectSystemUser, 'userId');
+export const UpdateBasicDto = CrudDto.update(t.Omit(SelectSystemUser, ['password', 'userId']), 'userId');
+
+export const UpdatePasswordDto = t.Object({
+    body: t.Object({
+        oldPassword: t.String({ description: "旧密码" }),
+        newPassword: t.String({ description: "新密码" }),
+    })
+})

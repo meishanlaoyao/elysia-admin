@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateApi(data: Api.SystemApi.ApiListItem) {
     return request.post({
         url: '/api/system/api',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -26,7 +28,9 @@ export function fetchGetApiList(params: Api.SystemApi.ApiSearchParams) {
 export function fetchUpdateApi(data: Api.SystemApi.ApiListItem) {
     return request.put({
         url: '/api/system/api',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -36,6 +40,8 @@ export function fetchUpdateApi(data: Api.SystemApi.ApiListItem) {
 export function fetchDeleteApi(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/api/${str}`
+        url: `/api/system/api/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

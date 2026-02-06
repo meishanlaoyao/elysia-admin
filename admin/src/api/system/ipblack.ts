@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateIpBlack(data: Api.SystemIpBlack.IpBlackItem) {
     return request.post({
         url: '/api/system/ip-black',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -26,7 +28,9 @@ export function fetchGetIpBlackAll(params: Api.SystemIpBlack.IpBlackSearchParams
 export function fetchUpdateIpBlack(data: Api.SystemIpBlack.IpBlackItem) {
     return request.put({
         url: '/api/system/ip-black',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -36,6 +40,8 @@ export function fetchUpdateIpBlack(data: Api.SystemIpBlack.IpBlackItem) {
 export function fetchDeleteIpBlack(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/ip-black/${str}`
+        url: `/api/system/ip-black/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

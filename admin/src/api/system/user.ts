@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateUser(data: Api.SystemUser.UserListItem & { roles: number[] }) {
     return request.post({
         url: '/api/system/user',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -25,6 +27,16 @@ export function fetchGetUserBasic() {
     })
 }
 
+// 更新个人基本信息
+export function fetchUpdateUserBasic(data: Api.SystemUser.UserListItem) {
+    return request.put({
+        url: '/api/system/user/basic',
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
+    })
+}
+
 /**
  * 查询详情
  */
@@ -40,7 +52,21 @@ export function fetchGetUserDetail(id: number) {
 export function fetchUpdateUser(data: Api.SystemUser.UserListItem & { roles: number[] }) {
     return request.put({
         url: '/api/system/user',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
+    })
+}
+
+/**
+ * 修改密码
+ */
+export function fetchUpdateUserPassword(data: { oldPassword: string, newPassword: string }) {
+    return request.put({
+        url: '/api/system/user/password',
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -50,6 +76,8 @@ export function fetchUpdateUser(data: Api.SystemUser.UserListItem & { roles: num
 export function fetchDeleteUser(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/user/${str}`
+        url: `/api/system/user/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

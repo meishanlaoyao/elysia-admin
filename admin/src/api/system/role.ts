@@ -6,7 +6,9 @@ import request from '@/utils/http'
 export function fetchCreateRole(data: Api.SystemRole.RoleListItem) {
     return request.post({
         url: '/api/system/role',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -44,7 +46,9 @@ export function fetchGetRolePermission(roleId: number) {
 export function fetchUpdateRole(data: Api.SystemRole.RoleListItem) {
     return request.put({
         url: '/api/system/role',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -54,7 +58,9 @@ export function fetchUpdateRole(data: Api.SystemRole.RoleListItem) {
 export function fetchUpdateRolePermission(data: Api.SystemRole.UpdateRolePermissionParams) {
     return request.put({
         url: '/api/system/role/permission',
-        data
+        data,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }
 
@@ -64,6 +70,8 @@ export function fetchUpdateRolePermission(data: Api.SystemRole.UpdateRolePermiss
 export function fetchDeleteRole(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/role/${str}`
+        url: `/api/system/role/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

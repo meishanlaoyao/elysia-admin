@@ -16,6 +16,8 @@ export function fetchGetLoginLogList(params: Api.SystemLoginLog.LoginLogSearchPa
 export function fetchDeleteLoginLog(ids: number | number[]) {
     let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
     return request.del({
-        url: `/api/system/login-log/${str}`
+        url: `/api/system/login-log/${str}`,
+        showSuccessMessage: true, // 显示成功消息
+        showErrorMessage: true // 显示错误消息
     })
 }

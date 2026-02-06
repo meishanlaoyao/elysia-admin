@@ -20,7 +20,7 @@ export function fetchLogin(params: Api.Auth.LoginParams) {
  */
 export function fetchGetUserInfo() {
   return request.get<Api.Auth.UserInfo>({
-    url: '/api/system/user/permission'
+    url: '/api/system/user/perm'
     // 自定义请求头
     // headers: {
     //   'X-Custom-Header': 'your-custom-value'
@@ -54,7 +54,8 @@ export function fetchResetPassword(params: Api.Auth.ResetPasswordParams) {
   return request.post({
     url: '/api/auth/reset-password',
     params,
-    showSuccessMessage: true // 显示成功消息
+    showSuccessMessage: true, // 显示成功消息
+    showErrorMessage: true, // 显示错误消息
   })
 }
 

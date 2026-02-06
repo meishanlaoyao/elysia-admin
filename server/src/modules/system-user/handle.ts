@@ -1,8 +1,10 @@
 import { Context } from 'elysia';
 import { eq } from 'drizzle-orm';
+import { Get } from '@/core/database/redis';
+import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
 import { systemUserSchema, systemUserRoleSchema } from 'database/schema/system_user';
-import { BcryptHash } from '@/shared/bcrypt';
+import { BcryptHash, BcryptCompare } from '@/shared/bcrypt';
 import {
     InsertOne,
     FindOneByKey,
@@ -12,7 +14,7 @@ import {
     FindPage,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
-import { GetUserRoleAndPermission, GetUserRoleIds } from '@/modules/system-role/handle';
+import { GetUserRoleIds } from '@/modules/system-role/handle';
 import { RunTransaction } from '@/core/database/transaction';
 import { logger } from '@/shared/logger';
 import { GetDeptInfoById } from '@/modules/system-dept/handle';
@@ -75,10 +77,12 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function findInfo(ctx: Context) {
+export async function findPerm(ctx: Context) {
     try {
         const userId = (ctx as any)?.user?.userId as number;
-        const res = await GetUserRoleAndPermission(userId);
+        const user = await Get(CacheEnum.ONLINE_USER + userId);
+        if (!user) return BaseResultData.fail(404);
+        const { loginLocation, ipaddr, userType, loginTime, ...rest } = user;
         const obj = {
             "userId": "1",
             "userName": "Super",
@@ -144,7 +148,33 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function updateBasic(ctx: Context) { };
+export async function updateBasic(ctx: Context) {
+    try {
+        const data = ParseDateFields(ctx.body);
+        const userId = (ctx as any)?.user?.userId as number;
+        const { password, ...rest } = data;
+        const user = rest as typeof systemUserSchema.$inferSelect;
+        await UpdateByKey(systemUserSchema, 'userId', { ...user, userId }, true);
+        return BaseResultData.ok();
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function updatePassword(ctx: Context) {
+    try {
+        const { oldPassword, newPassword } = ctx.body as any;
+        const userId = (ctx as any)?.user?.userId as number;
+        const user = await GetUserBy('userId', userId);
+        if (!user || user.delFlag) return BaseResultData.fail(404);
+        const isSame = BcryptCompare(oldPassword, user.password);
+        if (!isSame) return BaseResultData.fail(400, '旧密码错误');
+        await SetUserPassword(userId, newPassword);
+        return BaseResultData.ok();
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
 
 export async function remove(ctx: Context) {
     try {
@@ -159,8 +189,7 @@ export async function remove(ctx: Context) {
 // 获得用户信息
 export async function GetUserBy(key: string, val: any) {
     try {
-        const res = await FindOneByKey(systemUserSchema, key, val);
-        return res;
+        return await FindOneByKey(systemUserSchema, key, val);
     } catch (error) {
         logger.error('获得用户信息失败' + error);
         return null;
