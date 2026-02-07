@@ -16,7 +16,7 @@ import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { logger } from '@/shared/logger';
-import { GetRoleMenuIds } from '@/modules/system-role/handle';
+import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: Context) {
     try {
@@ -44,10 +44,12 @@ export async function findSimple(ctx: Context) {
     try {
         const { userId } = (ctx as any)?.user;
         const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => {
-            const menuIds = await GetRoleMenuIds(userId);
+            const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
             const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
             const menuData = await FindAll(systemMenuSchema, menuWhere);
-            return handleMenuListToTree(menuData);
+            const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
+            const menuBtnData = await FindAll(systemMenuBtnSchema, menuBtnWhere);
+            return handleMenuListToTree(menuData, menuBtnData);
         });
         return BaseResultData.ok(data);
     } catch (error) {
@@ -151,12 +153,34 @@ export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<str
 };
 
 // 把菜单列表转成后台生成菜单的树
-export function handleMenuListToTree(menuList: typeof systemMenuSchema.$inferSelect[]) {
+export function handleMenuListToTree(
+    menuList: typeof systemMenuSchema.$inferSelect[],
+    menuBtnList?: typeof systemMenuBtnSchema.$inferSelect[]
+) {
     if (!menuList || menuList.length === 0) return [];
+    const menuBtnMap = new Map<number, Array<{ title: string; authMark: string }>>();
+    if (menuBtnList && menuBtnList.length > 0) {
+        for (const btn of menuBtnList) {
+            if (btn.menuId) {
+                const authList = menuBtnMap.get(btn.menuId);
+                if (authList) {
+                    authList.push({
+                        title: btn.title || '',
+                        authMark: btn.permission || ''
+                    });
+                } else {
+                    menuBtnMap.set(btn.menuId, [{
+                        title: btn.title || '',
+                        authMark: btn.permission || ''
+                    }]);
+                }
+            }
+        }
+    };
     const menuMap = new Map<number, any>();
     const rootMenus: any[] = [];
-    const sortedMenuList = [...menuList].sort((a, b) => (a.sort || 0) - (b.sort || 0));
-    sortedMenuList.forEach(menu => {
+    menuList.sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    for (const menu of menuList) {
         const menuNode: any = {
             name: menu.name,
             path: menu.path,
@@ -176,16 +200,20 @@ export function handleMenuListToTree(menuList: typeof systemMenuSchema.$inferSel
         if (menu.link) menuNode.meta.link = menu.link;
         if (menu.isIframe) menuNode.meta.isIframe = menu.isIframe;
         if (menu.activePath) menuNode.meta.activePath = menu.activePath;
+        const authList = menuBtnMap.get(menu.menuId);
+        if (authList) menuNode.meta.authList = authList;
         menuMap.set(menu.menuId, menuNode);
         if (menu.parentId === null || menu.parentId === undefined || menu.parentId === 0) {
             rootMenus.push(menuNode);
         } else {
             const parentNode = menuMap.get(menu.parentId);
             if (parentNode) {
-                if (!parentNode.children) parentNode.children = [];
+                if (!parentNode.children) {
+                    parentNode.children = [];
+                }
                 parentNode.children.push(menuNode);
-            };
+            }
         };
-    });
+    };
     return rootMenus;
 };

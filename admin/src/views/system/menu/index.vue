@@ -5,7 +5,7 @@
     <ElCard class="art-table-card" shadow="never">
       <ArtTableHeader :showZebra="false" :loading="loading" v-model:columns="columnChecks" @refresh="getData">
         <template #left>
-          <ElButton v-auth="'add'" @click="showDialog('add')" v-ripple>添加菜单</ElButton>
+          <ElButton v-auth="'system:menu:create'" @click="showDialog('add')" v-ripple>添加菜单</ElButton>
           <ElButton @click="toggleExpand" v-ripple>
             {{ isExpanded ? '收起' : '展开' }}
           </ElButton>
@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import { ElTag, ElMessageBox } from 'element-plus'
 import { useTableColumns } from '@/hooks/core/useTableColumns'
 import { formatMenuTitle } from '@/utils/router'
@@ -42,6 +43,7 @@ import {
 defineOptions({ name: 'Menus' })
 
 type MenuListItem = Api.SystemMenu.MenuListItem
+const auth = useAuth()
 
 // 弹窗相关
 const dialogType = ref<'add' | 'edit'>('add')
@@ -144,34 +146,55 @@ const { columnChecks, columns } = useTableColumns(() => [
     width: 180,
     fixed: 'right',
     formatter: (row: MenuListItem) => {
+      const hasAdd = auth.hasAuth('system:menu:create')
+      const hasEdit = auth.hasAuth('system:menu:update')
+      const hasDelete = auth.hasAuth('system:menu:delete')
       if (row.isAuthButton) {
-        return h('div', {}, [
+        const buttons = []
+        if (hasEdit) {
+          buttons.push(
+            h(ArtButtonTable, {
+              type: 'edit',
+              onClick: () => showDialog('edit', row, 'button')
+            })
+          )
+        }
+        if (hasDelete) {
+          buttons.push(
+            h(ArtButtonTable, {
+              type: 'delete',
+              onClick: () => handleDeleteAuth(row)
+            })
+          )
+        }
+        return h('div', {}, buttons)
+      }
+      const buttons = [];
+      if (hasAdd) {
+        buttons.push(
+          h(ArtButtonTable, {
+            type: 'add',
+            onClick: () => showDialog('add', { parentMenuId: row.menuId, parentMenuTitle: row.title }),
+          })
+        )
+      }
+      if (hasEdit) {
+        buttons.push(
           h(ArtButtonTable, {
             type: 'edit',
-            onClick: () => showDialog('edit', row, 'button')
-          }),
+            onClick: () => showDialog('edit', row, 'menu')
+          })
+        )
+      }
+      if (hasDelete) {
+        buttons.push(
           h(ArtButtonTable, {
             type: 'delete',
-            onClick: () => handleDeleteAuth(row)
+            onClick: () => handleDeleteMenu(row)
           })
-        ])
+        )
       }
-
-      return h('div', {}, [
-        h(ArtButtonTable, {
-          type: 'add',
-          onClick: () => showDialog('add', { parentMenuId: row.menuId, parentMenuTitle: row.title }),
-          title: '新增权限'
-        }),
-        h(ArtButtonTable, {
-          type: 'edit',
-          onClick: () => showDialog('edit', row, 'menu')
-        }),
-        h(ArtButtonTable, {
-          type: 'delete',
-          onClick: () => handleDeleteMenu(row)
-        })
-      ])
+      return h('div', {}, buttons)
     }
   }
 ])
@@ -333,13 +356,10 @@ const handleSubmit = async (formData: any): Promise<void> => {
         activePath: formData.activePath,
         parentId: formData.parentId || 0
       }
-
       if (formData.menuId) {
         await fetchUpdateMenu(menuData)
-        ElMessage.success('更新菜单成功')
       } else {
         await fetchCreateMenu(menuData)
-        ElMessage.success('创建菜单成功')
       }
     } else {
       // 按钮操作
@@ -351,18 +371,13 @@ const handleSubmit = async (formData: any): Promise<void> => {
         sort: formData.sort,
         status: formData.status
       }
-
       console.log('提交按钮数据:', btnData, 'formData:', formData)
-
       if (formData.btnId) {
         await fetchUpdateMenuBtn(btnData)
-        ElMessage.success('更新按钮成功')
       } else {
         await fetchCreateMenuBtn(btnData)
-        ElMessage.success('创建按钮成功')
       }
     }
-
     getData()
   } catch (error) {
     ElMessage.error('操作失败')

@@ -2,13 +2,13 @@ export default {
     app: {
         id: "Elysia-Admin", // 应用ID (如果一台服务器部署了多个本项目，强烈建议为每个项目指定不同的ID，另外建议使用英文命名)
         port: 3000, // 端口
-        lang: "zh", // 应用语言
         prefix: "/api", // API 前缀
         baseCacheTime: 5 * 60, // 基础缓存时间 5分钟
         forgetPasswordExpiresIn: 10 * 60, // 忘记密码过期时间 10分钟
         forgetPasswordUrl: 'http://192.168.2.112:3006/#/auth/reset-password', // 忘记密码重置URL
         maxRequestBodySize: 10 * 1024 * 1024, // 最大请求体大小 10MB
         timeout: 30, // 服务端超时时间 30秒
+        maxLoginAttempts: 5, // 最大登陆尝试次数
     },
     jwt: {
         accessToken: {
@@ -51,8 +51,8 @@ export default {
         port: 465, // SMTP 端口
         secure: true, // 是否启用 SSL 连接
         auth: {
-            user: '1360658549@qq.com', // 发送者邮箱
-            pass: 'bvzlpapgzlcthhjd', // 发送者邮箱密码
+            user: '', // 发送者邮箱
+            pass: '', // 发送者邮箱密码
         },
         pool: true, // 是否启用连接池
         maxConnections: 10, // 最大连接数

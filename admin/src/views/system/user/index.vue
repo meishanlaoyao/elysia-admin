@@ -13,7 +13,7 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton @click="showDialog('add')" v-ripple>新增用户</ElButton>
+            <ElButton v-auth="'system:user:create'" @click="showDialog('add')" v-ripple>新增用户</ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { ACCOUNT_TABLE_DATA } from '@/mock/temp/formData'
 import { useTable } from '@/hooks/core/useTable'
@@ -43,6 +44,7 @@ import { ElTag, ElMessageBox, ElImage } from 'element-plus'
 import { DialogType } from '@/types'
 import { useDictStore } from '@/store/modules/dict';
 
+const auth = useAuth()
 const dictStore = useDictStore()
 
 defineOptions({ name: 'User' })
@@ -134,17 +136,26 @@ const {
         label: '操作',
         width: 120,
         fixed: 'right', // 固定列
-        formatter: (row) =>
-          h('div', [
-            h(ArtButtonTable, {
-              type: 'edit',
-              onClick: () => showDialog('edit', row)
-            }),
-            h(ArtButtonTable, {
-              type: 'delete',
-              onClick: () => deleteUser(row)
-            })
-          ])
+        formatter: (row) => {
+          const buttons = [];
+          if (auth.hasAuth('system:user:update')) {
+            buttons.push(
+              h(ArtButtonTable, {
+                type: 'edit',
+                onClick: () => showDialog('edit', row)
+              })
+            )
+          }
+          if (auth.hasAuth('system:user:delete')) {
+            buttons.push(
+              h(ArtButtonTable, {
+                type: 'delete',
+                onClick: () => deleteUser(row)
+              })
+            )
+          }
+          return h('div', buttons)
+        }
       }
     ]
   },

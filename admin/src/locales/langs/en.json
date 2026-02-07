@@ -293,6 +293,12 @@
       "log": "Log Manage",
       "loginLog": "Login Log",
       "operLog": "Oper Log"
+    },
+    "monitor": {
+      "title": "System Monitor",
+      "online": "Online Users",
+      "job": "Scheduled Tasks",
+      "server": "Server Monitoring"
     }
   },
   "table": {

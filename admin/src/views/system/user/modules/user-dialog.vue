@@ -245,19 +245,17 @@ watch(
  */
 const handleSubmit = async () => {
   if (!formRef.value) return
-  try {
-    await formRef.value.validate()
-    if (dialogType.value === 'add') {
+  formRef.value.validate().then(async () => {
+    if (dialogType.value == 'add') {
       await fetchCreateUser(formData)
     } else {
       await fetchUpdateUser(formData)
     }
-    ElMessage.success(dialogType.value === 'add' ? '添加成功' : '更新成功')
     emit('submit')
     dialogVisible.value = false
-  } catch {
+  }).catch(() => {
     ElMessage.error('表单校验失败，请检查输入')
-  }
+  })
 }
 
 /**

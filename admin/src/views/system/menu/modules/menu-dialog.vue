@@ -246,6 +246,9 @@ const disableMenuType = computed(() => {
  */
 const resetForm = (): void => {
   formRef.value?.reset()
+  // 清除所有 ID 字段，避免新增时误用旧数据
+  delete form.menuId
+  delete form.btnId
   form.menuType = 'menu'
   form.title = ''
   form.name = ''
@@ -272,11 +275,18 @@ const resetForm = (): void => {
  * 加载表单数据（编辑模式）
  */
 const loadFormData = (): void => {
-  if (!props.editData) return
+  if (!props.editData) {
+    isEdit.value = false
+    return
+  }
 
   // 如果 editData 只有 parentMenuId，说明是新增子项，不是编辑
   if (props.editData.parentMenuId && !props.editData.menuId && !props.editData.btnId) {
     isEdit.value = false
+    // 清除可能残留的 ID
+    delete form.menuId
+    delete form.btnId
+
     // 如果是新增菜单，设置 parentId
     if (form.menuType === 'menu') {
       form.parentId = props.editData.parentMenuId
@@ -284,6 +294,18 @@ const loadFormData = (): void => {
       // 如果是新增按钮，设置 menuId（关联的菜单 ID）
       form.menuId = props.editData.parentMenuId
     }
+    return
+  }
+
+  // 检查是否真的是编辑模式（必须有 menuId 或 btnId）
+  const hasMenuId = props.editData.menuId && typeof props.editData.menuId === 'number'
+  const hasBtnId = props.editData.btnId && typeof props.editData.btnId === 'number'
+
+  if (!hasMenuId && !hasBtnId) {
+    isEdit.value = false
+    // 清除可能残留的 ID
+    delete form.menuId
+    delete form.btnId
     return
   }
 
@@ -359,6 +381,9 @@ watch(
   () => props.visible,
   (newVal) => {
     if (newVal) {
+      // 先重置表单，清除旧数据
+      resetForm()
+      // 设置菜单类型
       form.menuType = props.type
       nextTick(() => {
         if (props.editData) {

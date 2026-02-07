@@ -8,8 +8,9 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton @click="showDialog('add')" v-ripple>新增角色</ElButton>
-            <ElButton type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete" v-ripple>
+            <ElButton v-auth="'system:role:create'" @click="showDialog('add')" v-ripple>新增角色</ElButton>
+            <ElButton v-auth="'system:role:delete'" type="danger" :disabled="selectedRows.length === 0"
+              @click="handleBatchDelete" v-ripple>
               批量删除
             </ElButton>
           </ElSpace>
@@ -34,6 +35,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import { ButtonMoreItem } from '@/components/core/forms/art-button-more/index.vue'
 import { useTable } from '@/hooks/core/useTable'
 import { fetchGetRoleList, fetchDeleteRole } from '@/api/system/role'
@@ -49,6 +51,7 @@ type RoleListItem = Api.SystemRole.RoleListItem
 
 // 选中行
 const selectedRows = ref<RoleListItem[]>([])
+const auth = useAuth()
 
 // 搜索表单
 const searchForm = ref({
@@ -124,30 +127,35 @@ const {
         label: '操作',
         width: 80,
         fixed: 'right',
-        formatter: (row) =>
-          h('div', [
+        formatter: (row) => {
+          const buttons: ButtonMoreItem[] = [];
+          if (auth.hasAuth('system:role:update')) {
+            buttons.push({
+              key: 'permission',
+              label: '菜单权限',
+              icon: 'ri:user-3-line',
+            })
+            buttons.push({
+              key: 'edit',
+              label: '编辑角色',
+              icon: 'ri:edit-2-line'
+            })
+          }
+          if (auth.hasAuth('system:role:delete')) {
+            buttons.push({
+              key: 'delete',
+              label: '删除角色',
+              icon: 'ri:delete-bin-4-line',
+              color: '#f56c6c'
+            })
+          }
+          return h('div', [
             h(ArtButtonMore, {
-              list: [
-                {
-                  key: 'permission',
-                  label: '菜单权限',
-                  icon: 'ri:user-3-line'
-                },
-                {
-                  key: 'edit',
-                  label: '编辑角色',
-                  icon: 'ri:edit-2-line'
-                },
-                {
-                  key: 'delete',
-                  label: '删除角色',
-                  icon: 'ri:delete-bin-4-line',
-                  color: '#f56c6c'
-                }
-              ],
+              list: buttons,
               onClick: (item: ButtonMoreItem) => buttonMoreClick(item, row)
             })
           ])
+        }
       }
     ]
   }

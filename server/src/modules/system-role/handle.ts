@@ -196,16 +196,23 @@ export async function GetUserRoleAndPermission(userId: number): Promise<{
     }
 };
 
-// 获取角色菜单Ids
-export async function GetRoleMenuIds(userId: number) {
+// 获取角色菜单Ids和按钮Ids
+export async function GetRoleMenuIdsAndBtnIds(userId: number) {
     try {
         const roleIds = await GetUserRoleIds(userId);
         const roleMenuWhere = CreateQueryBuilder(systemRoleMenuSchema).in('roleId', roleIds).build();
         const roleMenuData = await FindAll(systemRoleMenuSchema, roleMenuWhere);
         const menuIds = new Set(roleMenuData.map(item => item.menuId).filter(Boolean) as number[]);
-        return menuIds;
+        const menuBtnIds = new Set(roleMenuData.map(item => item.menuBtnId).filter(Boolean) as number[]);
+        return {
+            menuIds: [...menuIds],
+            menuBtnIds: [...menuBtnIds],
+        };
     } catch (error) {
         logger.error('获取角色菜单Ids失败:' + error);
-        return [];
+        return {
+            menuIds: [],
+            menuBtnIds: [],
+        };
     }
 };

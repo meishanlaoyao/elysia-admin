@@ -293,6 +293,12 @@
       "log": "日志管理",
       "loginLog": "登陆日志",
       "operLog": "操作日志"
+    },
+    "monitor": {
+      "title": "系统监控",
+      "online": "在线用户",
+      "job": "定时任务",
+      "server": "服务监控"
     }
   },
   "table": {

@@ -14,6 +14,10 @@ export const CacheEnum = {
      */
     ADMIN_MENU: `${config.app.id}:adminMenu:`,
     /**
+     * 后台登陆账号密码错误次数缓存key
+     */
+    ADMIN_LOGIN_ERROR_COUNT: `${config.app.id}:adminLoginErrorCount:`,
+    /**
      * 字典所有类型
      */
     DICT_TYPE: `${config.app.id}:dictType`,

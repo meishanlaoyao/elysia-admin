@@ -1,4 +1,4 @@
-import type { IRequestMethod } from '../types/common';
+import type { IRequestMethod } from '@/types/common';
 
 export interface IRouteMeta {
     /** 

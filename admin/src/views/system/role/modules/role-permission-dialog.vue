@@ -129,14 +129,10 @@ const loadRolePermission = async () => {
       }
     }).filter(Boolean) as (number | string)[]
 
-    console.log('后端返回的权限数据:', data)
-    console.log('转换后的选中 keys:', checkedKeys)
-
     // 设置选中的节点，使用 checkStrictly 模式避免父子关联
     nextTick(() => {
       if (treeRef.value) {
         treeRef.value.setCheckedKeys(checkedKeys, false)
-        console.log('设置后的选中节点:', treeRef.value.getCheckedKeys())
       }
     })
   } catch (error) {
@@ -224,20 +220,12 @@ const savePermission = async () => {
         }
       }
     })
-
-    console.log('保存的权限数据:', permissions)
-
     await fetchUpdateRolePermission({
       roleId: props.roleData.roleId,
       permissions
     })
-
-    ElMessage.success('权限保存成功')
     emit('success')
     handleClose()
-  } catch (error) {
-    console.error('保存权限失败:', error)
-    ElMessage.error('保存权限失败')
   } finally {
     loading.value = false
   }
