@@ -4,7 +4,7 @@
         <ElCard class="art-table-card" shadow="never">
             <ArtTableHeader :showZebra="false" :loading="loading" v-model:columns="columnChecks" @refresh="getData">
                 <template #left>
-                    <ElButton @click="showDialog('add')" v-ripple>添加部门</ElButton>
+                    <ElButton @click="showDialog('add')" v-ripple v-auth="'system:system:dept:create'">添加部门</ElButton>
                     <ElButton @click="toggleExpand" v-ripple>
                         {{ isExpanded ? '收起' : '展开' }}
                     </ElButton>
@@ -21,6 +21,7 @@
 
 <script setup lang='ts'>
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import { ElTag, ElMessageBox } from 'element-plus'
 import { useTableColumns } from '@/hooks/core/useTableColumns'
 import { DialogType } from '@/types'
@@ -30,6 +31,8 @@ import DeptSearch from './modules/dept-search.vue'
 import DeptDialog from './modules/dept-dialog.vue'
 
 type DeptListItem = Api.SystemDept.DeptListItem
+
+const auth = useAuth()
 
 // 弹窗相关
 const dialogType = ref<DialogType>('add')
@@ -75,20 +78,26 @@ const { columnChecks, columns } = useTableColumns(() => [
         width: 180,
         fixed: 'right',
         formatter: (row: DeptListItem) => {
-            return h('div', {}, [
-                h(ArtButtonTable, {
+            const buttons = []
+            if (auth.hasAuth('system:dept:create')) {
+                buttons.push(h(ArtButtonTable, {
                     type: 'add',
                     onClick: () => showDialog('add', { parentId: row.deptId })
-                }),
-                h(ArtButtonTable, {
+                }))
+            }
+            if (auth.hasAuth('system:dept:update')) {
+                buttons.push(h(ArtButtonTable, {
                     type: 'edit',
                     onClick: () => showDialog('edit', row)
-                }),
-                h(ArtButtonTable, {
+                }))
+            }
+            if (auth.hasAuth('system:dept:delete')) {
+                buttons.push(h(ArtButtonTable, {
                     type: 'delete',
                     onClick: () => deleteDict(row)
-                })
-            ])
+                }))
+            }
+            return h('div', {}, buttons)
         }
     }
 ])

@@ -5,9 +5,9 @@
             <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
                 <template #left>
                     <ElSpace wrap>
-                        <ElButton v-ripple @click="showDialog('add')">新增黑名单</ElButton>
+                        <ElButton v-ripple @click="showDialog('add')" v-auth="'system:ip-black:create'">新增黑名单</ElButton>
                         <ElButton type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete"
-                            v-ripple>
+                            v-ripple v-auth="'system:ip-black:delete'">
                             批量删除
                         </ElButton>
                     </ElSpace>
@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import { ElMessage, ElMessageBox, ElSwitch } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
@@ -38,6 +39,8 @@ import {
 } from '@/api/system/ipblack'
 
 type IpBlackItem = Api.SystemIpBlack.IpBlackItem
+
+const auth = useAuth()
 
 // 弹窗相关
 const dialogType = ref<DialogType>('add')
@@ -107,17 +110,22 @@ const {
                 width: 180,
                 align: 'center',
                 fixed: 'right',
-                formatter: (row: IpBlackItem) =>
-                    h('div', [
-                        h(ArtButtonTable, {
+                formatter: (row: IpBlackItem) => {
+                    const buttons = [];
+                    if (auth.hasAuth('system:ip-black:update')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'edit',
                             onClick: () => showDialog('edit', row)
-                        }),
-                        h(ArtButtonTable, {
+                        }))
+                    }
+                    if (auth.hasAuth('system:ip-black:delete')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteBlacklist(row)
-                        })
-                    ])
+                        }))
+                    }
+                    return h('div',buttons)
+                }
             }
         ]
     }

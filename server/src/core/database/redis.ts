@@ -30,15 +30,15 @@ function getRedisInstance(): Redis {
         });
 
         globalThis.__redisInstance.on("error", (error) => {
-            logger.error("Redis 连接失败", { error: error.message });
+            logger.error("Redis 连接失败" + error);
         });
 
         globalThis.__redisInstance.on("close", () => {
             globalThis.__redisConnected = false;
         });
-    }
+    };
     return globalThis.__redisInstance;
-}
+};
 
 const redis = getRedisInstance();
 

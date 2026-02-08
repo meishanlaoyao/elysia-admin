@@ -3,20 +3,38 @@ import { logger } from '@/shared/logger';
 import type { IClientType, IClientPlatform } from '@/types/common';
 
 /**
- * 检查 IP 是否为内网地址
- * @param ip IP 地址
- * @returns 
+ * 检查 IP 是否为私有、回环或本地链路地址（支持 IPv4 和 IPv6）
+ * @param ip IP 地址字符串
+ * @returns 是否为非公网地址
  */
-export function IsPrivateIp(ip: string) {
-    return (
-        ip.startsWith('10.') ||
-        ip.startsWith('192.168.') ||
-        ip.startsWith('172.16.') ||
-        ip.startsWith('172.17.') ||
-        ip.startsWith('172.18.') ||
-        ip.startsWith('172.19.') ||
-        ip.startsWith('172.2') // 172.20 - 172.31
-    );
+export function IsPrivateIp(ip: string): boolean {
+    if (typeof ip !== 'string') return false;
+    // --- IPv4 ---
+    if (ip.includes('.')) {
+        if (ip.startsWith('127.')) return true;
+        if (ip.startsWith('10.')) return true;
+        if (ip.startsWith('192.168.')) return true;
+        if (ip.startsWith('172.')) {
+            const parts = ip.split('.');
+            if (parts.length === 4) {
+                const second = parseInt(parts[1], 10);
+                if (!isNaN(second) && second >= 16 && second <= 31) return true;
+            };
+        };
+        return false;
+    };
+    // --- IPv6 ---
+    const lower = ip.toLowerCase();
+    if (lower === '::1' || lower.startsWith('::1:')) return true;
+    if (lower.startsWith('fe80:')) return true;
+    if (lower.startsWith('fc') || lower.startsWith('fd')) {
+        return true;
+    };
+    if (lower.startsWith('::ffff:')) {
+        const ipv4 = lower.substring(7);
+        return IsPrivateIp(ipv4);
+    };
+    return false;
 };
 
 /**
@@ -25,9 +43,8 @@ export function IsPrivateIp(ip: string) {
  * @returns 
  */
 export function NormalizeIp(ip: string) {
-    if (ip?.startsWith('::ffff:')) {
-        return ip.replace('::ffff:', '');
-    };
+    if (typeof ip !== 'string' || ip.length === 0) return '0.0.0.0';
+    if (ip?.startsWith('::ffff:')) return ip.replace('::ffff:', '');
     return ip;
 };
 

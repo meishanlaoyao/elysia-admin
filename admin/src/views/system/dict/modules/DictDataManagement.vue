@@ -6,9 +6,11 @@
             <ArtTableHeader v-model:columns="columnChecksData" :loading="loadingData" @refresh="refreshDataData">
                 <template #left>
                     <ElSpace wrap>
-                        <ElButton v-ripple @click="showDialogData('add')">新增数据</ElButton>
+                        <ElButton v-ripple @click="showDialogData('add')" v-auth="'system:dict:data:create'">
+                            新增数据
+                        </ElButton>
                         <ElButton type="danger" :disabled="selectedRowsData.length === 0" @click="handleBatchDeleteData"
-                            v-ripple>
+                            v-ripple v-auth="'system:dict:data:delete'">
                             批量删除
                         </ElButton>
                     </ElSpace>
@@ -26,6 +28,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks';
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import DictDataSearch from './dict-data-search.vue';
@@ -45,6 +48,8 @@ const props = defineProps<{
     cacheDictType: DictTypeListItem[]
     selectedDictType?: string
 }>()
+
+const auth = useAuth();
 
 // 弹窗相关
 const dialogTypeData = ref<DialogType>('add')
@@ -94,17 +99,22 @@ const {
                 label: '操作',
                 width: 120,
                 fixed: 'right',
-                formatter: (row) =>
-                    h('div', [
-                        h(ArtButtonTable, {
+                formatter: (row) => {
+                    const buttons = []
+                    if (auth.hasAuth('system:dict:data:update')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'edit',
                             onClick: () => showDialogData('edit', row)
-                        }),
-                        h(ArtButtonTable, {
+                        }))
+                    }
+                    if (auth.hasAuth('system:dict:data:delete')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteDictData(row)
-                        })
-                    ])
+                        }))
+                    }
+                    return h('div', buttons)
+                }
             }
         ]
     }

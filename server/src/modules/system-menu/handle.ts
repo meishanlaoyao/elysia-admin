@@ -177,8 +177,9 @@ export function handleMenuListToTree(
             }
         }
     };
+
+    // 第一阶段：创建所有菜单节点
     const menuMap = new Map<number, any>();
-    const rootMenus: any[] = [];
     menuList.sort((a, b) => (a.sort || 0) - (b.sort || 0));
     for (const menu of menuList) {
         const menuNode: any = {
@@ -202,18 +203,33 @@ export function handleMenuListToTree(
         if (menu.activePath) menuNode.meta.activePath = menu.activePath;
         const authList = menuBtnMap.get(menu.menuId);
         if (authList) menuNode.meta.authList = authList;
+
+        // 确保每个节点都有 children 数组
+        menuNode.children = [];
+
         menuMap.set(menu.menuId, menuNode);
+    }
+
+    // 第二阶段：建立父子关系
+    const rootMenus: any[] = [];
+    for (const menu of menuList) {
+        const menuNode = menuMap.get(menu.menuId);
         if (menu.parentId === null || menu.parentId === undefined || menu.parentId === 0) {
             rootMenus.push(menuNode);
         } else {
             const parentNode = menuMap.get(menu.parentId);
             if (parentNode) {
-                if (!parentNode.children) {
-                    parentNode.children = [];
-                }
                 parentNode.children.push(menuNode);
             }
-        };
-    };
+        }
+    }
+
+    // 清理空的 children 数组
+    for (const node of menuMap.values()) {
+        if (node.children && node.children.length === 0) {
+            delete node.children;
+        }
+    }
+
     return rootMenus;
 };

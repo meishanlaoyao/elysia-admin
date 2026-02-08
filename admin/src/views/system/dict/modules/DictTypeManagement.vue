@@ -5,9 +5,11 @@
             <ArtTableHeader v-model:columns="columnChecksType" :loading="loadingType" @refresh="refreshDataType">
                 <template #left>
                     <ElSpace wrap>
-                        <ElButton v-ripple @click="showDialogType('add')">新增类型</ElButton>
+                        <ElButton v-ripple @click="showDialogType('add')" v-auth="'system:dict:type:create'">
+                            新增类型
+                        </ElButton>
                         <ElButton type="danger" :disabled="selectedRowsType.length === 0" @click="handleBatchDeleteType"
-                            v-ripple>
+                            v-ripple v-auth="'system:dict:type:delete'">
                             批量删除
                         </ElButton>
                     </ElSpace>
@@ -25,6 +27,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks';
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import DictTypeSearch from './dict-type-search.vue';
@@ -37,6 +40,8 @@ import {
 import { DialogType } from '@/types'
 
 type DictTypeListItem = Api.SystemDict.DictTypeListItem
+
+const auth = useAuth();
 
 // 定义组件的props和emits
 const props = defineProps<{
@@ -84,29 +89,36 @@ const {
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号' }, // 序号
-            { prop: 'dictName', label: '字典名称' },
-            { prop: 'dictType', label: '字典类型' },
+            { prop: 'dictName', label: '字典名称', showOverflowTooltip: true, },
+            { prop: 'dictType', label: '字典类型', showOverflowTooltip: true, },
             { prop: 'createTime', label: '创建日期', sortable: true, showOverflowTooltip: true, formatter: (row) => row.createTime ? dayjs(row.createTime).format('YYYY-MM-DD HH:mm:ss') : '' },
             {
                 prop: 'operation',
                 label: '操作',
                 width: 180,
                 fixed: 'right',
-                formatter: (row) =>
-                    h('div', [
-                        h(ArtButtonTable, {
+                formatter: (row) => {
+                    const buttons = []
+                    if (auth.hasAuth('system:dict:type:update')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'edit',
                             onClick: () => showDialogType('edit', row)
-                        }),
-                        h(ArtButtonTable, {
+                        }))
+                    }
+                    if (auth.hasAuth('system:dict:type:delete')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteDictType(row)
-                        }),
-                        h(ArtButtonTable, {
+                        }))
+                    }
+                    if (auth.hasAuth('system:dict:type:query')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'view',
                             onClick: () => chooseDictType(row)
-                        })
-                    ])
+                        }))
+                    }
+                    return h('div', {}, buttons)
+                }
             }
         ]
     }
