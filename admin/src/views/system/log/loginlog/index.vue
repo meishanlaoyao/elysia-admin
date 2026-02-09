@@ -25,12 +25,15 @@ import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
+import { useDictStore } from '@/store/modules/dict'
 import { fetchGetLoginLogList, fetchDeleteLoginLog } from '@/api/system/loginlog'
 import LoginLogDetailDialog from './modules/loginlog-detail-dialog.vue'
 
 defineOptions({ name: 'LoginLog' })
 
 type LoginLogListItem = Api.SystemLoginLog.LoginLogListItem
+
+const dictStore = useDictStore()
 
 // 选中行
 const selectedRows = ref<LoginLogListItem[]>([])
@@ -59,7 +62,13 @@ const {
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号', align: 'center' }, // 序号
             { prop: 'createBy', label: '用户ID', align: 'center' },
-            { prop: 'loginType', label: '登录类型', align: 'center' },
+            {
+                prop: 'loginType', label: '用户类型', align: 'center', formatter: (row: LoginLogListItem) => h(
+                    ElTag,
+                    { type: dictStore.getTagType('system_user_type', row.loginType) },
+                    () => dictStore.getDictLabel('system_user_type', row.loginType)
+                )
+            },
             { prop: 'clientType', label: '客户端类型', align: 'center' },
             { prop: 'clientPlatform', label: '客户端平台', align: 'center' },
             { prop: 'ipaddr', label: 'IP地址', align: 'center' },

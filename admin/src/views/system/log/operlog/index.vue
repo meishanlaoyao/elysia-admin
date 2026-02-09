@@ -5,7 +5,7 @@
                 <template #left>
                     <ElSpace wrap>
                         <ElButton type="danger" :disabled="selectedRows.length === 0" @click="handleBatchDelete"
-                            v-ripple>
+                            v-ripple v-auth="'system:oper-log:delete'">
                             批量删除
                         </ElButton>
                     </ElSpace>
@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
@@ -30,6 +31,7 @@ import OperLogDetailDialog from './modules/operlog-detail-dialog.vue'
 import { useDictStore } from '@/store/modules/dict';
 
 const dictStore = useDictStore()
+const auth = useAuth()
 
 defineOptions({ name: 'OperLog' })
 
@@ -71,7 +73,13 @@ const {
                     type: dictStore.getTagType('api_request_method', row.requestMethod)
                 }, () => dictStore.getDictLabel('api_request_method', row.requestMethod))
             },
-            { prop: 'operatorType', label: '操作类型', align: 'center' },
+            {
+                prop: 'operatorType', label: '用户类型', align: 'center', formatter: (row: OperLogListItem) => h(
+                    ElTag,
+                    { type: dictStore.getTagType('system_user_type', row.operatorType || '') },
+                    () => dictStore.getDictLabel('system_user_type', row.operatorType || '')
+                )
+            },
             { prop: 'userId', label: '操作人员', align: 'center' },
             { prop: 'operIp', label: '操作IP', align: 'center' },
             { prop: 'operLocation', label: '操作地点', align: 'center', showOverflowTooltip: true },
@@ -112,17 +120,22 @@ const {
                 width: 150,
                 align: 'center',
                 fixed: 'right',
-                formatter: (row: OperLogListItem) =>
-                    h('div', [
-                        h(ArtButtonTable, {
+                formatter: (row: OperLogListItem) => {
+                    const buttons = []
+                    if (auth.hasAuth('system:oper-log:query')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'view',
                             onClick: () => showDetail(row)
-                        }),
-                        h(ArtButtonTable, {
+                        }))
+                    }
+                    if (auth.hasAuth('system:oper-log:delete')) {
+                        buttons.push(h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteOperLog(row)
-                        })
-                    ])
+                        }))
+                    }
+                    return h('div', buttons)
+                }
             }
         ]
     }

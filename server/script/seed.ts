@@ -6,11 +6,12 @@ import { RouteList } from '@/modules';
 import { CacheEnum } from '@/constants/enum';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { logger } from '@/shared/logger';
+import { CreateCronJob } from '@/shared/cron';
 
 /**
  * 初始化pg数据库
  */
-async function InitPgData() {
+async function initPgData() {
     try {
         const result = await pg.execute(sql`SELECT COUNT(*) as count FROM "system_user"`);
         const count = result[0]?.count;
@@ -58,7 +59,7 @@ async function executeSqlFile() {
  * 初始化需要权限的api数据
  * 初始化熔断的api数据
  */
-async function InitApiData() {
+async function initApiData() {
     const result = await pg.execute(sql`SELECT * FROM "system_api"`);
     const reverseMethodMap = Object.fromEntries(Object.entries(SYSTEM_API_METHOD).map(([key, value]) => [value, key]));
     const existingApiMap = new Map<string, any>();
@@ -95,12 +96,40 @@ async function InitApiData() {
 };
 
 /**
+ * 初始化cron任务
+ */
+async function initCronJob() {
+    const result = await pg.execute(sql`SELECT * FROM "monitor_job" WHERE "status" = true AND del_flag = false`);
+    if (!result.length) {
+        logger.info('没有需要启动的定时任务');
+        return;
+    };
+    for (const job of result) {
+        try {
+            CreateCronJob(
+                String(job.job_name),
+                String(job.job_cron),
+                async () => {
+
+                    // TODO: 在这里添加具体的任务逻辑
+                }
+            );
+            logger.info(`✓ 定时任务 [${job.job_name}] 已启动，cron: ${job.job_cron}`);
+        } catch (error: any) {
+            logger.error(`⚠ 定时任务 [${job.job_name}] 启动失败:` + error);
+        }
+    }
+};
+
+/**
  * 初始化种子数据
  * 1. 初始化pg数据库
  * 2. 初始化api数据
  * 3. 初始化熔断的api数据
+ * 4. 初始化cron任务
  */
 export async function InitSeedData() {
-    await InitPgData();
-    await InitApiData();
+    await initPgData();
+    await initApiData();
+    await initCronJob();
 };

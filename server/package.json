@@ -16,6 +16,7 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/static": "^1.4.7",
+    "croner": "^10.0.1",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.45.1",
     "drizzle-typebox": "^0.3.3",
