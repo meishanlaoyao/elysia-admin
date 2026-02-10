@@ -41,7 +41,7 @@ module.exports = {
   apps: [{
     name: '${appConfig.app.id}', // 应用名称
     script: 'bun', // 启动脚本
-    args: 'run index.js', // 启动参数
+    args: 'index.js', // 启动参数
     instances: 1, // 实例数量（cluster 模式下可设置多个）
     exec_mode: 'fork', // 执行模式：fork（单进程）或 cluster（集群）
     watch: false, // 不监听文件变化

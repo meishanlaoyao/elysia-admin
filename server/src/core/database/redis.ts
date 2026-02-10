@@ -41,6 +41,7 @@ function getRedisInstance(): Redis {
 };
 
 const redis = getRedisInstance();
+export { redis };
 
 // 优雅关闭 Redis 连接
 process.on('SIGINT', async () => {

@@ -1,7 +1,7 @@
 export default {
     app: {
         id: "Elysia-Admin", // 应用ID (如果一台服务器部署了多个本项目，强烈建议为每个项目指定不同的ID，另外建议使用英文命名)
-        port: 3000, // 端口
+        port: 3000, // 默认端口 系统会优先使用 process.env.PORT
         prefix: "/api", // API 前缀
         baseCacheTime: 5 * 60, // 基础缓存时间 5分钟
         forgetPasswordExpiresIn: 10 * 60, // 忘记密码过期时间 10分钟

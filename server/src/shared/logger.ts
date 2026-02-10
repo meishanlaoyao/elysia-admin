@@ -47,14 +47,13 @@ class Logger {
      */
     logStartup(config: {
         appId: string;
-        port: number;
+        port: number | string;
         prefix: string;
         env: string;
         pid: number;
         openApiEnabled?: boolean;
-        cronLockPath?: string;
     }): void {
-        const { appId, port, prefix, env, pid, openApiEnabled, cronLockPath } = config;
+        const { appId, port, prefix, env, pid, openApiEnabled } = config;
         const baseUrl = `http://localhost:${port}${prefix}`;
         console.log('\n' + '='.repeat(60));
         console.log(`🚀 ${appId} 启动成功`);
@@ -67,7 +66,6 @@ class Logger {
         console.log(`${Colors.bright}启动时间:${Colors.reset}     ${new Date().toLocaleString('zh-CN')}`);
         console.log(`${Colors.bright}运行环境:${Colors.reset}     ${env === 'production' ? Colors.red : Colors.yellow}${env}${Colors.reset}`);
         console.log(`${Colors.bright}进程ID:${Colors.reset}       ${pid}`);
-        if (cronLockPath) console.log(`${Colors.bright}任务锁目录:${Colors.reset}   ${Colors.cyan}${cronLockPath}${Colors.reset}`);
         console.log('='.repeat(60) + Colors.reset + '\n');
     }
 

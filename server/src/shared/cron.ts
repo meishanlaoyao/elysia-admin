@@ -1,10 +1,7 @@
 import { Cron } from 'croner';
-import config from '@/config';
-import { existsSync, openSync, closeSync, unlinkSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { logger } from './logger';
 import type { ITask } from '@/core/task';
+import { RedisLock } from '@/core/database/redis-lock';
 
 // 存储所有定时任务实例
 const cronJobs = new Map<string, Cron>();
@@ -13,101 +10,7 @@ const cronJobs = new Map<string, Cron>();
 const taskRegistry = new Map<string, ITask>();
 
 /**
- * 获取任务锁路径
- * 使用系统临时目录 + 项目ID，避免多项目冲突
- * @param jobName 任务名称
- * @returns 任务锁路径
- */
-function getLockPath(jobName: string) {
-    const appId = config.app.id.replace(/[^a-zA-Z0-9-_]/g, '_'); // 清理非法字符
-    return join(tmpdir(), `${appId}_cron_${jobName}.lock`);
-};
-
-/**
- * 获取任务锁目录
- * @returns 任务锁目录路径
- */
-export function GetCronLockDir(): string {
-    return tmpdir();
-};
-
-/**
- * 清理所有任务锁文件（用于启动时清理僵尸锁）
- */
-export function CleanAllLocks(): void {
-    try {
-        const fs = require('node:fs');
-        const lockDir = tmpdir();
-        const appId = config.app.id.replace(/[^a-zA-Z0-9-_]/g, '_');
-        const lockPrefix = `${appId}_cron_`;
-        const files = fs.readdirSync(lockDir);
-        let cleanedCount = 0;
-        for (const file of files) {
-            if (file.startsWith(lockPrefix) && file.endsWith('.lock')) {
-                const lockPath = join(lockDir, file);
-                try {
-                    unlinkSync(lockPath);
-                    cleanedCount++;
-                } catch (error: any) {
-                    logger.warn(`清理锁文件失败: ${file}`, error);
-                }
-            };
-        };
-        if (cleanedCount > 0) logger.info(`已清理 ${cleanedCount} 个僵尸锁文件`);
-    } catch (error: any) {
-        logger.error('清理锁文件失败:', error);
-    }
-};
-
-/**
- * 尝试获取任务锁
- * @param jobName 任务名称
- * @returns 是否成功获取锁
- */
-function tryAcquireLock(jobName: string): boolean {
-    const lockPath = getLockPath(jobName);
-    try {
-        if (existsSync(lockPath)) {
-            const fs = require('node:fs');
-            const stats = fs.statSync(lockPath);
-            const lockAge = Date.now() - stats.mtimeMs;
-            if (lockAge > 5 * 60 * 1000) {
-                logger.warn(`检测到僵尸锁文件 [${jobName}]，已存在 ${Math.floor(lockAge / 1000)} 秒，将清理`);
-                try {
-                    unlinkSync(lockPath);
-                } catch (error: any) {
-                    logger.error(`清理僵尸锁失败 [${jobName}]:`, error);
-                    return false;
-                }
-            } else {
-                return false;
-            };
-        };
-        const fd = openSync(lockPath, 'w');
-        closeSync(fd);
-        return true;
-    } catch (error: any) {
-        logger.error(`获取任务锁失败 [${jobName}]，锁文件: ${lockPath}`, error);
-        return false;
-    }
-};
-
-/**
- * 释放任务锁
- * @param jobName 任务名称
- */
-function releaseLock(jobName: string): void {
-    const lockPath = getLockPath(jobName);
-    try {
-        if (existsSync(lockPath)) unlinkSync(lockPath);
-    } catch (error: any) {
-        logger.error(`释放任务锁失败 [${jobName}]，锁文件: ${lockPath}`, error);
-    }
-};
-
-/**
  * 注册任务
- * @param tasks 任务数组
  */
 export function RegisterTasks(tasks: ITask[]): void {
     for (const task of tasks) {
@@ -117,7 +20,6 @@ export function RegisterTasks(tasks: ITask[]): void {
 
 /**
  * 获取已注册的任务
- * @param taskName 任务名称
  */
 export function GetTask(taskName: string): ITask | undefined {
     return taskRegistry.get(taskName);
@@ -132,8 +34,6 @@ export function GetAllTasks(): Map<string, ITask> {
 
 /**
  * 解析任务参数
- * @param jobArgs 任务参数（JSON字符串或数组）
- * @returns 解析后的参数数组
  */
 function parseJobArgs(jobArgs?: string | any[]): any[] {
     if (!jobArgs) return [];
@@ -151,13 +51,25 @@ function parseJobArgs(jobArgs?: string | any[]): any[] {
 };
 
 /**
- * 创建带单机防重的定时任务
- * @param jobName 任务名称（用于标识和防重）
- * @param cronExpression cron 表达式
- * @param taskName 任务名称（从注册表中查找）
- * @param taskArgs 任务参数（JSON字符串或数组）
- * @param options croner 选项
- * @returns Cron 实例
+ * 计算cron表达式的下次执行间隔（秒）
+ */
+function getNextInterval(cronExpression: string): number {
+    try {
+        const cron = new Cron(cronExpression);
+        const next1 = cron.nextRun();
+        const next2 = cron.nextRun(next1);
+        if (next1 && next2) {
+            const interval = Math.floor((next2.getTime() - next1.getTime()) / 1000);
+            return Math.max(interval - 5, 10); // 至少保持10秒，最多到下次执行前5秒
+        };
+    } catch (error) {
+        // 解析失败，使用默认值
+    }
+    return 55; // 默认55秒（适用于每分钟执行的任务）
+};
+
+/**
+ * 创建带 Redis 分布式锁的定时任务
  */
 export function CreateCronJob(
     jobName: string,
@@ -169,9 +81,12 @@ export function CreateCronJob(
     const task = taskRegistry.get(taskName);
     if (!task) throw new Error(`任务 [${taskName}] 未注册`);
     const parsedArgs = parseJobArgs(taskArgs);
+    const lockTTL = getNextInterval(cronExpression);
     const cronJob = new Cron(cronExpression, options, async () => {
-        if (!tryAcquireLock(jobName)) {
-            logger.warn(`任务 [${jobName}] 正在执行中，跳过本次调度`);
+        const lock = new RedisLock(jobName, lockTTL);
+        const acquired = await lock.acquire();
+        if (!acquired) {
+            logger.warn(`任务 [${jobName}] 已被其他实例锁定，跳过执行`);
             return;
         };
         try {
@@ -180,8 +95,7 @@ export function CreateCronJob(
             logger.info(`任务 [${jobName}] 执行完成`);
         } catch (error: any) {
             logger.error(`任务 [${jobName}] 执行失败:`, error);
-        } finally {
-            releaseLock(jobName);
+            await lock.release();
         }
     });
     cronJobs.set(jobName, cronJob);
@@ -190,11 +104,6 @@ export function CreateCronJob(
 
 /**
  * 动态添加定时任务
- * @param jobName 任务名称
- * @param cronExpression cron 表达式
- * @param taskName 任务名称（从注册表中查找）
- * @param taskArgs 任务参数（JSON字符串或数组）
- * @returns Cron 实例
  */
 export function AddCronJob(
     jobName: string,
@@ -214,7 +123,6 @@ export function AddCronJob(
 
 /**
  * 移除定时任务
- * @param jobName 任务名称
  */
 export function RemoveCronJob(jobName: string): boolean {
     const cronJob = cronJobs.get(jobName);
@@ -224,7 +132,6 @@ export function RemoveCronJob(jobName: string): boolean {
     };
     cronJob.stop();
     cronJobs.delete(jobName);
-    releaseLock(jobName);
     logger.info(`已移除定时任务 [${jobName}]`);
     return true;
 };
@@ -238,8 +145,19 @@ export function GetAllCronJobs(): Map<string, Cron> {
 
 /**
  * 获取指定定时任务
- * @param jobName 任务名称
  */
 export function GetCronJob(jobName: string): Cron | undefined {
     return cronJobs.get(jobName);
+};
+
+/**
+ * 优雅关闭：停止所有定时任务
+ */
+export function StopAllCronJobs(): void {
+    logger.info(`正在停止 ${cronJobs.size} 个定时任务...`);
+    for (const [jobName, cronJob] of cronJobs.entries()) {
+        cronJob.stop();
+        logger.info(`已停止定时任务 [${jobName}]`);
+    };
+    cronJobs.clear();
 };

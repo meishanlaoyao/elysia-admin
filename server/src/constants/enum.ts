@@ -41,6 +41,10 @@ export const CacheEnum = {
      * 缓存的下拉选项数据
      */
     BASE_OPTIONS: `${config.app.id}:baseOptions:`,
+    /**
+     * 定时任务分布式锁
+     */
+    CRON_LOCK: `${config.app.id}:cronLock:`,
 };
 
 /**
