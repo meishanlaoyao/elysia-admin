@@ -8,7 +8,7 @@ export const monitorJobSchema = pgTable(
         jobId: bigserial('job_id', { mode: 'number' }).primaryKey(), // 定时任务ID
         jobName: varchar('job_name', { length: 64 }).notNull().unique(), // 定时任务名称
         jobCron: varchar('job_cron', { length: 64 }).notNull(), // 定时任务CRON表达式
-        jobTarget: varchar('job_target', { length: 256 }).notNull(), // 调用目标字符串
+        jobArgs: varchar('job_args', { length: 256 }), // 定时任务参数
         status: boolean('status').default(true), // 状态
         ...BaseSchema,
     }

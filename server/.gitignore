@@ -6,7 +6,6 @@
 /database/drizzle
 /dist_binary
 /dist
-/job
 .pnp.js
 
 # testing

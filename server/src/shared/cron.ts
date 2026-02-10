@@ -1,19 +1,63 @@
 import { Cron } from 'croner';
+import config from '@/config';
 import { existsSync, openSync, closeSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { logger } from './logger';
+import type { ITask } from '@/core/task';
 
 // 存储所有定时任务实例
 const cronJobs = new Map<string, Cron>();
 
+// 存储所有注册的任务函数
+const taskRegistry = new Map<string, ITask>();
+
 /**
  * 获取任务锁路径
+ * 使用系统临时目录 + 项目ID，避免多项目冲突
  * @param jobName 任务名称
  * @returns 任务锁路径
  */
 function getLockPath(jobName: string) {
-    return join(process.cwd(), 'job', `cron_${jobName}.lock`);
-}
+    const appId = config.app.id.replace(/[^a-zA-Z0-9-_]/g, '_'); // 清理非法字符
+    return join(tmpdir(), `${appId}_cron_${jobName}.lock`);
+};
+
+/**
+ * 获取任务锁目录
+ * @returns 任务锁目录路径
+ */
+export function GetCronLockDir(): string {
+    return tmpdir();
+};
+
+/**
+ * 清理所有任务锁文件（用于启动时清理僵尸锁）
+ */
+export function CleanAllLocks(): void {
+    try {
+        const fs = require('node:fs');
+        const lockDir = tmpdir();
+        const appId = config.app.id.replace(/[^a-zA-Z0-9-_]/g, '_');
+        const lockPrefix = `${appId}_cron_`;
+        const files = fs.readdirSync(lockDir);
+        let cleanedCount = 0;
+        for (const file of files) {
+            if (file.startsWith(lockPrefix) && file.endsWith('.lock')) {
+                const lockPath = join(lockDir, file);
+                try {
+                    unlinkSync(lockPath);
+                    cleanedCount++;
+                } catch (error: any) {
+                    logger.warn(`清理锁文件失败: ${file}`, error);
+                }
+            };
+        };
+        if (cleanedCount > 0) logger.info(`已清理 ${cleanedCount} 个僵尸锁文件`);
+    } catch (error: any) {
+        logger.error('清理锁文件失败:', error);
+    }
+};
 
 /**
  * 尝试获取任务锁
@@ -22,18 +66,31 @@ function getLockPath(jobName: string) {
  */
 function tryAcquireLock(jobName: string): boolean {
     const lockPath = getLockPath(jobName);
-    const lockDir = join(process.cwd(), 'job');
     try {
-        if (!existsSync(lockDir)) mkdirSync(lockDir, { recursive: true });
-        if (existsSync(lockPath)) return false;
+        if (existsSync(lockPath)) {
+            const fs = require('node:fs');
+            const stats = fs.statSync(lockPath);
+            const lockAge = Date.now() - stats.mtimeMs;
+            if (lockAge > 5 * 60 * 1000) {
+                logger.warn(`检测到僵尸锁文件 [${jobName}]，已存在 ${Math.floor(lockAge / 1000)} 秒，将清理`);
+                try {
+                    unlinkSync(lockPath);
+                } catch (error: any) {
+                    logger.error(`清理僵尸锁失败 [${jobName}]:`, error);
+                    return false;
+                }
+            } else {
+                return false;
+            };
+        };
         const fd = openSync(lockPath, 'w');
         closeSync(fd);
         return true;
     } catch (error: any) {
-        logger.error(`获取任务锁失败 [${jobName}]:`, error);
+        logger.error(`获取任务锁失败 [${jobName}]，锁文件: ${lockPath}`, error);
         return false;
     }
-}
+};
 
 /**
  * 释放任务锁
@@ -44,98 +101,82 @@ function releaseLock(jobName: string): void {
     try {
         if (existsSync(lockPath)) unlinkSync(lockPath);
     } catch (error: any) {
-        logger.error(`释放任务锁失败 [${jobName}]:`, error);
+        logger.error(`释放任务锁失败 [${jobName}]，锁文件: ${lockPath}`, error);
     }
-}
+};
 
 /**
- * 解析任务路径并执行
- * 格式: monitor-job.task.jobDemo('乔治')
- * @param taskPath 任务路径字符串
+ * 注册任务
+ * @param tasks 任务数组
  */
-async function parseAndExecuteTask(taskPath: string): Promise<void> {
-    try {
-        // 解析函数调用: functionName(args)
-        const match = taskPath.match(/^(.+?)\.([^.]+)\.([^(]+)\((.*)\)$/);
-        if (!match) {
-            throw new Error(`任务路径格式错误: ${taskPath}`);
+export function RegisterTasks(tasks: ITask[]): void {
+    for (const task of tasks) {
+        taskRegistry.set(task.taskName, task);
+    };
+};
+
+/**
+ * 获取已注册的任务
+ * @param taskName 任务名称
+ */
+export function GetTask(taskName: string): ITask | undefined {
+    return taskRegistry.get(taskName);
+};
+
+/**
+ * 获取所有已注册的任务
+ */
+export function GetAllTasks(): Map<string, ITask> {
+    return taskRegistry;
+};
+
+/**
+ * 解析任务参数
+ * @param jobArgs 任务参数（JSON字符串或数组）
+ * @returns 解析后的参数数组
+ */
+function parseJobArgs(jobArgs?: string | any[]): any[] {
+    if (!jobArgs) return [];
+    if (Array.isArray(jobArgs)) return jobArgs;
+    if (typeof jobArgs === 'string') {
+        try {
+            const parsed = JSON.parse(jobArgs);
+            return Array.isArray(parsed) ? parsed : [parsed];
+        } catch (error: any) {
+            logger.error(`参数解析失败:`, error);
+            return [];
         }
-
-        const [, moduleName, fileName, functionName, argsStr] = match;
-
-        // 构建模块路径
-        const modulePath = join(process.cwd(), 'src', 'modules', moduleName, `${fileName}.ts`);
-
-        // 动态导入模块
-        const module = await import(modulePath);
-        const taskFunction = module[functionName];
-
-        if (typeof taskFunction !== 'function') {
-            throw new Error(`函数 ${functionName} 不存在于 ${modulePath}`);
-        }
-
-        // 解析参数
-        let args: any[] = [];
-        if (argsStr.trim()) {
-            // 简单的参数解析，支持字符串和数字
-            args = argsStr.split(',').map(arg => {
-                arg = arg.trim();
-                // 字符串参数（单引号或双引号）
-                if ((arg.startsWith("'") && arg.endsWith("'")) ||
-                    (arg.startsWith('"') && arg.endsWith('"'))) {
-                    return arg.slice(1, -1);
-                }
-                // 数字参数
-                if (!isNaN(Number(arg))) {
-                    return Number(arg);
-                }
-                // 布尔值
-                if (arg === 'true') return true;
-                if (arg === 'false') return false;
-                // null/undefined
-                if (arg === 'null') return null;
-                if (arg === 'undefined') return undefined;
-                return arg;
-            });
-        }
-
-        // 执行任务函数
-        await taskFunction(...args);
-    } catch (error: any) {
-        logger.error(`解析或执行任务失败 [${taskPath}]:`, error);
-        throw error;
-    }
-}
+    };
+    return [];
+};
 
 /**
  * 创建带单机防重的定时任务
  * @param jobName 任务名称（用于标识和防重）
  * @param cronExpression cron 表达式
- * @param task 任务函数或任务路径字符串
+ * @param taskName 任务名称（从注册表中查找）
+ * @param taskArgs 任务参数（JSON字符串或数组）
  * @param options croner 选项
  * @returns Cron 实例
  */
 export function CreateCronJob(
     jobName: string,
     cronExpression: string,
-    task: (() => void | Promise<void>) | string,
+    taskName: string,
+    taskArgs?: string | any[],
     options?: any
 ) {
+    const task = taskRegistry.get(taskName);
+    if (!task) throw new Error(`任务 [${taskName}] 未注册`);
+    const parsedArgs = parseJobArgs(taskArgs);
     const cronJob = new Cron(cronExpression, options, async () => {
         if (!tryAcquireLock(jobName)) {
             logger.warn(`任务 [${jobName}] 正在执行中，跳过本次调度`);
             return;
-        }
+        };
         try {
             logger.info(`任务 [${jobName}] 开始执行`);
-
-            // 如果是字符串，解析并执行
-            if (typeof task === 'string') {
-                await parseAndExecuteTask(task);
-            } else {
-                await task();
-            }
-
+            await task.taskFunc(...parsedArgs);
             logger.info(`任务 [${jobName}] 执行完成`);
         } catch (error: any) {
             logger.error(`任务 [${jobName}] 执行失败:`, error);
@@ -143,33 +184,33 @@ export function CreateCronJob(
             releaseLock(jobName);
         }
     });
-
-    // 存储任务实例
     cronJobs.set(jobName, cronJob);
     return cronJob;
-}
+};
 
 /**
  * 动态添加定时任务
  * @param jobName 任务名称
  * @param cronExpression cron 表达式
- * @param taskPath 任务路径字符串
+ * @param taskName 任务名称（从注册表中查找）
+ * @param taskArgs 任务参数（JSON字符串或数组）
  * @returns Cron 实例
  */
 export function AddCronJob(
     jobName: string,
     cronExpression: string,
-    taskPath: string
+    taskName: string,
+    taskArgs?: string | any[]
 ): Cron {
-    // 如果任务已存在，先停止
     if (cronJobs.has(jobName)) {
         logger.warn(`任务 [${jobName}] 已存在，将先停止旧任务`);
         RemoveCronJob(jobName);
-    }
-
-    logger.info(`添加定时任务 [${jobName}]，cron: ${cronExpression}，任务: ${taskPath}`);
-    return CreateCronJob(jobName, cronExpression, taskPath);
-}
+    };
+    const parsedArgs = parseJobArgs(taskArgs);
+    const argsLog = parsedArgs.length ? `，参数: ${JSON.stringify(parsedArgs)}` : '';
+    logger.info(`添加定时任务 [${jobName}]，cron: ${cronExpression}，任务: ${taskName}${argsLog}`);
+    return CreateCronJob(jobName, cronExpression, taskName, taskArgs);
+};
 
 /**
  * 移除定时任务
@@ -180,24 +221,20 @@ export function RemoveCronJob(jobName: string): boolean {
     if (!cronJob) {
         logger.warn(`任务 [${jobName}] 不存在`);
         return false;
-    }
-
+    };
     cronJob.stop();
     cronJobs.delete(jobName);
-
-    // 清理锁文件
     releaseLock(jobName);
-
     logger.info(`已移除定时任务 [${jobName}]`);
     return true;
-}
+};
 
 /**
  * 获取所有定时任务
  */
 export function GetAllCronJobs(): Map<string, Cron> {
     return cronJobs;
-}
+};
 
 /**
  * 获取指定定时任务
@@ -205,4 +242,4 @@ export function GetAllCronJobs(): Map<string, Cron> {
  */
 export function GetCronJob(jobName: string): Cron | undefined {
     return cronJobs.get(jobName);
-}
+};

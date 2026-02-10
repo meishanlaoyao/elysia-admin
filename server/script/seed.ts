@@ -7,6 +7,7 @@ import { CacheEnum } from '@/constants/enum';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { logger } from '@/shared/logger';
 import { CreateCronJob } from '@/shared/cron';
+import { RegisterAllTasks } from '@/core/task-registry';
 
 /**
  * 初始化pg数据库
@@ -99,24 +100,19 @@ async function initApiData() {
  * 初始化cron任务
  */
 async function initCronJob() {
+    await RegisterAllTasks();
     const result = await pg.execute(sql`SELECT * FROM "monitor_job" WHERE "status" = true AND del_flag = false`);
-    if (!result.length) {
-        logger.info('没有需要启动的定时任务');
-        return;
-    };
+    if (!result.length) return;
     for (const job of result) {
         try {
             CreateCronJob(
                 String(job.job_name),
                 String(job.job_cron),
-                async () => {
-
-                    // TODO: 在这里添加具体的任务逻辑
-                }
+                String(job.job_name),
+                job.job_args ? String(job.job_args) : undefined
             );
-            logger.info(`✓ 定时任务 [${job.job_name}] 已启动，cron: ${job.job_cron}`);
         } catch (error: any) {
-            logger.error(`⚠ 定时任务 [${job.job_name}] 启动失败:` + error);
+            logger.error(`定时任务 [${job.job_name}] 启动失败:`, error);
         }
     }
 };
