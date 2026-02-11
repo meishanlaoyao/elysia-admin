@@ -155,13 +155,15 @@ const handleClosed = () => {
 const handleSubmit = async () => {
   if (!formRef.value) return
   formRef.value.validate().then(async () => {
-    if (props.dialogType == 'add') {
-      await fetchCreateRole(form)
-    } else {
-      await fetchUpdateRole(form)
-    }
-    emit('submit')
-    visible.value = false
+    try {
+      if (props.dialogType == 'add') {
+        await fetchCreateRole(form)
+      } else {
+        await fetchUpdateRole(form)
+      }
+      emit('submit')
+      visible.value = false
+    } catch { }
   }).catch(() => {
     ElMessage.error('表单校验失败，请检查输入')
   })

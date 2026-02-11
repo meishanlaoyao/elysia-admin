@@ -293,7 +293,8 @@
       "blacklist": "Blacklist Manage",
       "log": "Log Manage",
       "loginLog": "Login Log",
-      "operLog": "Oper Log"
+      "operLog": "Oper Log",
+      "storage": "Storage Config"
     },
     "monitor": {
       "title": "System Monitor",

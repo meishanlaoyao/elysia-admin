@@ -17,9 +17,7 @@ import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
 export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
-        if (data.ipAddress && !IsIpAddress(data.ipAddress)) {
-            return BaseResultData.fail(400, 'IP地址格式错误');
-        };
+        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
         const res = await InsertOneAndRes(systemIpBlackSchema, data);
         config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
         return BaseResultData.ok();

@@ -153,13 +153,15 @@ watch(
 const handleSubmit = () => {
     if (!formRef.value) return
     formRef.value.validate().then(async () => {
-        if (dialogType.value == 'add') {
-            await fetchCreateApi(formData)
-        } else {
-            await fetchUpdateApi(formData)
-        }
-        emit('submit')
-        dialogVisible.value = false
+        try {
+            if (dialogType.value == 'add') {
+                await fetchCreateApi(formData)
+            } else {
+                await fetchUpdateApi(formData)
+            }
+            emit('submit')
+            dialogVisible.value = false
+        } catch { }
     }).catch(() => {
         ElMessage.error('表单校验失败，请检查输入')
     })
