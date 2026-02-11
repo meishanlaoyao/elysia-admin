@@ -263,7 +263,8 @@
       "title": "Reset Password"
     },
     "outside": {
-      "title": "Outside"
+      "title": "Outside",
+      "openapi": "OpenAPI"
     },
     "dashboard": {
       "title": "Dashboard",

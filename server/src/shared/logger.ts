@@ -52,8 +52,9 @@ class Logger {
         env: string;
         pid: number;
         openApiEnabled?: boolean;
+        bunVersion?: string;
     }): void {
-        const { appId, port, prefix, env, pid, openApiEnabled } = config;
+        const { appId, port, prefix, env, pid, openApiEnabled, bunVersion } = config;
         const baseUrl = `http://localhost:${port}${prefix}`;
         console.log('\n' + '='.repeat(60));
         console.log(`🚀 ${appId} 启动成功`);
@@ -65,6 +66,7 @@ class Logger {
         }
         console.log(`${Colors.bright}启动时间:${Colors.reset}     ${new Date().toLocaleString('zh-CN')}`);
         console.log(`${Colors.bright}运行环境:${Colors.reset}     ${env === 'production' ? Colors.red : Colors.yellow}${env}${Colors.reset}`);
+        console.log(`${Colors.bright}Bun版本:${Colors.reset}      ${bunVersion || 'N/A'}`);
         console.log(`${Colors.bright}进程ID:${Colors.reset}       ${pid}`);
         console.log('='.repeat(60) + Colors.reset + '\n');
     }

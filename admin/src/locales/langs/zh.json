@@ -263,7 +263,8 @@
       "title": "重置密码"
     },
     "outside": {
-      "title": "内嵌页面"
+      "title": "内嵌页面",
+      "openapi": "接口文档"
     },
     "dashboard": {
       "title": "仪表盘",

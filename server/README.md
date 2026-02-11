@@ -3,7 +3,7 @@
 - 黑名单表，可以设置一些或全部 api接口 不允许访问
 
 ## 软件依赖
- - [bun](https://bun.sh/)
+ - [bun 1.2.19](https://bun.sh/)
  - [pm2](https://pm2.keymetrics.io/)
  - [redis 5+](https://redis.io/)
  - [postgresql 17+](https://www.postgresql.org/)

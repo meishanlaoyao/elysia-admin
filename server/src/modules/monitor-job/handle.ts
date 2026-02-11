@@ -17,8 +17,8 @@ import { inArray } from 'drizzle-orm';
 export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferInsert;
-        await InsertOne(monitorJobSchema, data);
         if (data.status && data.jobName && data.jobCron) AddCronJob(data.jobName, data.jobCron, data.jobName, data.jobArgs || undefined);
+        await InsertOne(monitorJobSchema, data);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -38,11 +38,13 @@ export async function findList(ctx: Context) {
             jobCron,
             status,
         } = ctx.query;
+        let newStatus = undefined;
+        if (status !== undefined) newStatus = status === 'true' ? true : false;
         const whereCondition = CreateQueryBuilder(monitorJobSchema)
             .eq('delFlag', false)
             .like('jobName', jobName)
             .eq('jobCron', jobCron)
-            .eq('status', status)
+            .eq('status', newStatus)
             .dateRange('createTime', startTime, endTime)
             .build();
         const res = await FindPage(monitorJobSchema, whereCondition, {
@@ -62,7 +64,6 @@ export async function update(ctx: Context) {
         const data = ParseDateFields(ctx.body);
         const jobId = data.jobId;
         const oldJob = await FindOneByKey(monitorJobSchema, 'jobId', jobId);
-        await UpdateByKey(monitorJobSchema, 'jobId', data, true);
         if (oldJob && data.jobName) {
             const oldJobName = String(oldJob.jobName);
             const newJobName = String(data.jobName);
@@ -76,6 +77,7 @@ export async function update(ctx: Context) {
                 if (isRunning) RemoveCronJob(oldJobName);
             };
         };
+        await UpdateByKey(monitorJobSchema, 'jobId', data, true);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -86,13 +88,13 @@ export async function remote(ctx: Context) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
         const jobs = await FindAll(monitorJobSchema, inArray(monitorJobSchema.jobId, ids));
-        await SoftDeleteByKeys(monitorJobSchema, 'jobId', ids);
         if (jobs?.length) {
             for (const job of jobs) {
                 const jobName = String(job.jobName);
                 if (GetCronJob(jobName)) RemoveCronJob(jobName);
             };
         };
+        await SoftDeleteByKeys(monitorJobSchema, 'jobId', ids);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

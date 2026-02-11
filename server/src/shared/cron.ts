@@ -117,7 +117,7 @@ export function AddCronJob(
     };
     const parsedArgs = parseJobArgs(taskArgs);
     const argsLog = parsedArgs.length ? `，参数: ${JSON.stringify(parsedArgs)}` : '';
-    logger.info(`添加定时任务 [${jobName}]，cron: ${cronExpression}，任务: ${taskName}${argsLog}`);
+    logger.info(`添加定时任务 [${jobName}]，cron: ${cronExpression}${argsLog}`);
     return CreateCronJob(jobName, cronExpression, taskName, taskArgs);
 };
 

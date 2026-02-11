@@ -2,46 +2,30 @@ import { rmSync, mkdirSync, existsSync, cpSync, writeFileSync, readdirSync } fro
 import { join } from 'node:path';
 import appConfig from '@/config';
 import { logger } from '@/shared/logger';
+import { generateRegistry } from './generate-registry';
 
 const distDir = './dist';
 const publicDir = './public';
 
-/**
- * 生成任务注册文件
- */
-function generateTaskRegistry() {
-    const modulesPath = './src/modules';
-    const modules = readdirSync(modulesPath);
-    const imports: string[] = [];
-    const exports: string[] = [];
-
-    modules.forEach((moduleName, index) => {
-        const taskFile = join(modulesPath, moduleName, 'task.ts');
-        if (existsSync(taskFile)) {
-            imports.push(`import task${index} from '@/modules/${moduleName}/task';`);
-            exports.push(`task${index}`);
-        }
-    });
-
-    const content = `// 自动生成的任务注册文件
-${imports.join('\n')}
-
-export const allTasks = [
-    ${exports.join(',\n    ')}
-];
-`;
-
-    writeFileSync('./src/core/task-registry.generated.ts', content, 'utf-8');
-    logger.info(`✓ 生成任务注册文件，共 ${exports.length} 个任务模块`);
-}
-
 if (existsSync(distDir)) {
     rmSync(distDir, { recursive: true, force: true });
-};
+}
 mkdirSync(distDir, { recursive: true });
 
-// 构建前生成任务注册文件
-generateTaskRegistry();
+// 构建前生成注册文件
+generateRegistry({
+    modulesPath: './src/modules',
+    fileName: 'route',
+    outputPath: './src/core/route-registry.generated.ts',
+    exportName: 'allRoutes'
+});
+
+generateRegistry({
+    modulesPath: './src/modules',
+    fileName: 'task',
+    outputPath: './src/core/task-registry.generated.ts',
+    exportName: 'allTasks'
+});
 
 const buildResult = Bun.spawnSync([
     'bun',
@@ -96,10 +80,15 @@ module.exports = {
 writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
 
 // 清理生成的临时文件
-const generatedFile = './src/core/task-registry.generated.ts';
-if (existsSync(generatedFile)) {
-    rmSync(generatedFile);
-    logger.info('✓ 清理临时生成文件');
-}
+const generatedFiles = [
+    './src/core/task-registry.generated.ts',
+    './src/core/route-registry.generated.ts'
+];
+generatedFiles.forEach(file => {
+    if (existsSync(file)) {
+        rmSync(file);
+    }
+});
+logger.info('✓ 清理临时生成文件');
 
 logger.success(`构建完成 → ${appConfig.app.id}:${appConfig.app.port}`);

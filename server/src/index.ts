@@ -22,6 +22,7 @@ async function bootstrap() {
             env: appEnv,
             pid: process.pid,
             openApiEnabled: appEnv !== 'production',
+            bunVersion: process.versions.bun || 'N/A',
         });
     } catch (error) {
         logger.error('应用启动失败', {
@@ -30,7 +31,7 @@ async function bootstrap() {
         });
         process.exit(1);
     }
-}
+};
 
 // 优雅关闭
 process.on('SIGINT', () => {

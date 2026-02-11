@@ -46,7 +46,10 @@ export async function findSimple(ctx: Context) {
         const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => {
             const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
             const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
-            const menuData = await FindAll(systemMenuSchema, menuWhere);
+            const menuData = await FindAll(systemMenuSchema, menuWhere, {
+                orderByColumn: 'sort',
+                sortRule: 'desc',
+            });
             const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
             const menuBtnData = await FindAll(systemMenuBtnSchema, menuBtnWhere);
             return handleMenuListToTree(menuData, menuBtnData);
@@ -177,8 +180,6 @@ export function handleMenuListToTree(
             }
         }
     };
-
-    // 第一阶段：创建所有菜单节点
     const menuMap = new Map<number, any>();
     menuList.sort((a, b) => (a.sort || 0) - (b.sort || 0));
     for (const menu of menuList) {
@@ -186,9 +187,7 @@ export function handleMenuListToTree(
             name: menu.name,
             path: menu.path,
             component: menu.component,
-            meta: {
-                title: menu.title,
-            }
+            meta: { title: menu.title, }
         };
         if (menu.icon) menuNode.meta.icon = menu.icon;
         if (menu.keepAlive !== null && menu.keepAlive !== undefined) menuNode.meta.keepAlive = menu.keepAlive;
@@ -203,14 +202,9 @@ export function handleMenuListToTree(
         if (menu.activePath) menuNode.meta.activePath = menu.activePath;
         const authList = menuBtnMap.get(menu.menuId);
         if (authList) menuNode.meta.authList = authList;
-
-        // 确保每个节点都有 children 数组
         menuNode.children = [];
-
         menuMap.set(menu.menuId, menuNode);
-    }
-
-    // 第二阶段：建立父子关系
+    };
     const rootMenus: any[] = [];
     for (const menu of menuList) {
         const menuNode = menuMap.get(menu.menuId);
@@ -218,18 +212,13 @@ export function handleMenuListToTree(
             rootMenus.push(menuNode);
         } else {
             const parentNode = menuMap.get(menu.parentId);
-            if (parentNode) {
-                parentNode.children.push(menuNode);
-            }
-        }
-    }
-
-    // 清理空的 children 数组
+            if (parentNode) parentNode.children.push(menuNode);
+        };
+    };
     for (const node of menuMap.values()) {
         if (node.children && node.children.length === 0) {
             delete node.children;
         }
-    }
-
+    };
     return rootMenus;
 };

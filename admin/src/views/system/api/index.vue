@@ -109,15 +109,15 @@ const {
                 width: 180,
                 align: 'center',
                 fixed: 'right',
-                formatter: (row) => { 
+                formatter: (row) => {
                     const buttons = [];
-                    if (auth.hasAuth('system:api:update')) { 
+                    if (auth.hasAuth('system:api:update')) {
                         buttons.push(h(ArtButtonTable, {
                             type: 'edit',
                             onClick: () => showDialog('edit', row)
                         }))
                     }
-                    if (auth.hasAuth('system:api:delete')) { 
+                    if (auth.hasAuth('system:api:delete')) {
                         buttons.push(h(ArtButtonTable, {
                             type: 'delete',
                             onClick: () => deleteDict(row)
