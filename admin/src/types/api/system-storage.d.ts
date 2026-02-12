@@ -7,6 +7,8 @@ declare namespace Api {
             bucket: string;
             accessKey: string;
             secretKey: string;
+            region: string | null;
+            stsDuration: number;
             status: boolean;
             createTime?: Date;
             createBy?: number | null;

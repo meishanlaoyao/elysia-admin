@@ -52,6 +52,14 @@ export async function findList(ctx: Context) {
     }
 };
 
+export async function generateSts(ctx: Context) {
+    try {
+        return BaseResultData.ok();
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
 export async function update(ctx: Context) {
     try {
         const data = ParseDateFields(ctx.body);

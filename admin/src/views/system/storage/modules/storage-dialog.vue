@@ -52,7 +52,9 @@ const formData = reactive({
     accessKey: '',
     secretKey: '',
     status: true,
-    remark: ''
+    remark: '',
+    region: '',
+    stsDuration: 1800
 })
 
 // 表单项配置
@@ -62,6 +64,12 @@ const formItems = computed<FormItem[]>(() => [
         key: 'name',
         type: 'input',
         props: { placeholder: '请输入存储名称' }
+    },
+    {
+        label: '区域',
+        key: 'region',
+        type: 'input',
+        props: { placeholder: '请输入区域，如：us-east-1' }
     },
     {
         label: '端点地址',
@@ -90,6 +98,12 @@ const formItems = computed<FormItem[]>(() => [
             showPassword: true,
             placeholder: '请输入Secret Key'
         }
+    },
+    {
+        label: 'STS持续时间',
+        key: 'stsDuration',
+        type: 'number',
+        props: { placeholder: '请输入STS持续时间，单位秒' }
     },
     {
         label: '状态',
@@ -139,7 +153,9 @@ const initFormData = () => {
         accessKey: isEdit && row.accessKey ? row.accessKey || '' : '',
         secretKey: isEdit && row.secretKey ? row.secretKey || '' : '',
         remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true
+        status: isEdit ? row.status : true,
+        region: isEdit && row.region ? row.region || '' : '',
+        stsDuration: isEdit && row.stsDuration ? row.stsDuration || 1800 : 1800
     })
 }
 

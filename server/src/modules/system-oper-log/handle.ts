@@ -72,7 +72,7 @@ export async function AddOperLog(ctx: Context) {
     if (operParam.length > 1024) operParam = operParam.slice(0, 1024);
     const response = (ctx as any).response;
     const status = response?.code === 200;
-    let jsonResult = JSON.stringify(SanitizeObject(response, SensitiveFields));
+    let jsonResult = JSON.stringify(SanitizeObject(response, SensitiveFields)) || '';
     if (jsonResult.length > 1024) jsonResult = jsonResult.slice(0, 1024);
     const costTime = Date.now() - (ctx as any).startTime;
     const data = {
