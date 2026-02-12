@@ -16,3 +16,9 @@ export const ListDto = CrudDto.list(
         name: t.Optional(t.String({ description: '存储名称' })),
     }
 );
+
+export const PresignDto = {
+    query: t.Object({
+        fileName: t.String({ description: '文件名' }),
+    })
+};

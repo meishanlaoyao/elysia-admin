@@ -71,10 +71,10 @@ const formItems = computed<FormItem[]>(() => [
         props: { placeholder: '请输入区域，如：us-east-1' }
     },
     {
-        label: '端点地址',
+        label: '存储端点',
         key: 'endpoint',
         type: 'input',
-        props: { placeholder: '请输入端点地址，如：https://s3.amazonaws.com' }
+        props: { placeholder: '请输入存储端点，如：s3.amazonaws.com' }
     },
     {
         label: '存储桶',

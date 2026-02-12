@@ -1,16 +1,17 @@
 import { Context } from 'elysia';
+import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
-    UpdateByKey,
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
+    FindOneByKey,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
 import { RunTransaction } from '@/core/database/transaction';
 import { systemStorageSchema } from 'database/schema/system_storage';
-import { eq } from 'drizzle-orm';
+import { COSProvider } from '@/infrastructure/storage';
 
 export async function create(ctx: Context) {
     try {
@@ -52,8 +53,28 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function generateSts(ctx: Context) {
+export async function generatePresign(ctx: Context) {
     try {
+        const { fileName } = ctx.query;
+        const storage = await FindOneByKey(systemStorageSchema, 'status', true);
+        if (!storage) return BaseResultData.fail(404, '未找到可用的存储配置');
+        if (storage.name === 'COS') {
+            const cosProvider = new COSProvider({
+                region: storage.region || '',
+                endpoint: storage.endpoint || '',
+                bucket: storage.bucket || '',
+                accessKey: storage.accessKey || '',
+                secretKey: storage.secretKey || '',
+            });
+            const presignedUrl = await cosProvider.getPresignedUrl({ key: fileName, method: 'put', });
+            return BaseResultData.ok(presignedUrl);
+        } else if (storage.name === 'OSS') {
+
+        } else if (storage.name === 'Kodo') {
+
+        } else if (storage.name === 'MinIO') {
+
+        };
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

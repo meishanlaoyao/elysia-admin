@@ -14,7 +14,8 @@ export function GetNowTime() {
  * @param format 格式化字符串（默认：YYYY-MM-DD HH:mm:ss）
  * @returns 格式化后的时间字符串
  */
-export function FormatTime(time: string, format: string = "YYYY-MM-DD HH:mm:ss") {
+export function FormatTime(time: string | number | Date, format: string = "YYYY-MM-DD HH:mm:ss") {
+    if (!time) return "";
     return dayjs(time).format(format);
 };
 

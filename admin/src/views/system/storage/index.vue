@@ -73,7 +73,7 @@ const {
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号', align: 'center' }, // 序号
             { prop: 'name', label: '存储名称', align: 'center' },
-            { prop: 'endpoint', label: '端点地址', align: 'center', showOverflowTooltip: true },
+            { prop: 'endpoint', label: '存储端点', align: 'center', showOverflowTooltip: true },
             { prop: 'bucket', label: '存储桶', align: 'center' },
             {
                 prop: 'status', label: '状态', align: 'center', formatter: (row) => h(ElSwitch, {
