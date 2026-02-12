@@ -12,7 +12,6 @@ export const systemStorageSchema = pgTable(
         bucket: varchar('bucket', { length: 128 }), // 存储桶
         accessKey: varchar('access_key', { length: 128 }), // 访问密钥
         secretKey: varchar('secret_key', { length: 128 }), // 密钥
-        stsDuration: integer('sts_duration').default(1800), // STS持续时间
         status: boolean('status').default(false), // 状态
         ...BaseSchema,
     }

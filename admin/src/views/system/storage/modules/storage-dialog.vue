@@ -54,7 +54,6 @@ const formData = reactive({
     status: true,
     remark: '',
     region: '',
-    stsDuration: 1800
 })
 
 // 表单项配置
@@ -98,12 +97,6 @@ const formItems = computed<FormItem[]>(() => [
             showPassword: true,
             placeholder: '请输入Secret Key'
         }
-    },
-    {
-        label: 'STS持续时间',
-        key: 'stsDuration',
-        type: 'number',
-        props: { placeholder: '请输入STS持续时间，单位秒' }
     },
     {
         label: '状态',
@@ -155,7 +148,6 @@ const initFormData = () => {
         remark: isEdit && row.remark ? row.remark || '' : '',
         status: isEdit ? row.status : true,
         region: isEdit && row.region ? row.region || '' : '',
-        stsDuration: isEdit && row.stsDuration ? row.stsDuration || 1800 : 1800
     })
 }
 
