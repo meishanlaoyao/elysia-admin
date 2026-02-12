@@ -11,7 +11,7 @@ import {
 import { ParseDateFields } from '@/types/dto';
 import { RunTransaction } from '@/core/database/transaction';
 import { systemStorageSchema } from 'database/schema/system_storage';
-import { COSProvider } from '@/infrastructure/storage';
+import { StorageService, type StorageProviderType } from '@/infrastructure/storage';
 
 export async function create(ctx: Context) {
     try {
@@ -58,24 +58,12 @@ export async function generatePresign(ctx: Context) {
         const { fileName } = ctx.query;
         const storage = await FindOneByKey(systemStorageSchema, 'status', true);
         if (!storage) return BaseResultData.fail(404, '未找到可用的存储配置');
-        if (storage.name === 'COS') {
-            const cosProvider = new COSProvider({
-                region: storage.region || '',
-                endpoint: storage.endpoint || '',
-                bucket: storage.bucket || '',
-                accessKey: storage.accessKey || '',
-                secretKey: storage.secretKey || '',
-            });
-            const presignedUrl = await cosProvider.getPresignedUrl({ key: fileName, method: 'put', });
-            return BaseResultData.ok(presignedUrl);
-        } else if (storage.name === 'OSS') {
-
-        } else if (storage.name === 'Kodo') {
-
-        } else if (storage.name === 'MinIO') {
-
-        };
-        return BaseResultData.ok();
+        const { region, endpoint, bucket, accessKey, secretKey } = storage;
+        if (!endpoint || !bucket || !accessKey || !secretKey) return BaseResultData.fail(400, '存储配置不完整');
+        const config = { region: region || '', endpoint, bucket, accessKey, secretKey, };
+        const storageService = new StorageService(storage.name as StorageProviderType, config);
+        const presignedUrl = await storageService.getPresignedUrl({ key: fileName, method: 'put' });
+        return BaseResultData.ok(presignedUrl);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
