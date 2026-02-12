@@ -56,3 +56,10 @@ $env:NODE_ENV="production"; bun run build:binary
 ```
 
 ### docker 部署
+
+## 文件服务
+如果没有使用云存储，本地文件服务可以使用 [RustFS](https://docs.rustfs.com.cn/installation/docker/) 来提供文件存储服务。
+### 使用Docker安装RustFS
+```bash
+docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /mnt/rustfs/data:/data -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin -e RUSTFS_CONSOLE_ENABLE=true rustfs/rustfs:latest --address :9000 --console-enable --access-key rustfsadmin --secret-key rustfsadmin /data
+```
