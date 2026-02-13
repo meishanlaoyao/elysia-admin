@@ -13,6 +13,10 @@ export interface IRouteMeta {
      * 是否记录操作日志 默认false
      */
     isLog?: boolean
+    /**
+     * ip限流 时间范围内(单位秒):请求次数 如: 10:100 表示10秒内最多100次请求
+     */
+    ipRateLimit?: string
 };
 
 export interface IRoute {

@@ -210,10 +210,7 @@ const deleteRole = (row: RoleListItem) => {
   })
     .then(() => {
       fetchDeleteRole(row.roleId as number).then(() => {
-        ElMessage.success('删除成功')
         refreshData()
-      }).catch(() => {
-        ElMessage.error('删除失败')
       })
     })
     .catch(() => {
@@ -247,11 +244,7 @@ const handleBatchDelete = (): void => {
     const ids = selectedRows.value.map((item) => item.roleId as number)
     fetchDeleteRole(ids)
       .then(() => {
-        ElMessage.success('批量删除成功')
         refreshData()
-      })
-      .catch(() => {
-        ElMessage.error('批量删除失败')
       })
   }).catch(() => {
     ElMessage.info('已取消删除')

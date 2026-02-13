@@ -43,8 +43,9 @@ export function IsPrivateIp(ip: string): boolean {
  * @returns 
  */
 export function NormalizeIp(ip: string) {
-    if (typeof ip !== 'string' || ip.length === 0) return '0.0.0.0';
+    if (typeof ip !== 'string' || ip.length === 0) return '127.0.0.1';
     if (ip?.startsWith('::ffff:')) return ip.replace('::ffff:', '');
+    if (ip === '::1') return '127.0.0.1'
     return ip;
 };
 
@@ -54,11 +55,17 @@ export function NormalizeIp(ip: string) {
  * @param server 服务器对象
  * @returns 客户端 IP 地址
  */
-export function GetClientIp(request: Request, server: Bun.Server<unknown> | null) {
+export function GetClientIp(ctx: Context) {
+    const request = ctx?.request;
+    const user = (ctx as any).user;
+    if (user?.ipaddr) return user.ipaddr;
+    const ctxIp = (ctx as any)?.ip;
+    if (ctxIp) return ctxIp;
     const xff = request.headers.get('x-forwarded-for');
     if (xff) return xff.split(',')[0].trim();
     const xReal = request.headers.get('x-real-ip');
     if (xReal) return xReal;
+    const server = ctx?.server;
     const ip = server?.requestIP(request)?.address;
     return ip ? NormalizeIp(ip) : '未知';
 };
@@ -288,7 +295,7 @@ export async function GetClientInfo(ctx: Context): Promise<{
     os: string;
 } | null> {
     try {
-        const ipaddr = GetClientIp(ctx.request, ctx.server);
+        const ipaddr = GetClientIp(ctx);
         const userAgent = ctx.headers['user-agent'] || '';
         const loginLocation = await GetIpLocation(ipaddr);
         const clientType = GetClientType(userAgent);

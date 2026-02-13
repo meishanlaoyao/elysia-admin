@@ -174,11 +174,8 @@ const deleteDictType = (row: DictTypeListItem): void => {
         type: 'error'
     }).then(() => {
         fetchDeleteDictType(row.dictId as number).then(() => {
-            ElMessage.success('删除成功')
             refreshDataType()
             emit('refresh-cache')
-        }).catch(() => {
-            ElMessage.error('删除失败')
         })
     })
 }
@@ -201,12 +198,8 @@ const handleBatchDeleteType = (): void => {
         const ids = selectedRowsType.value.map((item) => item.dictId as number)
         fetchDeleteDictType(ids)
             .then(() => {
-                ElMessage.success('批量删除成功')
                 refreshDataType()
                 emit('refresh-cache')
-            })
-            .catch(() => {
-                ElMessage.error('批量删除失败')
             })
     })
 }

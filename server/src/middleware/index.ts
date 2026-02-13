@@ -4,6 +4,7 @@ import { AuthGuard } from '@/guards/auth';
 import { PermissionGuard } from '@/guards/permission';
 import { IpBlackGuard } from '@/guards/ipblack';
 import { ApiGuard } from '@/guards/api';
+import { IpRateLimitGuard } from '@/guards/ipratelimit';
 import { AnalysisRoute } from './analysis';
 import { AddOperLog } from '@/modules/system-oper-log/handle';
 import { logger } from '@/shared/logger';
@@ -29,11 +30,12 @@ async function executeGuard(guardFn: Function, ctx: any, logMessage?: string) {
  */
 export function GlobalMiddleware(app: Elysia) {
     app.onBeforeHandle(async (ctx) => {
-        if (guard.ipBlacklist) await executeGuard(IpBlackGuard, ctx, '通过了黑名单IP拦截器-->');
-        if (guard.apiSwitch) await executeGuard(ApiGuard, ctx, '通过了API拦截器-->');
-        await executeGuard(AnalysisRoute, ctx, '通过了路由分析拦截器-->');
-        await executeGuard(AuthGuard, ctx, '通过了认证拦截器-->');
-        await executeGuard(PermissionGuard, ctx, '通过了权限拦截器-->');
+        if (guard.ipBlacklist) await executeGuard(IpBlackGuard, ctx, '通过了黑名单IP守卫-->');
+        if (guard.apiSwitch) await executeGuard(ApiGuard, ctx, '通过了API熔断守卫-->');
+        await executeGuard(AnalysisRoute, ctx, '通过了路由分析器-->');
+        await executeGuard(AuthGuard, ctx, '通过了认证守卫-->');
+        await executeGuard(IpRateLimitGuard, ctx, '通过了ip限流守卫-->');
+        await executeGuard(PermissionGuard, ctx, '通过了权限守卫-->');
     });
 };
 

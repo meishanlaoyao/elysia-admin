@@ -8,7 +8,7 @@ export default {
         forgetPasswordUrl: 'http://192.168.2.112:3006/#/auth/reset-password', // 忘记密码重置URL
         maxRequestBodySize: 10 * 1024 * 1024, // 最大请求体大小 10MB
         timeout: 30, // 服务端超时时间 30秒
-        maxLoginAttempts: 5, // 最大登陆尝试次数
+        maxLoginAttempts: 3, // 最大登陆尝试次数
     },
     jwt: {
         accessToken: {
@@ -19,13 +19,6 @@ export default {
             expiresIn: '7d',// refreshToken 过期时间
             secret: 'elysia-admin-refreshToken',// refreshToken 密钥
         }
-    },
-    s3: {
-        endPoint: '',
-        port: 9000,
-        useSSL: false,
-        accessKey: 'minioadmin',
-        secretKey: 'minioadmin',
     },
     redis: {
         host: 'localhost', // 主机

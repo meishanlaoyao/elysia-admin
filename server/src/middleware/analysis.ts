@@ -7,6 +7,7 @@ import { BaseResultData } from '@/core/result';
  */
 export async function AnalysisRoute(ctx: Context) {
     const routeKey = `${ctx.request.method}:${ctx.route}`;
+    (ctx as any).routeKey = routeKey;
     const routeIndex = RouteMap.get(routeKey);
     if (routeIndex === undefined || routeIndex === null) return BaseResultData.fail(404);
     const route = RouteList[routeIndex];

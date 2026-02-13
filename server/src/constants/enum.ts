@@ -45,6 +45,10 @@ export const CacheEnum = {
      * 定时任务分布式锁
      */
     CRON_LOCK: `${config.app.id}:cronLock:`,
+    /**
+     * 接口ip限流
+     */
+    IP_RATE_LIMIT: `${config.app.id}:ipRateLimit:`,
 };
 
 /**

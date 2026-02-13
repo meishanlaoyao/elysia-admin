@@ -15,7 +15,7 @@ async function isUse(method: string, route: string) {
 };
 
 /**
- * api开关
+ * api开关守卫
  */
 export async function ApiGuard(ctx: Context) {
     const val = await isUse(ctx.request.method, ctx.route);

@@ -171,10 +171,7 @@ const deleteDictData = (row: DictDataListItem): void => {
         type: 'error'
     }).then(() => {
         fetchDeleteDictData(row.dictCode as number).then(() => {
-            ElMessage.success('删除成功')
             refreshDataData()
-        }).catch(() => {
-            ElMessage.error('删除失败')
         })
     })
 }
@@ -197,11 +194,7 @@ const handleBatchDeleteData = (): void => {
         const ids = selectedRowsData.value.map((item) => item.dictCode as number)
         fetchDeleteDictData(ids)
             .then(() => {
-                ElMessage.success('批量删除成功')
                 refreshDataData()
-            })
-            .catch(() => {
-                ElMessage.error('批量删除失败')
             })
     })
 }
