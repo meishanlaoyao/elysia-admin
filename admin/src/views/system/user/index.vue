@@ -35,7 +35,6 @@
 import dayjs from 'dayjs'
 import { useAuth } from '@/hooks'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-import { ACCOUNT_TABLE_DATA } from '@/mock/temp/formData'
 import { useTable } from '@/hooks/core/useTable'
 import { fetchGetUserList } from '@/api/system/user'
 import UserSearch from './modules/user-search.vue'
@@ -103,7 +102,6 @@ const {
               class: 'size-9.5 rounded-md',
               src: row.avatar || '',
               previewSrcList: [row.avatar || ''],
-              // 图片预览是否插入至 body 元素上，用于解决表格内部图片预览样式异常
               previewTeleported: true
             }),
             h('div', { class: 'ml-2' }, [
@@ -159,25 +157,6 @@ const {
       }
     ]
   },
-  // 数据处理
-  transform: {
-    // 数据转换器 - 替换头像
-    dataTransformer: (records) => {
-      // 类型守卫检查
-      if (!Array.isArray(records)) {
-        console.warn('数据转换器: 期望数组类型，实际收到:', typeof records)
-        return []
-      }
-
-      // 使用本地头像替换接口返回的头像
-      return records.map((item, index: number) => {
-        return {
-          ...item,
-          avatar: ACCOUNT_TABLE_DATA[index % ACCOUNT_TABLE_DATA.length].avatar
-        }
-      })
-    }
-  }
 })
 
 /**

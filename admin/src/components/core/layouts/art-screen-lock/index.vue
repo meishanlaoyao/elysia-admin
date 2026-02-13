@@ -19,7 +19,7 @@
     <div v-if="!isLock">
       <ElDialog v-model="visible" :width="370" :show-close="false" @open="handleDialogOpen">
         <div class="flex-c flex-col">
-          <img class="w-16 h-16 rounded-full" src="@imgs/user/avatar.webp" alt="用户头像" />
+          <img class="w-16 h-16 rounded-full" :src="userInfo.avatar || defaultAvatar" alt="用户头像" />
           <div class="mt-7.5 mb-3.5 text-base font-medium">{{ userInfo.username }}</div>
           <ElForm ref="formRef" :model="formData" :rules="rules" class="w-[90%]" @submit.prevent="handleLock">
             <ElFormItem prop="password">
@@ -44,7 +44,7 @@
     <!-- 解锁界面 -->
     <div v-else class="unlock-content">
       <div class="flex-c flex-col w-80">
-        <img class="w-16 h-16 mt-5 rounded-full" src="@imgs/user/avatar.webp" alt="用户头像" />
+        <img class="w-16 h-16 mt-5 rounded-full" :src="userInfo.avatar || defaultAvatar" alt="用户头像" />
         <div class="mt-3 mb-3.5 text-base font-medium">
           {{ userInfo.username }}
         </div>
@@ -83,6 +83,7 @@ import { useI18n } from 'vue-i18n'
 import CryptoJS from 'crypto-js'
 import { useUserStore } from '@/store/modules/user'
 import { mittBus } from '@/utils/sys'
+import defaultAvatar from '@imgs/user/avatar.webp'
 
 // 国际化
 const { t } = useI18n()

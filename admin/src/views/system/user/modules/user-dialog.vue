@@ -67,7 +67,8 @@ const formData = reactive({
   deptId: undefined,
   roles: [] as number[],
   status: true,
-  remark: ''
+  remark: '',
+  avatar: ''
 })
 
 // 级联选择器配置
@@ -154,6 +155,16 @@ const formItems = computed<FormItem[]>(() => [
     label: '用户状态',
     key: 'status',
     type: 'switch'
+  },
+  {
+    label: '头像',
+    key: 'avatar',
+    type: 'upload',
+    props: {
+      limit: 1, // 限制 1 个文件，返回字符串
+      listType: 'picture-card',
+      accept: 'image/*'
+    }
   },
   {
     label: '备注',

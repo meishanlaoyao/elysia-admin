@@ -24,7 +24,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '数据分析与可视化',
       icon: 'ri:game-line',
       iconColor: '#ff3b30',
-      enabled: true,
+      enabled: false,
       order: 2,
       routeName: 'Analysis'
     },
@@ -33,7 +33,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '动画特效展示',
       icon: 'ri:loader-line',
       iconColor: '#7A7FFF',
-      enabled: true,
+      enabled: false,
       order: 3,
       routeName: 'Fireworks'
     },
@@ -42,7 +42,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '即时通讯功能',
       icon: 'ri:user-line',
       iconColor: '#13DEB9',
-      enabled: true,
+      enabled: false,
       order: 4,
       routeName: 'Chat'
     },
@@ -51,7 +51,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '使用指南与开发文档',
       icon: 'ri:bill-line',
       iconColor: '#ffb100',
-      enabled: true,
+      enabled: false,
       order: 5,
       link: WEB_LINKS.DOCS
     },
@@ -60,7 +60,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '技术支持与问题反馈',
       icon: 'ri:user-location-line',
       iconColor: '#ff6b6b',
-      enabled: true,
+      enabled: false,
       order: 6,
       link: WEB_LINKS.COMMUNITY
     },
@@ -69,7 +69,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '版本更新与变更记录',
       icon: 'ri:gamepad-line',
       iconColor: '#38C0FC',
-      enabled: true,
+      enabled: false,
       order: 7,
       routeName: 'ChangeLog'
     },
@@ -78,7 +78,7 @@ const fastEnterConfig: FastEnterConfig = {
       description: '技术分享与交流',
       icon: 'ri:bilibili-line',
       iconColor: '#FB7299',
-      enabled: true,
+      enabled: false,
       order: 8,
       link: WEB_LINKS.BILIBILI
     }
@@ -87,25 +87,25 @@ const fastEnterConfig: FastEnterConfig = {
   quickLinks: [
     {
       name: '登录',
-      enabled: true,
+      enabled: false,
       order: 1,
       routeName: 'Login'
     },
     {
       name: '注册',
-      enabled: true,
+      enabled: false,
       order: 2,
       routeName: 'Register'
     },
     {
       name: '忘记密码',
-      enabled: true,
+      enabled: false,
       order: 3,
       routeName: 'ForgetPassword'
     },
     {
       name: '定价',
-      enabled: true,
+      enabled: false,
       order: 4,
       routeName: 'Pricing'
     },
@@ -117,7 +117,7 @@ const fastEnterConfig: FastEnterConfig = {
     },
     {
       name: '留言管理',
-      enabled: true,
+      enabled: false,
       order: 6,
       routeName: 'ArticleComment'
     }

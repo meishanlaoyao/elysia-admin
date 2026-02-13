@@ -23,6 +23,16 @@ export function fetchGetStorageList(params: Api.SystemStorage.StorageSearchParam
 }
 
 /**
+ * 生成预签名URL
+ */
+export function fetchGeneratePresign(params: { fileName: string }) {
+    return request.get<string>({
+        url: '/api/system/storage/presign',
+        params
+    })
+}
+
+/**
  * 更新
  */
 export function fetchUpdateStorage(data: Api.SystemStorage.StorageListItem) {

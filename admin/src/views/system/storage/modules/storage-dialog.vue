@@ -108,7 +108,7 @@ const formItems = computed<FormItem[]>(() => [
         key: 'remark',
         type: 'input',
         props: { type: 'textarea', rows: 3, placeholder: '请输入备注' }
-    }
+    },
 ])
 
 // 表单验证规则
