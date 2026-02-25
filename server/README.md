@@ -1,7 +1,7 @@
 ## 任务
-1. 添加密码登陆错误次数，达到自动添加到ip黑名单
 2. 接口限流
 3. excel 导入导出
+4. 配置文件
 
 ## 软件依赖
  - [bun 1.2.19](https://bun.sh/)
@@ -38,7 +38,7 @@ NODE_ENV="production"; bun run build
 2. 启动项目
 ```bash
 # 普通启动项目
-bun run dist/index.js
+bun dist/index.js
 
 # pm2启动项目
 pm2 start dist/ecosystem.config.cjs

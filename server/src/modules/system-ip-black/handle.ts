@@ -17,9 +17,7 @@ import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
 export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
-        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
-        const res = await InsertOneAndRes(systemIpBlackSchema, data);
-        config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
+        await InsertIpBlack(data);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -87,4 +85,11 @@ export async function GetCacheIpBlackList() {
         }
     );
     return data?.filter(item => item.status) || [];
+};
+
+// 插入数据
+export async function InsertIpBlack(data: typeof systemIpBlackSchema.$inferInsert) {
+    if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
+    const res = await InsertOneAndRes(systemIpBlackSchema, data);
+    config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
 };

@@ -11,45 +11,9 @@ import { SendMail } from '@/infrastructure/clients/smtp';
 import { GenerateForgetPasswordHtmlTemplate } from '@/shared/htmltemplate';
 import config from '@/config';
 import { GetUserRoleAndPermission } from '@/modules/system-role/handle';
-import { GetClientInfo } from '@/shared/ip';
+import { InsertIpBlack } from '@/modules/system-ip-black/handle';
+import { GetClientInfo, GetClientIp } from '@/shared/ip';
 import type { IAccountType } from '@/types/common';
-
-// 设置刷新令牌 Cookie
-function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
-    const maxAge = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
-
-    // 开发环境
-    ctx.cookie.refreshToken.set({
-        domain: 'localhost',
-        value: refreshToken,
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge,
-        path: '/'
-    });
-
-    // 生产环境
-    // ctx.cookie.refreshToken.set({
-    //     domain: 'localhost', // 生成时需要指定域名
-    //     value: refreshToken,
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: 'none',
-    //     maxAge,
-    //     path: '/'
-    // });
-};
-
-// 生成并存储令牌
-async function generateAndStoreTokens(payload: any) {
-    const uuid = GenerateUUID();
-    const accessToken = await GenerateToken('accessToken', payload);
-    const refreshToken = await GenerateToken('refreshToken', { uuid, ...payload });
-    const refreshKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${uuid}`;
-    const isSet = await Set(refreshKey, payload, ConvertTimeToSecond(config.jwt.refreshToken.expiresIn));
-    if (!isSet) return { error: BaseResultData.fail(500, '刷新令牌设置失败') };
-    return { accessToken, refreshToken };
-};
 
 export async function accountPasswordLogin(ctx: Context) {
     try {
@@ -58,7 +22,10 @@ export async function accountPasswordLogin(ctx: Context) {
         if (!user) return BaseResultData.fail(404, '用户不存在');
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
         if (user?.delFlag) return BaseResultData.fail(410, '用户已删除');
-        if (!BcryptCompare(password, user?.password || '')) return BaseResultData.fail(400, '密码错误');
+        if (!BcryptCompare(password, user?.password || '')) {
+            await addPasswordErrorTimes(ctx);
+            return BaseResultData.fail(400, '密码错误');
+        };
         const payload = { userId: user.userId };
         const baseKey = CacheEnum.REFRESH_TOKEN + `${user.userId}:`;
         const oldkeys = await Keys(baseKey);
@@ -176,4 +143,58 @@ export async function resetPassword(ctx: Context) {
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
+};
+
+// 设置刷新令牌 Cookie
+function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
+    const maxAge = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
+
+    // 开发环境
+    ctx.cookie.refreshToken.set({
+        domain: 'localhost',
+        value: refreshToken,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge,
+        path: '/'
+    });
+
+    // 生产环境
+    // ctx.cookie.refreshToken.set({
+    //     domain: 'localhost', // 生成时需要指定域名
+    //     value: refreshToken,
+    //     httpOnly: true,
+    //     secure: true,
+    //     sameSite: 'none',
+    //     maxAge,
+    //     path: '/'
+    // });
+};
+
+// 生成并存储令牌
+async function generateAndStoreTokens(payload: any) {
+    const uuid = GenerateUUID();
+    const accessToken = await GenerateToken('accessToken', payload);
+    const refreshToken = await GenerateToken('refreshToken', { uuid, ...payload });
+    const refreshKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${uuid}`;
+    const isSet = await Set(refreshKey, payload, ConvertTimeToSecond(config.jwt.refreshToken.expiresIn));
+    if (!isSet) return { error: BaseResultData.fail(500, '刷新令牌设置失败') };
+    return { accessToken, refreshToken };
+};
+
+// 添加密码错误次数
+async function addPasswordErrorTimes(ctx: Context) {
+    const ip = GetClientIp(ctx);
+    let strCount = await Get(CacheEnum.ADMIN_LOGIN_ERROR_COUNT + ip);
+    let count = Number(strCount) || 0;
+    count++;
+    if (count >= config.app.maxLoginAttempts) {
+        await InsertIpBlack({
+            ipAddress: ip,
+            remark: '登录失败次数超过' + config.app.maxLoginAttempts + '次'
+        });
+        await Del(CacheEnum.ADMIN_LOGIN_ERROR_COUNT + ip);
+        return;
+    };
+    await Set(CacheEnum.ADMIN_LOGIN_ERROR_COUNT + ip, count, config.app.baseCacheTime);
 };

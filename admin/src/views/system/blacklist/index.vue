@@ -90,7 +90,6 @@ const {
                         onChange: async (val) => {
                             row.status = val as boolean
                             await fetchUpdateIpBlack(row)
-                            ElMessage.success('状态更新成功')
                             refreshData()
                         }
                     })
