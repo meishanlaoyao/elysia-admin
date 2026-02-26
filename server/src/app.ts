@@ -85,6 +85,8 @@ function configureErrorHandler(app: Elysia) {
         else if (code === 'NOT_FOUND') {
             return BaseResultData.fail(404);
         }
+        // 可能是自定义错误
+        else if (typeof (code as any) === 'number') return;
         return BaseResultData.fail(500, '服务器内部错误');
     });
 };

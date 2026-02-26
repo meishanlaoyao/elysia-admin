@@ -107,7 +107,11 @@ const getErrorMessage = (status: number): string => {
     [ApiStatus.internalServerError]: 'httpMsg.internalServerError',
     [ApiStatus.badGateway]: 'httpMsg.badGateway',
     [ApiStatus.serviceUnavailable]: 'httpMsg.serviceUnavailable',
-    [ApiStatus.gatewayTimeout]: 'httpMsg.gatewayTimeout'
+    [ApiStatus.gatewayTimeout]: 'httpMsg.gatewayTimeout',
+    [ApiStatus.notAcceptable]: 'httpMsg.notAcceptable',
+    [ApiStatus.conflict]: 'httpMsg.conflict',
+    [ApiStatus.unprocessableEntity]: 'httpMsg.unprocessableEntity',
+    [ApiStatus.tooManyRequests]: 'httpMsg.tooManyRequests',
   }
 
   return $t(errorMap[status] || 'httpMsg.internalServerError')

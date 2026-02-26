@@ -66,7 +66,7 @@ process.on('SIGTERM', async () => {
 export async function Set(key: string, value: any, expire?: number): Promise<boolean> {
     try {
         value = JSON.stringify(value);
-        await redis.set(key, value);
+        await redis.set(key, value, 'KEEPTTL');
         if (expire) {
             await redis.expire(key, expire);
         };

@@ -5,7 +5,7 @@ import { AccountPasswordLoginDto, RegisterUserDto, ForgetPasswordDto, ResetPassw
 const AuthModule: IRouteModule = {
     tags: '认证模块',
     routes: [
-        { url: '/auth/login', method: 'post', summary: 'web账号密码登录', dto: AccountPasswordLoginDto, handle: accountPasswordLogin, meta: { ipRateLimit: '60:5', } },
+        { url: '/auth/login', method: 'post', summary: 'web账号密码登录', dto: AccountPasswordLoginDto, handle: accountPasswordLogin, meta: { ipRateLimit: '120:3', } },
         { url: '/auth/refresh', method: 'post', summary: '刷新令牌', dto: RefreshTokenDto, handle: refreshToken, meta: { ipRateLimit: '60:2', } },
         { url: '/auth/register', method: 'post', summary: '注册用户', dto: RegisterUserDto, handle: registerUser, meta: { isLog: true, ipRateLimit: '60:2', } },
         { url: '/auth/forget', method: 'post', summary: '忘记密码', dto: ForgetPasswordDto, handle: forgetPassword, meta: { isLog: true, ipRateLimit: '60:2', } },

@@ -8,7 +8,11 @@ export enum ApiStatus {
   forbidden = 403, // 禁止访问
   notFound = 404, // 未找到
   methodNotAllowed = 405, // 方法不允许
+  notAcceptable = 406, // 不支持的媒体类型
   requestTimeout = 408, // 请求超时
+  conflict = 409, // 冲突
+  unprocessableEntity = 422, // 未处理实体
+  tooManyRequests = 429, // 请求过于频繁
   internalServerError = 500, // 服务器错误
   notImplemented = 501, // 未实现
   badGateway = 502, // 网关错误

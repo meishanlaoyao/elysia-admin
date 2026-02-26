@@ -12,7 +12,11 @@
     "requestCancelled": "Request cancelled",
     "networkError": "Network connection error, please check your connection",
     "requestFailed": "Request failed",
-    "requestConfigError": "Request configuration error"
+    "requestConfigError": "Request configuration error",
+    "notAcceptable": "Unsupported media type",
+    "conflict": "Conflict",
+    "unprocessableEntity": "Unprocessable entity",
+    "tooManyRequests": "Too many requests"
   },
   "topBar": {
     "search": {
