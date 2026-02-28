@@ -1,9 +1,9 @@
 ## 任务
-4. 配置文件
+4. 配置文件,添加类型定义，和打包对应环境的配置文件
 5. 黑名单ip应该是唯一的，防止被爆破
 
 ## 软件依赖
- - [bun 1.2.21](https://bun.sh/)
+ - [bun 1.2.21+](https://bun.sh/)
  - [pm2](https://pm2.keymetrics.io/)
  - [redis 6+](https://redis.io/)
  - [postgresql 16+](https://www.postgresql.org/)
