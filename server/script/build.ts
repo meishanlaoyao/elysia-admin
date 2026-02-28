@@ -7,9 +7,7 @@ import { generateRegistry } from './generate-registry';
 const distDir = './dist';
 const publicDir = './public';
 
-if (existsSync(distDir)) {
-    rmSync(distDir, { recursive: true, force: true });
-}
+if (existsSync(distDir)) rmSync(distDir, { recursive: true, force: true });
 mkdirSync(distDir, { recursive: true });
 
 // 构建前生成注册文件
@@ -42,6 +40,7 @@ if (buildResult.exitCode !== 0) {
     logger.error('构建失败:' + buildResult.stderr.toString());
     process.exit(1);
 };
+// 复制 public 目录
 if (existsSync(publicDir)) {
     const publicFiles = readdirSync(publicDir);
     if (publicFiles.length > 0) {
@@ -52,6 +51,9 @@ if (existsSync(publicDir)) {
 } else {
     mkdirSync(join(distDir, 'public'), { recursive: true });
 };
+// 复制 production.yaml 配置文件
+cpSync('./src/config/production.yaml', join(distDir, 'production.yaml'), { recursive: true });
+
 const ecosystemConfig = `// PM2 配置文件
 // 使用方式: pm2 start ecosystem.config.cjs
 module.exports = {
