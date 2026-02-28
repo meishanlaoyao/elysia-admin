@@ -1,13 +1,12 @@
 ## 任务
-3. excel 导入导出
 4. 配置文件
 5. 黑名单ip应该是唯一的，防止被爆破
 
 ## 软件依赖
- - [bun 1.2.19](https://bun.sh/)
+ - [bun 1.2.21](https://bun.sh/)
  - [pm2](https://pm2.keymetrics.io/)
- - [redis 5+](https://redis.io/)
- - [postgresql 17+](https://www.postgresql.org/)
+ - [redis 6+](https://redis.io/)
+ - [postgresql 16+](https://www.postgresql.org/)
 
 ## 运行项目
 1. 安装依赖

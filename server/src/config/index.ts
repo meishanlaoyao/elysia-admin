@@ -1,3 +1,11 @@
+import { readFile } from 'node:fs/promises';
+import { YAML } from 'bun';
+
+const appEnv = process.env.NODE_ENV || 'development';
+const text = await readFile(new URL(`./${appEnv}.yaml`, import.meta.url), "utf-8");
+// const confi = YAML.parse(text);
+console.log(Bun);
+
 export default {
     app: {
         id: "Elysia-Admin", // 应用ID (如果一台服务器部署了多个本项目，强烈建议为每个项目指定不同的ID，另外建议使用英文命名)

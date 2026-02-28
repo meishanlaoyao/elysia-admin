@@ -65,10 +65,12 @@ process.on('SIGTERM', async () => {
  */
 export async function Set(key: string, value: any, expire?: number): Promise<boolean> {
     try {
-        value = JSON.stringify(value);
-        await redis.set(key, value, 'KEEPTTL');
-        if (expire) {
-            await redis.expire(key, expire);
+        const serializedValue = JSON.stringify(value);
+        if (expire != null && expire > 0) {
+            await redis.set(key, serializedValue, 'EX', expire);
+        } else {
+            // Redis 6.0+ 特性
+            await redis.set(key, serializedValue, 'KEEPTTL');
         };
         return true;
     } catch (error) {

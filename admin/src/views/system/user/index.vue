@@ -14,6 +14,19 @@
         <template #left>
           <ElSpace wrap>
             <ElButton v-auth="'system:user:create'" @click="showDialog('add')" v-ripple>新增用户</ElButton>
+            <ArtExcelExport :data="selectedRows.map(item => ({
+              username: item.username,
+              nickname: item.nickname,
+              email: item.email,
+              phone: item.phone,
+              sex: item.sex,
+            }))" filename="用户信息数据" :headers="{
+              username: '用户名',
+              nickname: '昵称',
+              email: '邮箱',
+              phone: '手机号',
+              sex: '性别',
+            }" />
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -35,6 +48,7 @@
 import dayjs from 'dayjs'
 import { useAuth } from '@/hooks'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
+import ArtExcelExport from '@/components/core/forms/art-excel-export/index.vue'
 import { useTable } from '@/hooks/core/useTable'
 import { fetchGetUserList } from '@/api/system/user'
 import UserSearch from './modules/user-search.vue'
