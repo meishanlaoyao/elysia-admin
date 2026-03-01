@@ -7,7 +7,7 @@
 /dist_binary
 /dist
 .pnp.js
-/drizzle.config.ts
+./drizzle.config.ts
 
 # generated files
 src/core/task-registry.generated.ts
