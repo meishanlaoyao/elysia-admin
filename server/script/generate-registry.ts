@@ -25,7 +25,6 @@ export function generateRegistry(options: GenerateRegistryOptions): number {
     const modules = readdirSync(modulesPath);
     const imports: string[] = [];
     const exports: string[] = [];
-
     modules.forEach((moduleName, index) => {
         const moduleFile = join(modulesPath, moduleName, `${fileName}.ts`);
         if (existsSync(moduleFile)) {
@@ -33,7 +32,6 @@ export function generateRegistry(options: GenerateRegistryOptions): number {
             exports.push(`${fileName}${index}`);
         }
     });
-
     const content = `// 自动生成的${fileName}注册文件
 // 此文件由构建脚本生成，请勿手动修改
 ${imports.join('\n')}
@@ -42,9 +40,7 @@ export const ${exportName} = [
     ${exports.join(',\n    ')}
 ];
 `;
-
     writeFileSync(outputPath, content, 'utf-8');
     logger.info(`✓ 生成${fileName}注册文件，共 ${exports.length} 个模块`);
-
     return exports.length;
-}
+};

@@ -17,7 +17,6 @@ generateRegistry({
     outputPath: './src/core/route-registry.generated.ts',
     exportName: 'allRoutes'
 });
-
 generateRegistry({
     modulesPath: './src/modules',
     fileName: 'task',
@@ -77,20 +76,13 @@ module.exports = {
     max_restarts: 10, // 最大重启次数
     min_uptime: '10s' // 最小运行时间
   }]
-};
-`;
+};`;
 writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
 
 // 清理生成的临时文件
-const generatedFiles = [
-    './src/core/task-registry.generated.ts',
-    './src/core/route-registry.generated.ts'
-];
+const generatedFiles = ['./src/core/task-registry.generated.ts', './src/core/route-registry.generated.ts'];
 generatedFiles.forEach(file => {
-    if (existsSync(file)) {
-        rmSync(file);
-    }
+    if (existsSync(file)) rmSync(file);
 });
 logger.info('✓ 清理临时生成文件');
-
 logger.success(`构建完成 → ${appConfig.app.id}:${appConfig.app.port}`);
