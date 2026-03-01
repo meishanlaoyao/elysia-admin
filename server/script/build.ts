@@ -58,7 +58,7 @@ const ecosystemConfig = `// PM2 配置文件
 module.exports = {
   apps: [{
     name: '${appConfig.app.id}', // 应用名称
-    script: 'bun', // 启动脚本
+    script: 'D:/nodejs/node_modules/bun/bin/bun.exe', // bun的位置 ，windows 可执行  Get-Command bun | Select-Object -ExpandProperty Source 查看
     args: 'index.js', // 启动参数
     instances: 1, // 实例数量（cluster 模式下可设置多个）
     exec_mode: 'fork', // 执行模式：fork（单进程）或 cluster（集群）

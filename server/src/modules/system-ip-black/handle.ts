@@ -1,4 +1,5 @@
 import { Context } from 'elysia';
+import { eq } from 'drizzle-orm';
 import config from '@/config';
 import { BaseResultData } from '@/core/result';
 import {
@@ -7,7 +8,10 @@ import {
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindAll,
+    FindOneByKey,
 } from '@/core/database/repository';
+import { RunTransaction } from '@/core/database/transaction';
+import { logger } from '@/shared/logger';
 import { ParseDateFields } from '@/types/dto';
 import { systemIpBlackSchema } from 'database/schema/system_ip_black';
 import { IsIpAddress } from '@/core/check';
@@ -17,6 +21,7 @@ import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
 export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
+        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
         await InsertIpBlack(data);
         return BaseResultData.ok();
     }
@@ -89,7 +94,26 @@ export async function GetCacheIpBlackList() {
 
 // 插入数据
 export async function InsertIpBlack(data: typeof systemIpBlackSchema.$inferInsert) {
-    if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
-    const res = await InsertOneAndRes(systemIpBlackSchema, data);
-    config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
+    try {
+        await RunTransaction(async (tx) => {
+            const ipList = await tx.select().from(systemIpBlackSchema).where(eq(systemIpBlackSchema.ipAddress, data.ipAddress));
+            const ipInfo = ipList[0] || null;
+            if (ipInfo) {
+                const res = await tx.update(systemIpBlackSchema).set({
+                    status: true,
+                    remark: data.remark,
+                    updateTime: new Date()
+                }).where(eq(systemIpBlackSchema.ipBlackId, ipInfo.ipBlackId)).returning();
+                if (config.guard.ipBlacklist) await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res[0]);
+                return;
+            };
+            const res = await tx.insert(systemIpBlackSchema).values(data).returning();
+            if (data.status) {
+                config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
+            };
+        });
+    }
+    catch (error) {
+        logger.error('插入IP黑名单失败' + error);
+    }
 };

@@ -1,5 +1,8 @@
 ## 任务
-5. 黑名单ip应该是唯一的，防止被爆破
+5. 缓存列表的增删改查。
+6. 结合ai skill,让ai根据文档，实现生成业务。
+7. pm2 和 bun 运行项目还有些问题。
+8. httponly cookie 问题。
 
 ## 软件依赖
  - [bun 1.2.21+](https://bun.sh/)
@@ -55,6 +58,12 @@ $env:NODE_ENV="production"; bun run build:binary
 ```
 
 ### docker 部署
+
+## 查看监控
+```bash
+# 查看监控
+pm2 monit
+```
 
 ## 文件服务
 如果没有使用云存储，本地文件服务可以使用 [RustFS](https://docs.rustfs.com.cn/installation/docker/) 来提供文件存储服务。

@@ -12,7 +12,7 @@ const client = postgres({
     database: config.pg.database,
     max: config.pg.max, // 最大连接数
     idle_timeout: config.pg.idle_timeout, // 空闲连接超时（秒）
-    connect_timeout: config.pg.connect_timeout, // 连接超时（秒）
+    connect_timeout: config.pg.connection_timeout, // 连接超时（秒）
     max_lifetime: 60 * 30, // 连接最大生命周期 30分钟（秒）
     ssl: config.pg.ssl,
     // 连接池优化配置
