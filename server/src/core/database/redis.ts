@@ -6,7 +6,7 @@ import { logger } from "@/shared/logger";
 declare global {
     var __redisInstance: Redis | undefined;
     var __redisConnected: boolean | undefined;
-}
+};
 
 function getRedisInstance(): Redis {
     if (!globalThis.__redisInstance) {
