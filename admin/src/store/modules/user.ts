@@ -130,8 +130,7 @@ export const useUserStore = defineStore(
      */
     const setToken = (newAccessToken: string, newRefreshToken?: string) => {
       accessToken.value = newAccessToken
-      // refreshToken 由后端 HTTP-only Cookie 管理，前端不存储
-      // 保留 newRefreshToken 参数仅为向后兼容
+      refreshToken.value = newRefreshToken || ''
     }
 
     /**

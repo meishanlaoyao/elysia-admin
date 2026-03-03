@@ -188,16 +188,16 @@ const handleSubmit = async () => {
       password
     })
 
-    // 后端返回 accessToken，refreshToken 在 HTTP-only Cookie 中
-    const accessToken = response.accessToken || response.token
+    // 后端返回 accessToken, refreshToken, accessExpiresIn, refreshExpiresIn
+    const { accessToken, refreshToken, accessExpiresIn, refreshExpiresIn } = response
 
     // 验证token
     if (!accessToken) {
       throw new Error('Login failed - no token received')
     }
 
-    // 存储 accessToken 和登录状态（refreshToken 由后端 Cookie 管理）
-    userStore.setToken(accessToken)
+    // 存储 accessToken 和 refreshToken
+    userStore.setToken(accessToken, refreshToken)
     userStore.setLoginStatus(true)
 
     // 登录成功处理

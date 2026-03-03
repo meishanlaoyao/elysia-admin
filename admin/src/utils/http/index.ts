@@ -114,23 +114,19 @@ async function refreshAccessToken(): Promise<string> {
     // refreshToken 通过 HTTP-only Cookie 自动携带，无需手动设置
     const response = await axios.post<BaseResponse<Api.Auth.LoginResponse>>(
       `${VITE_API_URL}/api/auth/refresh`,
-      {},
-      {
-        withCredentials: true // 确保携带 Cookie
-      }
-    )
-
+      { refreshToken: userStore.refreshToken, },
+    );
     const { code, data, msg } = response.data
-
     if (code === ApiStatus.success && data) {
-      // 后端返回新的 accessToken，refreshToken 仍在 Cookie 中
-      const newAccessToken = data.accessToken || data.token
+      // 后端返回新的 accessToken 和 refreshToken
+      const newAccessToken = data.accessToken
+      const newRefreshToken = data.refreshToken
       if (newAccessToken) {
-        userStore.setToken(newAccessToken)
+        // 更新 token
+        userStore.setToken(newAccessToken, newRefreshToken)
         return newAccessToken
-      }
-    }
-
+      };
+    };
     throw createHttpError(msg || $t('httpMsg.refreshTokenFailed'), code)
   } catch (error) {
     // 刷新失败，清空 accessToken

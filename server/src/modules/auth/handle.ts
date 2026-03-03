@@ -56,10 +56,8 @@ export async function accountPasswordLogin(ctx: Context) {
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
-        // 后台管理系统可以这样做，app、小程序、桌面端不能设置httpOnlycookie。然后需要同时返回双token。
-        setRefreshTokenCookie(ctx, tokens.refreshToken);
         (ctx.headers as any).userId = user.userId || '';
-        return BaseResultData.ok({ token: tokens.accessToken });
+        return BaseResultData.ok(tokens);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -67,9 +65,9 @@ export async function accountPasswordLogin(ctx: Context) {
 
 export async function refreshToken(ctx: Context) {
     try {
-        const cookie = String(ctx.cookie?.refreshToken?.value || '');// 这里还有bug,好像是登陆时，refreshToken设置不上去吧
-        if (!cookie) return BaseResultData.fail(404, '刷新令牌不存在');
-        const payload = await VerifyToken('refreshToken', cookie);
+        const { refreshToken } = ctx.body as any;
+        if (!refreshToken) return BaseResultData.fail(404, '刷新令牌不存在');
+        const payload = await VerifyToken('refreshToken', refreshToken);
         if (!payload) return BaseResultData.fail(400, '刷新令牌无效');
         const oldKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${payload.uuid}`;
         const oldPayload = await Get(oldKey);
@@ -78,8 +76,7 @@ export async function refreshToken(ctx: Context) {
         if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
-        setRefreshTokenCookie(ctx, tokens.refreshToken);
-        return BaseResultData.ok({ token: tokens.accessToken });
+        return BaseResultData.ok(tokens);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -145,41 +142,17 @@ export async function resetPassword(ctx: Context) {
     }
 };
 
-// 设置刷新令牌 Cookie
-function setRefreshTokenCookie(ctx: Context, refreshToken: string) {
-    const maxAge = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
-
-    // 开发环境
-    ctx.cookie.refreshToken.set({
-        domain: 'localhost',
-        value: refreshToken,
-        httpOnly: true,
-        sameSite: 'lax',
-        maxAge,
-        path: '/'
-    });
-
-    // 生产环境
-    // ctx.cookie.refreshToken.set({
-    //     domain: 'localhost', // 生成时需要指定域名
-    //     value: refreshToken,
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: 'none',
-    //     maxAge,
-    //     path: '/'
-    // });
-};
-
 // 生成并存储令牌
-async function generateAndStoreTokens(payload: any) {
+async function generateAndStoreTokens(payload: any): Promise<{ accessToken: string, refreshToken: string, accessExpiresIn: number, refreshExpiresIn: number } | { error: any }> {
     const uuid = GenerateUUID();
     const accessToken = await GenerateToken('accessToken', payload);
     const refreshToken = await GenerateToken('refreshToken', { uuid, ...payload });
     const refreshKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${uuid}`;
-    const isSet = await Set(refreshKey, payload, ConvertTimeToSecond(config.jwt.refreshToken.expiresIn));
+    const accessExpiresIn = ConvertTimeToSecond(config.jwt.accessToken.expiresIn);
+    const refreshExpiresIn = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
+    const isSet = await Set(refreshKey, payload, refreshExpiresIn);
     if (!isSet) return { error: BaseResultData.fail(500, '刷新令牌设置失败') };
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, accessExpiresIn, refreshExpiresIn };
 };
 
 // 添加密码错误次数

@@ -8,7 +8,10 @@ export const AccountPasswordLoginDto = {
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
     ...BaseResultDto(t.Object({
-        token: t.String(),
+        accessToken: t.String({ description: '访问令牌' }),
+        refreshToken: t.String({ description: '刷新令牌' }),
+        accessExpiresIn: t.Number({ description: '访问令牌过期时间（秒）' }),
+        refreshExpiresIn: t.Number({ description: '刷新令牌过期时间（秒）' }),
     })),
     afterHandle: AddLoginLog,
 };
@@ -42,10 +45,13 @@ export const ResetPasswordDto = {
 };
 
 export const RefreshTokenDto = {
-    // cookie: t.Object({
-    //     refreshToken: t.String({ error: '刷新令牌格式错误', minLength: 5 }),
-    // }),
+    body: t.Object({
+        refreshToken: t.String({ error: '刷新令牌格式错误', minLength: 5 }),
+    }),
     ...BaseResultDto(t.Object({
-        token: t.String(),
+        accessToken: t.String({ description: '访问令牌' }),
+        refreshToken: t.String({ description: '刷新令牌' }),
+        accessExpiresIn: t.Number({ description: '访问令牌过期时间（秒）' }),
+        refreshExpiresIn: t.Number({ description: '刷新令牌过期时间（秒）' }),
     })),
 };
