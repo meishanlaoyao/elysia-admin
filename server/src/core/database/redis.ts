@@ -65,7 +65,7 @@ process.on('SIGTERM', async () => {
  */
 export async function Set(key: string, value: any, expire?: number): Promise<boolean> {
     try {
-        const serializedValue = JSON.stringify(value);
+        const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
         if (expire != null && expire > 0) {
             await redis.set(key, serializedValue, 'EX', expire);
         } else {

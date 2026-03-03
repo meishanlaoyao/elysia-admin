@@ -304,7 +304,8 @@
       "title": "System Monitor",
       "online": "Online Users",
       "job": "Scheduled Tasks",
-      "server": "Server Monitoring"
+      "server": "Server Monitoring",
+      "cache": "Cache List"
     }
   },
   "table": {
