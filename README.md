@@ -1,8 +1,16 @@
-# Elysia Admin
+<p align="center">
+  <a href="https://nestjs.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://elysia.zhcndoc.com/assets/elysia.svg">
+      <img src="https://elysia.zhcndoc.com/assets/elysia.svg" height="128">
+    </picture>
+    <h1 align="center">Elysia Admin</h1>
+  </a>
+</p>
 
 一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。
 
-## 项目简介
+![项目截图](./image.jpg)
 
 这是一个前后端分离的企业级后台管理系统，采用最新的技术栈构建：
 
