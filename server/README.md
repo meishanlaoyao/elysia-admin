@@ -1,6 +1,5 @@
 ## 任务
 7. pm2 和 bun 运行项目还有些问题。
-8. httponly cookie 问题。
 
 ## 软件依赖
  - [bun 1.2.21+](https://bun.sh/)
