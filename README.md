@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://nestjs.com">
+  <a href="https://elysiajs.com">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://elysia.zhcndoc.com/assets/elysia.svg">
       <img src="https://elysia.zhcndoc.com/assets/elysia.svg" height="128">
