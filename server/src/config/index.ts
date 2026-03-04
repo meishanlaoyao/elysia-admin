@@ -59,6 +59,10 @@ interface IConfig {
         rateDelta: number;
         rateLimit: number;
     },
+    wxmp: {
+        appId: string;
+        appSecret: string;
+    },
     guard: {
         ipBlacklist: boolean;
         apiSwitch: boolean;

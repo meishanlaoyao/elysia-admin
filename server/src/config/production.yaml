@@ -49,6 +49,10 @@ smtp:
   rateDelta: 1000 # 速率限制时间窗口（毫秒）
   rateLimit: 5 # 时间窗口内最多发送邮件数
 
+wxmp:
+  appId: "" # 微信小程序 AppID
+  appSecret: "" # 微信小程序 AppSecret
+
 guard:
   ipBlacklist: true # 是否启用IP黑名单
   apiSwitch: true # 是否启用api开关

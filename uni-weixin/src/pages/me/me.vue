@@ -1,3 +1,25 @@
+<template>
+  <view class="profile-container">
+    <view class="mt-3 break-all px-3 text-center text-green-500">
+      {{ userInfo.username ? '已登录' : '未登录' }}
+    </view>
+    <view class="mt-3 break-all px-3">
+      {{ JSON.stringify(userInfo, null, 2) }}
+    </view>
+
+    <view class="mt-[60vh] px-3">
+      <view class="m-auto w-160px text-center">
+        <button v-if="tokenStore.hasLogin" type="warn" class="w-full" @click="handleLogout">
+          退出登录
+        </button>
+        <button v-else type="primary" class="w-full" @click="handleLogin">
+          登录
+        </button>
+      </view>
+    </view>
+  </view>
+</template>
+
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import { LOGIN_PAGE } from '@/router/config'
@@ -55,25 +77,3 @@ function handleLogout() {
   })
 }
 </script>
-
-<template>
-  <view class="profile-container">
-    <view class="mt-3 break-all px-3 text-center text-green-500">
-      {{ userInfo.username ? '已登录' : '未登录' }}
-    </view>
-    <view class="mt-3 break-all px-3">
-      {{ JSON.stringify(userInfo, null, 2) }}
-    </view>
-
-    <view class="mt-[60vh] px-3">
-      <view class="m-auto w-160px text-center">
-        <button v-if="tokenStore.hasLogin" type="warn" class="w-full" @click="handleLogout">
-          退出登录
-        </button>
-        <button v-else type="primary" class="w-full" @click="handleLogin">
-          登录
-        </button>
-      </view>
-    </view>
-  </view>
-</template>

@@ -18,22 +18,7 @@
     "createdAt": "2026-03-04 15:53:01"
   },
   "packageManager": "pnpm@10.10.0",
-  "description": "unibest - 最好的 uniapp 开发模板",
   "generate-time": "用户创建项目时生成",
-  "author": {
-    "name": "feige996",
-    "zhName": "菲鸽",
-    "email": "1020103647@qq.com",
-    "github": "https://github.com/feige996",
-    "gitee": "https://gitee.com/feige996"
-  },
-  "license": "MIT",
-  "homepage": "https://unibest.tech",
-  "repository": "https://github.com/feige996/unibest",
-  "bugs": {
-    "url": "https://github.com/feige996/unibest/issues",
-    "url-old": "https://github.com/codercup/unibest/issues"
-  },
   "engines": {
     "node": ">=20",
     "pnpm": ">=9"

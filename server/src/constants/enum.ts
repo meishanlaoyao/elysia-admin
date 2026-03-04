@@ -49,6 +49,10 @@ export const CacheEnum = {
      * 接口ip限流
      */
     IP_RATE_LIMIT: `${config.app.id}:ipRateLimit:`,
+    /**
+     * 微信小程序access_token
+     */
+    WXMP_ACCESS_TOKEN: `${config.app.id}:wechatAccessToken`,
 };
 
 /**
