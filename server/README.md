@@ -1,11 +1,11 @@
-## 任务
-7. pm2 和 bun 运行项目还有些问题。
-
 ## 软件依赖
  - [bun 1.2.21+](https://bun.sh/)
  - [pm2](https://pm2.keymetrics.io/)
  - [redis 6+](https://redis.io/)
  - [postgresql 16+](https://www.postgresql.org/)
+
+## 项目集群模式
+经过作者多次测试，发现 bun 与 pm2 无法正常的像 nodejs 项目那样实现集群模式。所以如果想要开集群模式，需要手动配置 pm2 的 ecosystem.config.cjs 文件，多添加几个app并指定不同端口即可，最后配置nginx反向代理即可。
 
 ## 运行项目
 1. 安装依赖

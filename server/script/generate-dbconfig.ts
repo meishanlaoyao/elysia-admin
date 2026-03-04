@@ -4,7 +4,7 @@ import config from "@/config";
 import { logger } from '@/shared/logger';
 
 const type = Bun.argv[2] as 'push' | 'pull';
-const command = `bunx drizzle-kit ${type}`;
+const command = `bun drizzle-kit ${type}`;
 const { pg } = config;
 
 const drizzleConfig = `// 该文件自动生成，请勿手动修改

@@ -14,6 +14,7 @@ import { RegisterAllTasks } from '@/core/task-registry';
  */
 async function initPgData() {
     try {
+        if (process.env.NODE_ENV === 'production') return;
         const result = await pg.execute(sql`SELECT COUNT(*) as count FROM "system_user"`);
         const count = result[0]?.count;
         if (count && Number(count) > 0) {
