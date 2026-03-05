@@ -13,6 +13,7 @@ import config from '@/config';
 import { GetUserRoleAndPermission } from '@/modules/system-role/handle';
 import { InsertIpBlack } from '@/modules/system-ip-black/handle';
 import { GetClientInfo, GetClientIp } from '@/shared/ip';
+import { GetPhoneNumber } from '@/infrastructure/clients/wechat';
 import type { IAccountType } from '@/types/common';
 
 export async function accountPasswordLogin(ctx: Context) {
@@ -77,6 +78,17 @@ export async function refreshToken(ctx: Context) {
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
         return BaseResultData.ok(tokens);
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function wxmpPhoneLogin(ctx: Context) {
+    try {
+        const { code } = ctx.body as any;
+        const info = await GetPhoneNumber(code);
+
+        return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
