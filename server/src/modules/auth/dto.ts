@@ -2,17 +2,19 @@ import { t } from 'elysia';
 import { BaseResultDto } from '@/types/dto';
 import { AddLoginLog } from '@/modules/system-login-log/handle';
 
+const baseAuthDto = t.Object({
+    accessToken: t.String({ description: '访问令牌' }),
+    refreshToken: t.String({ description: '刷新令牌' }),
+    accessExpiresIn: t.Number({ description: '访问令牌过期时间（秒）' }),
+    refreshExpiresIn: t.Number({ description: '刷新令牌过期时间（秒）' }),
+});
+
 export const AccountPasswordLoginDto = {
     body: t.Object({
         username: t.String({ error: '用户名格式错误', minLength: 5 }),
         password: t.String({ error: '密码格式错误', minLength: 5 }),
     }),
-    ...BaseResultDto(t.Object({
-        accessToken: t.String({ description: '访问令牌' }),
-        refreshToken: t.String({ description: '刷新令牌' }),
-        accessExpiresIn: t.Number({ description: '访问令牌过期时间（秒）' }),
-        refreshExpiresIn: t.Number({ description: '刷新令牌过期时间（秒）' }),
-    })),
+    ...BaseResultDto(baseAuthDto),
     afterHandle: AddLoginLog,
 };
 
@@ -48,10 +50,5 @@ export const RefreshTokenDto = {
     body: t.Object({
         refreshToken: t.String({ error: '刷新令牌格式错误', minLength: 5 }),
     }),
-    ...BaseResultDto(t.Object({
-        accessToken: t.String({ description: '访问令牌' }),
-        refreshToken: t.String({ description: '刷新令牌' }),
-        accessExpiresIn: t.Number({ description: '访问令牌过期时间（秒）' }),
-        refreshExpiresIn: t.Number({ description: '刷新令牌过期时间（秒）' }),
-    })),
+    ...BaseResultDto(baseAuthDto),
 };
