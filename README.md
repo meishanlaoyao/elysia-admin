@@ -8,7 +8,7 @@
   </a>
 </p>
 
-一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。
+一个基于 [Elysia](https://elysiajs.com/) + [Art Design Pro](https://www.artd.pro/docs/zh/) 的现代化全栈后台管理系统。
 
 ![项目截图](./image.jpg)
 
