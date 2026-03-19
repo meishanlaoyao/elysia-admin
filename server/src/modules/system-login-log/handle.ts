@@ -8,6 +8,7 @@ import {
 } from '@/core/database/repository';
 import { systemLoginLogSchema } from 'database/schema/system_login_log';
 import { logger } from '@/shared/logger';
+import type { IAccountType } from '@/types/common';
 
 
 // 插入登陆日志
@@ -60,13 +61,13 @@ export async function remove(ctx: Context) {
 /**
  * 添加登陆日志
  */
-export async function AddLoginLog(ctx: Context) {
+export async function AddLoginLog(ctx: Context, loginType: IAccountType) {
     try {
         const clientInfo = (ctx as any).clientInfo;
         if (!clientInfo) return;
         const userId = (ctx.headers as any)?.userId || null;
         const res = (ctx as any)?.response || {};
-        create({ ...clientInfo, loginType: 'admin', message: res?.msg, status: res.code === 200, createBy: userId });
+        create({ ...clientInfo, loginType, message: res?.msg, status: res.code === 200, createBy: userId });
     }
     catch (error) {
         logger.error('添加登陆日志失败:' + error);

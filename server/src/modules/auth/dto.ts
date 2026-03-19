@@ -15,7 +15,7 @@ export const AccountPasswordLoginDto = {
         password: t.String({ description: '密码', error: '密码格式错误', minLength: 5 }),
     }),
     ...BaseResultDto(baseAuthDto),
-    afterHandle: AddLoginLog,
+    afterHandle: (ctx: any) => AddLoginLog(ctx, 'admin'),
 };
 
 export const RegisterUserDto = {
@@ -26,11 +26,20 @@ export const RegisterUserDto = {
     ...BaseResultDto(t.Null()),
 };
 
-export const WxmpPhoneLoginDto = {
+export const WxmpLoginDto = {
     body: t.Object({
-        code: t.String({ description: 'wx.getPhoneNumber() 返回的 code' }),
+        code: t.String({ description: '微信登录code' }),
     }),
     ...BaseResultDto(baseAuthDto),
+};
+
+export const WxmpPhoneLoginDto = {
+    body: t.Object({
+        phoneCode: t.String({ description: 'wx.getPhoneNumber() 返回的手机号授权code' }),
+        loginCode: t.String({ description: '微信登录code' }),
+    }),
+    ...BaseResultDto(baseAuthDto),
+    afterHandle: (ctx: any) => AddLoginLog(ctx, 'user'),
 };
 
 export const ForgetPasswordDto = {

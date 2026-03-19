@@ -12,6 +12,7 @@ import { GenerateForgetPasswordHtmlTemplate } from '@/shared/htmltemplate';
 import config from '@/config';
 import { GetUserRoleAndPermission } from '@/modules/system-role/handle';
 import { InsertIpBlack } from '@/modules/system-ip-black/handle';
+import { HandleWxmpUserLogin } from '@/modules/wxmp-user/handle';
 import { GetClientInfo, GetClientIp } from '@/shared/ip';
 import { GetPhoneNumber } from '@/infrastructure/clients/wechat';
 import type { IAccountType } from '@/types/common';
@@ -22,7 +23,7 @@ export async function accountPasswordLogin(ctx: Context) {
         const user = await GetUserBy('username', username);
         if (!user) return BaseResultData.fail(404, '用户不存在');
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
-        if (user?.delFlag) return BaseResultData.fail(410, '用户已删除');
+        if (user?.delFlag) return BaseResultData.fail(410, '用户已不存在');
         if (!BcryptCompare(password, user?.password || '')) {
             await addPasswordErrorTimes(ctx);
             return BaseResultData.fail(400, '密码错误');
@@ -83,12 +84,30 @@ export async function refreshToken(ctx: Context) {
     }
 };
 
-export async function wxmpPhoneLogin(ctx: Context) {
+export async function wxmpLogin(ctx: Context) {
     try {
         const { code } = ctx.body as any;
-        const info = await GetPhoneNumber(code);
+        const user = await HandleWxmpUserLogin(code);
+        if (!user) return BaseResultData.fail(404, '用户不存在');
+        if (!user?.status) return BaseResultData.fail(403, '用户已停用');
+        if (user?.delFlag) return BaseResultData.fail(410, '用户已不存在');
+        const tokens = await handleWxmpLogin(ctx, user);
+        return BaseResultData.ok(tokens);
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
 
-        return BaseResultData.ok();
+export async function wxmpPhoneLogin(ctx: Context) {
+    try {
+        const { phoneCode, loginCode } = ctx.body as any;
+        const info = await GetPhoneNumber(phoneCode);
+        const user = await HandleWxmpUserLogin(loginCode, info?.phoneNumber || '');
+        if (!user) return BaseResultData.fail(404, '用户不存在');
+        if (!user?.status) return BaseResultData.fail(403, '用户已停用');
+        if (user?.delFlag) return BaseResultData.fail(410, '用户已不存在');
+        const tokens = await handleWxmpLogin(ctx, user);
+        return BaseResultData.ok(tokens);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -182,4 +201,39 @@ async function addPasswordErrorTimes(ctx: Context) {
         return;
     };
     await Set(CacheEnum.ADMIN_LOGIN_ERROR_COUNT + ip, count, config.app.baseCacheTime);
+};
+
+// 微信小程序登陆
+async function handleWxmpLogin(ctx: Context, user: any) {
+    const payload = { userId: user.userId };
+    const baseKey = CacheEnum.REFRESH_TOKEN + `${user.userId}:`;
+    const oldkeys = await Keys(baseKey);
+    if (oldkeys.length) {
+        const isDel = await Del(oldkeys);
+        if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
+    };
+    const tokens = await generateAndStoreTokens(payload);
+    if ('error' in tokens) return new Error(tokens.error);
+    const clientInfo = await GetClientInfo(ctx);
+    if (!clientInfo) return new Error('获取客户端信息失败');
+    (ctx as any).clientInfo = clientInfo;
+    const userInfo = {
+        userId: user.userId, // 用户 ID [必须]
+        username: user.username,
+        email: user?.email || '',
+        phone: user?.phone || '',
+        sex: user?.sex || '',
+        avatar: user?.avatar || '',
+        loginLocation: clientInfo.loginLocation, // 登录地点 [必须]
+        ipaddr: clientInfo.ipaddr, // 客户端 IP 地址 [必须]
+        roles: [], // 角色列表 [必须]
+        permissions: [], // 权限列表 [必须]
+        userType: 'user' as IAccountType, // 用户类型 [必须]
+        loginTime: GetNowTime(), // 登录时间 [必须]
+    };
+    const onlineKey = CacheEnum.ONLINE_USER + user.userId;
+    const isSetOnline = await Set(onlineKey, userInfo);
+    if (!isSetOnline) return new Error('在线用户设置失败');
+    (ctx.headers as any).userId = user.userId || '';
+    return tokens;
 };

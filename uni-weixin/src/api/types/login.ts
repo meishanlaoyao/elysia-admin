@@ -26,13 +26,11 @@ export type IAuthLoginRes = ISingleTokenRes | IDoubleTokenRes
 export type UserRole = string
 
 export interface IUserInfoRes {
-  userId: number
+  userId: string
   username: string
   nickname: string
   avatar?: string
   /** 同时支持单角色和多角色，你自行选择一种就行 */
-  role?: UserRole
-  roles?: UserRole[]
   [key: string]: any // 允许其他扩展字段
 }
 
@@ -44,14 +42,6 @@ export interface AuthStorage {
   loginTime: number // 登录时间戳
 }
 
-/**
- * 获取验证码
- */
-export interface ICaptcha {
-  captchaEnabled: boolean
-  uuid: string
-  image: string
-}
 /**
  * 上传成功的信息
  */

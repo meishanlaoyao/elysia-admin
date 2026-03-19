@@ -1,4 +1,4 @@
-import type { IAuthLoginRes, ICaptcha, IDoubleTokenRes, IUpdateInfo, IUpdatePassword, IUserInfoRes } from './types/login'
+import type { IAuthLoginRes, IDoubleTokenRes, IUpdateInfo, IUpdatePassword, IUserInfoRes } from './types/login'
 import { http } from '@/http/http'
 
 /**
@@ -7,14 +7,6 @@ import { http } from '@/http/http'
 export interface ILoginForm {
   username: string
   password: string
-}
-
-/**
- * 获取验证码
- * @returns ICaptcha 验证码
- */
-export function getCode() {
-  return http.get<ICaptcha>('/user/getCode')
 }
 
 /**
@@ -30,14 +22,14 @@ export function login(loginForm: ILoginForm) {
  * @param refreshToken 刷新token
  */
 export function refreshToken(refreshToken: string) {
-  return http.post<IDoubleTokenRes>('/auth/refreshToken', { refreshToken })
+  return http.post<IDoubleTokenRes>('/auth/refresh', { refreshToken })
 }
 
 /**
  * 获取用户信息
  */
 export function getUserInfo() {
-  return http.get<IUserInfoRes>('/user/info')
+  return http.get<IUserInfoRes>('/wxmp/user/basic')
 }
 
 /**
@@ -55,10 +47,22 @@ export function updateInfo(data: IUpdateInfo) {
 }
 
 /**
- * 修改用户密码
+ * 微信登录
+ * @param params 微信登录参数，包含code
+ * @returns Promise 包含登录结果
  */
-export function updateUserPassword(data: IUpdatePassword) {
-  return http.post('/user/updatePassword', data)
+export function wxLogin(data: { code: string }) {
+  return http.post<IAuthLoginRes>('/auth/login/wxmp', data)
+}
+
+/**
+ * 微信小程序手机号一键登录
+ * @param phoneCode 手机号授权code
+ * @param loginCode 微信登录code
+ * @returns Promise 包含登录结果
+ */
+export function wxmpPhoneLogin(phoneCode: string, loginCode: string) {
+  return http.post<IAuthLoginRes>('/auth/login/wxmp-phone', { phoneCode, loginCode })
 }
 
 /**
@@ -73,13 +77,4 @@ export function getWxCode() {
       fail: err => reject(new Error(err)),
     })
   })
-}
-
-/**
- * 微信登录
- * @param params 微信登录参数，包含code
- * @returns Promise 包含登录结果
- */
-export function wxLogin(data: { code: string }) {
-  return http.post<IAuthLoginRes>('/auth/wxLogin', data)
 }

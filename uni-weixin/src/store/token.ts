@@ -10,6 +10,7 @@ import {
   refreshToken as _refreshToken,
   wxLogin as _wxLogin,
   getWxCode,
+  wxmpPhoneLogin as _wxmpPhoneLogin,
 } from '@/api/login'
 import { isDoubleTokenRes, isSingleTokenRes } from '@/api/types/login'
 import { isDoubleTokenMode } from '@/utils'
@@ -18,15 +19,15 @@ import { useUserStore } from './user'
 // 初始化状态
 const tokenInfoState = isDoubleTokenMode
   ? {
-      accessToken: '',
-      accessExpiresIn: 0,
-      refreshToken: '',
-      refreshExpiresIn: 0,
-    }
+    accessToken: '',
+    accessExpiresIn: 0,
+    refreshToken: '',
+    refreshExpiresIn: 0,
+  }
   : {
-      token: '',
-      expiresIn: 0,
-    }
+    token: '',
+    expiresIn: 0,
+  }
 
 export const useTokenStore = defineStore(
   'token',
@@ -293,11 +294,42 @@ export const useTokenStore = defineStore(
       return getValidToken.value
     }
 
+    /**
+    * 微信小程序手机号一键登录
+    * @param phoneCode 手机号授权code
+    * @param loginCode 微信登录code
+    * @returns 登录结果
+    */
+    const wxmpPhoneLogin = async (phoneCode: string, loginCode: string) => {
+      try {
+        const res = await _wxmpPhoneLogin(phoneCode, loginCode)
+        console.log('微信小程序一键登录-res: ', res)
+        await _postLogin(res)
+        uni.showToast({
+          title: '登录成功',
+          icon: 'success',
+        })
+        return res
+      }
+      catch (error) {
+        console.error('微信小程序一键登录失败:', error)
+        uni.showToast({
+          title: '登录失败，请重试',
+          icon: 'error',
+        })
+        throw error
+      }
+      finally {
+        updateNowTime()
+      }
+    }
+
     return {
       // 核心API方法
       login,
       wxLogin,
       logout,
+      wxmpPhoneLogin,
 
       // 认证状态判断（最常用的）
       hasLogin: hasValidLogin,

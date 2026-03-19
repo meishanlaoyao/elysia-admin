@@ -1,79 +1,152 @@
 <template>
-  <view class="profile-container">
-    <view class="mt-3 break-all px-3 text-center text-green-500">
-      {{ userInfo.username ? '已登录' : '未登录' }}
-    </view>
-    <view class="mt-3 break-all px-3">
-      {{ JSON.stringify(userInfo, null, 2) }}
+  <s-layout :options="{
+    navabarMode: 'custom',
+    title: '',
+    backgroundColor: '#ffffff',
+    customNavbar: {
+      gradientColors: 'linear-gradient(to right, #067fd7, #47cbfc)',
+      backgroundHeight: '647rpx',
+    },
+  }">
+    <view class="user-info">
+      <view class="base-info" @click="GoToPage('/pages/me/userInfo')">
+        <view class="avatar-box">
+          <wd-img width="129rpx" height="129rpx" :src="userInfo.avatar" />
+        </view>
+        <view class="text-box">
+          <template v-if="isLogin">
+            <view class="nickname">{{ userInfo.nickname }}</view>
+            <view class="phone">{{ maskPhone }}</view>
+          </template>
+          <template v-else>
+            <view class="nickname">请先登录</view>
+          </template>
+        </view>
+      </view>
+      <wd-img width="35rpx" height="35rpx" @click="GoToPage('/pages/me/userInfo')" v-if="isLogin"
+        :src="GetCosImg('/uni/me/user-edit-btn.png')" mode="aspectFill" />
     </view>
 
-    <view class="mt-[60vh] px-3">
-      <view class="m-auto w-160px text-center">
-        <button v-if="tokenStore.hasLogin" type="warn" class="w-full" @click="handleLogout">
-          退出登录
-        </button>
-        <button v-else type="primary" class="w-full" @click="handleLogin">
-          登录
-        </button>
+    <view class="menu-box">
+      <view class="menu-box-item" @click="GoToPage('/pages/me/agreement?type=2')">
+        <view class="left-info">
+          <view class="icon-box">
+            <wd-img width="44rpx" height="46rpx" :src="GetCosImg('/uni/me/m4.png')" />
+          </view>
+          <text>用户协议</text>
+        </view>
+        <wd-icon name="arrow-right" size="38rpx" color="#aaa"></wd-icon>
+      </view>
+
+      <view class="menu-box-item" @click="GoToPage('/pages/me/agreement?type=3')">
+        <view class="left-info">
+          <view class="icon-box">
+            <wd-img width="42rpx" height="46rpx" :src="GetCosImg('/uni/me/m5.png')" />
+          </view>
+          <text>隐私协议</text>
+        </view>
+        <wd-icon name="arrow-right" size="38rpx" color="#aaa"></wd-icon>
       </view>
     </view>
-  </view>
+  </s-layout>
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
-import { LOGIN_PAGE } from '@/router/config'
-import { useUserStore } from '@/store'
 import { useTokenStore } from '@/store/token'
+import { useUserStore } from '@/store/user'
+
+const tokenStore = useTokenStore()
+const userStore = useUserStore()
+const isLogin = computed(() => tokenStore.hasLogin)
+const userInfo = computed(() => userStore.userInfo)
+
+// 脱敏手机号
+const maskPhone = computed(() => {
+  return userInfo.value.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+})
+
+onLoad(() => {
+  // userStore.fetchUserInfo()
+})
 
 definePage({
   style: {
-    navigationBarTitleText: '我的',
+    navigationStyle: 'custom',
   },
 })
-
-const userStore = useUserStore()
-const tokenStore = useTokenStore()
-// 使用storeToRefs解构userInfo
-const { userInfo } = storeToRefs(userStore)
-
-// 微信小程序下登录
-async function handleLogin() {
-  // #ifdef MP-WEIXIN
-  // 微信登录
-  await tokenStore.wxLogin()
-
-  // #endif
-  // #ifndef MP-WEIXIN
-  uni.navigateTo({
-    url: `${LOGIN_PAGE}`,
-  })
-  // #endif
-}
-
-function handleLogout() {
-  uni.showModal({
-    title: '提示',
-    content: '确定要退出登录吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // 清空用户信息
-        useTokenStore().logout()
-        // 执行退出登录逻辑
-        uni.showToast({
-          title: '退出登录成功',
-          icon: 'success',
-        })
-        // #ifdef MP-WEIXIN
-        // 微信小程序，去首页
-        // uni.reLaunch({ url: '/pages/index/index' })
-        // #endif
-        // #ifndef MP-WEIXIN
-        // 非微信小程序，去登录页
-        // uni.navigateTo({ url: LOGIN_PAGE })
-        // #endif
-      }
-    },
-  })
-}
 </script>
+
+<style scoped lang="scss">
+.user-info {
+  padding-top: 37rpx;
+  margin-left: 40rpx;
+  width: 670rpx;
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+
+  .base-info {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+
+    .avatar-box {
+      width: 129rpx;
+      height: 129rpx;
+      border: 1rpx solid #ffffff;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .text-box {
+      padding-left: 25rpx;
+      font-family: Microsoft YaHei;
+      font-weight: 400;
+      color: #000;
+
+      .nickname {
+        font-size: 30rpx;
+      }
+
+      .phone {
+        margin-top: 20rpx;
+        font-size: 24rpx;
+      }
+    }
+  }
+}
+
+.menu-box {
+  margin-top: 70rpx;
+  padding: 80rpx 35rpx;
+  background-color: #fff;
+  border-radius: 60rpx 60rpx 0 0;
+
+  .menu-box-item {
+    margin-bottom: 50rpx;
+    height: 50rpx;
+    display: flex;
+    align-items: center;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+
+    .left-info {
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: center;
+
+      .icon-box {
+        width: 77rpx;
+      }
+
+      text {
+        font-family: Microsoft YaHei;
+        font-weight: 400;
+        font-size: 28rpx;
+        color: #171818;
+      }
+    }
+  }
+}
+</style>

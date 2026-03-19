@@ -134,6 +134,13 @@ export default defineManifestConfig({
     // styleIsolation: 'shared',
     usingComponents: true,
     // __usePrivacyCheck__: true,
+    lazyCodeLoading: 'requiredComponents',
+    permission: {
+      'scope.userLocation': {
+        desc: '获取用户位置信息',
+      },
+    },
+    requiredPrivateInfos: ['getLocation', 'chooseLocation'],
   },
   'mp-alipay': {
     usingComponents: true,

@@ -7,7 +7,7 @@ import {
 
 // 初始化状态
 const userInfoState: IUserInfoRes = {
-  userId: -1,
+  userId: '',
   username: '',
   nickname: '',
   avatar: '/static/images/default-avatar.png',
