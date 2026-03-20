@@ -23,7 +23,11 @@ export const ListTypeDto = CrudDto.list(
     }
 );
 
-export const FindAllTypeDto = CrudDto.findAll(SelectSystemDictType);
+export const FindDictDataDto = {
+    query: t.Object({
+        dictType: t.String({ description: "字典类型", minLength: 1, error: '字典类型不能为空' }),
+    }),
+};
 
 export const CreateDataDto = CrudDto.create(
     InsertSystemDictData,
