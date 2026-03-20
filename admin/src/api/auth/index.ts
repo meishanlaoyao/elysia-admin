@@ -65,3 +65,10 @@ export function fetchRefreshToken() {
     url: '/api/auth/refresh',
   })
 }
+
+// 退出登录
+export function fetchLogout() {
+  return request.get({
+    url: '/api/auth/logout',
+  })
+}
