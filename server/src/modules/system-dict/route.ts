@@ -4,6 +4,7 @@ import {
     CreateTypeDto,
     ListDataDto,
     ListTypeDto,
+    FindDictDataDto,
     UpdateDataDto,
     UpdateTypeDto
 } from './dto';
@@ -31,7 +32,7 @@ const SystemDictModule: IRouteModule = {
         { url: '/system/dict/type', method: 'put', summary: '更新-类型', dto: UpdateTypeDto, handle: updateType, meta: { isAuth: true, isLog: true, permission: 'system:dict:type:update' } },
         { url: '/system/dict/type/:ids', method: 'delete', summary: '删除-类型', handle: removeType, meta: { isAuth: true, isLog: true, permission: 'system:dict:type:delete' } },
         { url: '/system/dict/data', method: 'post', summary: '创建-数据', dto: CreateDataDto, handle: createData, meta: { isAuth: true, isLog: true, permission: 'system:dict:data:create' } },
-        { url: '/system/dict/data/all', method: 'get', summary: '查询所有-缓存数据', handle: findAllData, meta: { isAuth: false, } },
+        { url: '/system/dict/data/all', method: 'get', summary: '查询所有-缓存数据', dto: FindDictDataDto, handle: findAllData, },
         { url: '/system/dict/data/list', method: 'get', summary: '查询列表-数据', dto: ListDataDto, handle: findListData, meta: { isAuth: true, permission: 'system:dict:data:query' } },
         { url: '/system/dict/data', method: 'put', summary: '更新-数据', dto: UpdateDataDto, handle: updateData, meta: { isAuth: true, permission: 'system:dict:data:update' } },
         { url: '/system/dict/data/:ids', method: 'delete', summary: '删除-数据', handle: removeData, meta: { isAuth: true, isLog: true, permission: 'system:dict:data:delete' } },
