@@ -173,6 +173,23 @@ export async function resetPassword(ctx: Context) {
     }
 };
 
+export async function logout(ctx: Context) {
+    try {
+        const userId = (ctx as any)?.user?.userId as string;
+        // 刷新token
+        const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
+        const oldKeys = await Keys(refreshKey) || [];
+        // 在线状态
+        const onlineKey = CacheEnum.ONLINE_USER + `${userId}`;
+        // 权限菜单
+        const menuKey = CacheEnum.ADMIN_MENU + `${userId}`;
+        await Del([...oldKeys, onlineKey, menuKey]);
+        return BaseResultData.ok();
+    } catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
 // 生成并存储令牌
 async function generateAndStoreTokens(payload: any): Promise<{ accessToken: string, refreshToken: string, accessExpiresIn: number, refreshExpiresIn: number } | { error: any }> {
     const uuid = GenerateUUID();

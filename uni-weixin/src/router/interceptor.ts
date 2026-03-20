@@ -8,6 +8,7 @@ import { useTokenStore } from '@/store/token'
 import { isPageTabbar, tabbarStore } from '@/tabbar/store'
 import { getAllPages, getLastPage, HOME_PAGE, parseUrlToObj } from '@/utils/index'
 import { EXCLUDE_LOGIN_PATH_LIST, isNeedLoginMode, LOGIN_PAGE, LOGIN_PAGE_ENABLE_IN_MP } from './config'
+import { showAuthModal } from '@/hooks/useModal'
 
 export const FG_LOG_ENABLE = false
 
@@ -114,7 +115,8 @@ export const navigateToInterceptor = {
       // 不需要登录里面的 EXCLUDE_LOGIN_PATH_LIST 表示黑名单，需要重定向到登录页
       if (judgeIsExcludePath(path)) {
         FG_LOG_ENABLE && console.log('2 isNeedLogin(黑名单策略) redirectUrl:', redirectUrl)
-        uni.navigateTo({ url: redirectUrl })
+        // uni.navigateTo({ url: redirectUrl })
+        showAuthModal()
         return false // 修改为false，阻止原路由继续执行
       }
       return true // 明确表示允许路由继续执行

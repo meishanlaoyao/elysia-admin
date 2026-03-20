@@ -29,7 +29,7 @@ onHide(() => { })
 }
 
 :deep(.wd-navbar__arrow) {
-  font-size: 38rpx !important;
+  font-size: 40rpx !important;
   font-weight: 400 !important;
 }
 

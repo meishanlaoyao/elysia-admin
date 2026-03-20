@@ -26,24 +26,14 @@
       <wd-img width="35rpx" height="35rpx" @click="GoToPage('/pages/me/userInfo')" v-if="isLogin"
         :src="GetCosImg('/uni/me/user-edit-btn.png')" mode="aspectFill" />
     </view>
-
     <view class="menu-box">
-      <view class="menu-box-item" @click="GoToPage('/pages/me/agreement?type=2')">
-        <view class="left-info">
-          <view class="icon-box">
-            <wd-img width="44rpx" height="46rpx" :src="GetCosImg('/uni/me/m4.png')" />
-          </view>
-          <text>用户协议</text>
-        </view>
-        <wd-icon name="arrow-right" size="38rpx" color="#aaa"></wd-icon>
-      </view>
 
-      <view class="menu-box-item" @click="GoToPage('/pages/me/agreement?type=3')">
+      <view class="menu-box-item" v-for="item in menus" :key="item.path" @click="GoToPage(item.path)">
         <view class="left-info">
           <view class="icon-box">
-            <wd-img width="42rpx" height="46rpx" :src="GetCosImg('/uni/me/m5.png')" />
+            <wd-img :width="item.icon.width" :height="item.icon.height" :src="item.icon.src" />
           </view>
-          <text>隐私协议</text>
+          <text>{{ item.title }}</text>
         </view>
         <wd-icon name="arrow-right" size="38rpx" color="#aaa"></wd-icon>
       </view>
@@ -60,19 +50,27 @@ const userStore = useUserStore()
 const isLogin = computed(() => tokenStore.hasLogin)
 const userInfo = computed(() => userStore.userInfo)
 
+const menus = [
+  { title: '用户协议', path: '/pages/me/agreement?type=2', icon: { width: '48rpx', height: '48rpx', src: '/static/images/me/m1.png' } },
+  { title: '隐私协议', path: '/pages/me/agreement?type=3', icon: { width: '48rpx', height: '48rpx', src: '/static/images/me/m2.png' } }
+];
+
 // 脱敏手机号
 const maskPhone = computed(() => {
-  return userInfo.value.mobile.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
+  let phone = userInfo.value.phone
+  if (!phone) return ''
+  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
 })
 
 onLoad(() => {
-  // userStore.fetchUserInfo()
+  userStore.fetchUserInfo()
 })
 
 definePage({
   style: {
     navigationStyle: 'custom',
   },
+  excludeLoginPath: false,
 })
 </script>
 

@@ -9,7 +9,7 @@ export const wxmpUserSchema = pgTable(
         openId: varchar('open_id', { length: 64 }).notNull().unique(), // 微信OpenID
         unionId: varchar('union_id', { length: 64 }), // 微信UnionID
         sessionKey: varchar('session_key', { length: 128 }), // 微信SessionKey
-        username: varchar('username', { length: 64 }).notNull(), // 用户名
+        username: varchar('username', { length: 64 }), // 用户名
         nickname: varchar('nickname', { length: 64 }), // 昵称
         phone: varchar('phone', { length: 20 }), // 手机号
         sex: varchar('sex', { length: 1 }).default('0'), // 性别 0未知 1男 2女

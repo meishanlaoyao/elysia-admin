@@ -133,3 +133,25 @@ export function SanitizeObject<T extends Record<string, any>>(
     };
     return walk(obj) as T;
 };
+
+/**
+ * 判断一个字符串是否是由 JSON.stringify() 将对象或数组序列化而成。
+ * 即：该字符串是合法 JSON，且顶层类型为 object 或 array。
+ * 注意：原始值（如字符串、数字、布尔值、null）虽然也能被 JSON.stringify，
+ * 但通常我们关心的是“对象或数组”被 stringify 的结果，因此排除这些原始值。
+ */
+export function IsStringifiedObjectOrArray(str: string | null | undefined): boolean {
+    if (str === null || str === undefined) return false;
+    if (typeof str !== 'string') return false;
+    const trimmed = str.trim();
+    if (
+        trimmed.length === 0 ||
+        (trimmed[0] !== '{' && trimmed[0] !== '[')
+    ) return false;
+    try {
+        const parsed = JSON.parse(trimmed);
+        return parsed !== null && (typeof parsed === 'object');
+    } catch {
+        return false;
+    }
+};

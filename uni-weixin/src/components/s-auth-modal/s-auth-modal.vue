@@ -22,7 +22,7 @@
             <!-- 用户协议的勾选 -->
             <view class="agreement-box" :class="{ shake: currentProtocol }">
                 <label class="agreement-label">
-                    <wd-checkbox v-model="state.protocol" shape="circle" checked-color="#067fd7">
+                    <wd-checkbox v-model="state.protocol" shape="circle" :checked-color="UniColor.primary">
                         <view class="agreement-text">
                             我已阅读并遵守
                             <text class="tcp-text" @tap.stop="navigateToAgreement('user')">《用户协议》</text>
@@ -37,6 +37,7 @@
 </template>
 
 <script setup lang="ts">
+import { UniColor } from '@/utils/color'
 import { computed, reactive, ref } from 'vue'
 import { useModalStore } from '@/store/modal'
 import { useTokenStore } from '@/store/token'
@@ -179,7 +180,7 @@ const getPhoneNumber = async (e: any) => {
 .login-btn {
     width: 100%;
     height: 88rpx;
-    background: #067fd7;
+    background: $uni-color-primary;
     color: #fff;
     font-size: 32rpx;
     border: none;

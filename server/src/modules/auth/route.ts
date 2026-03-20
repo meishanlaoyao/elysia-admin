@@ -1,5 +1,5 @@
 import type { IRouteModule } from "@/core/route";
-import { accountPasswordLogin, refreshToken, wxmpLogin, wxmpPhoneLogin, registerUser, forgetPassword, resetPassword } from "./handle";
+import { accountPasswordLogin, refreshToken, wxmpLogin, wxmpPhoneLogin, registerUser, forgetPassword, resetPassword, logout } from "./handle";
 import { AccountPasswordLoginDto, RegisterUserDto, WxmpPhoneLoginDto, ForgetPasswordDto, ResetPasswordDto, RefreshTokenDto } from "./dto";
 
 const AuthModule: IRouteModule = {
@@ -12,6 +12,7 @@ const AuthModule: IRouteModule = {
         { url: '/auth/register', method: 'post', summary: '注册用户', dto: RegisterUserDto, handle: registerUser, meta: { isLog: true, ipRateLimit: '60:2', } },
         { url: '/auth/forget', method: 'post', summary: '忘记密码', dto: ForgetPasswordDto, handle: forgetPassword, meta: { isLog: true, ipRateLimit: '60:2', } },
         { url: '/auth/reset-password', method: 'post', summary: '重置密码', dto: ResetPasswordDto, handle: resetPassword, meta: { isLog: true, ipRateLimit: '60:2', } },
+        { url: '/auth/logout', method: 'get', summary: '退出登录', handle: logout, meta: { isAuth: true } },
     ]
 };
 

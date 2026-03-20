@@ -37,6 +37,9 @@ export async function findbBasic(ctx: Context) {
 
 export async function updateBasic(ctx: Context) {
     try {
+        const userId = (ctx as any)?.user?.userId as string;
+        const data = ctx.body as typeof wxmpUserSchema.$inferSelect;
+        await UpdateByKeyAndRes(wxmpUserSchema, 'userId', { ...data, userId }, true);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -76,7 +79,7 @@ export async function HandleWxmpUserLogin(code: string, phone?: string) {
                 openId: openid,
                 sessionKey: session_key,
                 phone,
-                username: '微信用户' + uuid.slice(0, 8),
+                nickname: '微信用户' + uuid.slice(0, 8),
             });
         };
         return user;

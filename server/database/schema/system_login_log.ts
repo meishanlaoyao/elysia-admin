@@ -15,6 +15,7 @@ export const systemLoginLogSchema = pgTable(
         os: varchar('os', { length: 64 }), // 操作系统
         message: varchar('message', { length: 255 }), // 提示消息
         status: boolean('status'), // 登录状态
+        loginUserId: varchar('login_user_id', { length: 64 }), // 登录用户 ID
         ...BaseSchema,
     }
 );

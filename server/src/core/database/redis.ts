@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import config from "@/config";
 import { logger } from "@/shared/logger";
+import { IsStringifiedObjectOrArray } from "@/core/function";
 
 // 使用 globalThis 确保跨模块单例
 declare global {
@@ -109,9 +110,9 @@ export async function SetMulti(items: Array<{ key: string, value: any, expire?: 
  */
 export async function Get(key: string): Promise<any> {
     try {
-        const value = await redis.get(key);
-        if (value) return JSON.parse(value);
-        return null;
+        const value = await redis.get(key) || '';
+        if (IsStringifiedObjectOrArray(value)) return JSON.parse(value);
+        return value || null;
     } catch (error) {
         logger.error("Redis get error:" + error);
         return null;

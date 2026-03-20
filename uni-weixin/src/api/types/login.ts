@@ -59,9 +59,9 @@ export interface IUploadSuccessInfo {
  * 更新用户信息
  */
 export interface IUpdateInfo {
-  id: number
-  name: string
   sex: string
+  avatar: string
+  nickname: string
 }
 /**
  * 更新用户信息

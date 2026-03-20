@@ -67,7 +67,8 @@ export async function AddLoginLog(ctx: Context, loginType: IAccountType) {
         if (!clientInfo) return;
         const userId = (ctx.headers as any)?.userId || null;
         const res = (ctx as any)?.response || {};
-        create({ ...clientInfo, loginType, message: res?.msg, status: res.code === 200, createBy: userId });
+        const data = { ...clientInfo, loginType, message: res?.msg, status: res.code === 200, loginUserId: userId + '' };
+        create(data);
     }
     catch (error) {
         logger.error('添加登陆日志失败:' + error);
