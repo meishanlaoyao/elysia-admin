@@ -5,5 +5,5 @@ import type { FindDictDataDto } from './types/Idict'
  * 查询所有-缓存数据
  */
 export async function findAllData(dictType: string) {
-    return await http.get<FindDictDataDto[]>('/system/dict/data/all', { dictType })
+    return await http.get<FindDictDataDto[]>('/api/system/dict/data/all', { dictType })
 }

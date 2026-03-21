@@ -80,7 +80,7 @@ export async function AddOperLog(ctx: Context) {
         action: routeInfo?.summary,
         requestMethod: SYSTEM_API_METHOD[ctx.request.method],
         operatorType: userInfo?.userType,
-        userId: userInfo?.userId,
+        userId: userInfo?.userId + '',
         operUrl: ctx?.route,
         operIp: userInfo?.ipaddr,
         operLocation: userInfo?.loginLocation,

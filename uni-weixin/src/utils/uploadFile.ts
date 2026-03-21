@@ -390,8 +390,8 @@ async function readFileAsBuffer(url: string) {
   })
 }
 
-/** 单文件上传 */
-function runOne(url: string): Promise<string> | void {
+/** S3预签名单文件上传 */
+export function runOne(url: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const fileName = getFileNameByUrl(url)
     const contentType = getContentTypeByFileName(fileName)

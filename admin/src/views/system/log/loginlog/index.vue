@@ -60,8 +60,8 @@ const {
         paginationKey: { current: 'pageNum', size: 'pageSize' },
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
-            { type: 'index', width: 60, label: '序号', align: 'center' }, // 序号
-            { prop: 'createBy', label: '用户ID', align: 'center' },
+            { type: 'index', width: 60, label: '序号', align: 'center', }, // 序号
+            { prop: 'loginUserId', label: '用户ID', align: 'center', showOverflowTooltip: true },
             {
                 prop: 'loginType', label: '用户类型', align: 'center', formatter: (row: LoginLogListItem) => h(
                     ElTag,

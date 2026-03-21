@@ -207,15 +207,13 @@ const deleteRole = (row: RoleListItem) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
+  }).then(() => {
+    fetchDeleteRole(row.roleId as number).then(() => {
+      refreshData()
+    })
+  }).catch(() => {
+    ElMessage.info('已取消删除')
   })
-    .then(() => {
-      fetchDeleteRole(row.roleId as number).then(() => {
-        refreshData()
-      })
-    })
-    .catch(() => {
-      ElMessage.info('已取消删除')
-    })
 }
 
 /**

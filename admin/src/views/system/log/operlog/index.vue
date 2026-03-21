@@ -80,8 +80,8 @@ const {
                     () => dictStore.getDictLabel('system_user_type', row.operatorType || '')
                 )
             },
-            { prop: 'userId', label: '操作人员', align: 'center' },
-            { prop: 'operIp', label: '操作IP', align: 'center' },
+            { prop: 'userId', label: '操作人员', align: 'center', showOverflowTooltip: true },
+            { prop: 'operIp', label: '操作IP', align: 'center', showOverflowTooltip: true },
             { prop: 'operLocation', label: '操作地点', align: 'center', showOverflowTooltip: true },
             {
                 prop: 'status',

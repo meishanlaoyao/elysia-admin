@@ -66,10 +66,9 @@
 import { useDictStore } from '@/store/dict'
 import { UniColor } from '@/utils/color'
 import { updateInfo } from '@/api/login'
-import { useFileUpload } from '@/utils/uploadFile'
+import { useFileUpload, runOne } from '@/utils/uploadFile'
 import { useUserStore } from '@/store/user'
 import { useTokenStore } from '@/store/token'
-import { reactive } from 'vue'
 
 let timer: any = null
 const dictStore = useDictStore()
@@ -92,11 +91,6 @@ const state = reactive({
     }
 })
 
-const sexRadioMap = [
-    { name: '男', value: '1' },
-    { name: '女', value: '2' }
-]
-
 // 选择性别
 function onChangeGender(e: any) {
     state.model.sex = e.detail.value
@@ -114,30 +108,13 @@ function onImgPreview() {
 function onChooseAvatar(e: any) {
     const tempUrl = e.detail.avatarUrl || ''
     if (tempUrl) {
-        // 使用 useFileUpload 上传头像
-        const { run } = useFileUpload(
-            tempUrl,
-            undefined,
-            {},
-            {
-                maxSize: 5,
-                onSuccess: (res) => {
-                    state.model.avatar = res.url || res
-                    uni.showToast({
-                        title: '头像上传成功',
-                        icon: 'success'
-                    })
-                },
-                onError: (err) => {
-                    console.error('上传失败', err)
-                    uni.showToast({
-                        title: '头像上传失败',
-                        icon: 'none'
-                    })
-                }
-            }
-        )
-        run()
+        runOne(tempUrl).then(res => {
+            state.model.avatar = res
+            uni.showToast({ title: '头像上传成功', icon: 'success' })
+        }).catch(err => {
+            console.error('上传失败', err)
+            uni.showToast({ title: '头像上传失败', icon: 'none' })
+        })
     }
 }
 

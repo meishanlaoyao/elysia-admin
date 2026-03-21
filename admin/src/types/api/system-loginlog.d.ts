@@ -11,6 +11,7 @@ declare namespace Api {
             os?: string;
             message?: string;
             status?: boolean;
+            loginUserId?: string;
             createTime?: Date;
             createBy?: number | null;
             updateTime?: null | Date;

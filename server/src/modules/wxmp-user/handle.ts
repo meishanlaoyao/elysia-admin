@@ -1,6 +1,7 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/core/result';
 import { wxmpUserSchema } from 'database/schema/wxmp_user';
+import { ParseDateFields } from '@/types/dto';
 import {
     InsertOneAndRes,
     FindOneByKey,
@@ -10,14 +11,41 @@ import {
     CreateQueryBuilder,
     FindPage,
 } from '@/core/database/repository';
-import { Get } from '@/core/database/redis';
 import { GenerateUUID } from '@/shared/uuid';
-import { CacheEnum } from '@/constants/enum';
 import { WxmpLogin } from '@/infrastructure/clients/wechat';
 
 export async function findList(ctx: Context) {
     try {
-        return BaseResultData.ok();
+        const {
+            pageNum = 1,
+            pageSize = 10,
+            orderByColumn = "createTime",
+            sortRule = "desc",
+            startTime,
+            endTime,
+            username,
+            nickname,
+            phone,
+            sex,
+            status
+        } = ctx.query;
+        const whereCondition = CreateQueryBuilder(wxmpUserSchema)
+            .eq('delFlag', false)
+            .eq('sex', sex)
+            .eq('status', status)
+            .like('username', username)
+            .like('nickname', nickname)
+            .like('phone', phone)
+            .dateRange('createTime', startTime, endTime)
+            .build();
+        const { list, total } = await FindPage(wxmpUserSchema, whereCondition, {
+            pageNum,
+            pageSize,
+            orderByColumn,
+            sortRule
+        });
+        const safeList = list.map(({ openId, sessionKey, unionId, ...item }) => ({ ...item }));
+        return BaseResultData.ok({ list: safeList, total });
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
@@ -48,6 +76,8 @@ export async function updateBasic(ctx: Context) {
 
 export async function update(ctx: Context) {
     try {
+        const data = ParseDateFields(ctx.body);
+        await UpdateByKey(wxmpUserSchema, 'userId', data, true);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -56,6 +86,8 @@ export async function update(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
+        const ids = ctx.params.ids.split(',') as string[];
+        await SoftDeleteByKeys(wxmpUserSchema, 'userId', ids);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

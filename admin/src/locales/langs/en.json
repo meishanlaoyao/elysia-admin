@@ -306,6 +306,10 @@
       "job": "Scheduled Tasks",
       "server": "Server Monitoring",
       "cache": "Cache List"
+    },
+    "wxmp": {
+      "title": "Wechat Mini Program",
+      "mpuser": "User Manage"
     }
   },
   "table": {
