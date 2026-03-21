@@ -1,10 +1,20 @@
 <template>
-  <view>
-    这里是首页
+  <view class="p-50rpx">
+    <wd-text>这里是首页</wd-text>
+    <wd-button @click="handleUploadfile">上传文件</wd-button>
+    <br>
+    <wd-img :src="img" width="600rpx" height="500rpx" />
   </view>
 </template>
 
 <script lang="ts" setup>
+import { uploadFileToS3 } from '@/utils/uploadFile';
+
+const img = ref('')
+async function handleUploadfile() {
+  img.value = await uploadFileToS3().image() as string
+}
+
 defineOptions({
   name: 'Home',
 })
@@ -16,10 +26,5 @@ definePage({
     navigationStyle: 'custom',
     navigationBarTitleText: '首页',
   },
-})
-
-
-onLoad(() => {
-  console.log('测试 uni API 自动引入: onLoad')
 })
 </script>

@@ -14,13 +14,7 @@
  * )
  */
 
-/**
- * 上传文件的URL配置
- */
-export const uploadFileUrl = {
-  /** 用户头像上传地址 */
-  USER_AVATAR: `${import.meta.env.VITE_SERVER_BASEURL}/user/avatar`,
-}
+import { generatePreSignUrl } from '@/api/file'
 
 /**
  * 通用文件上传函数（支持直接传入文件路径）
@@ -321,5 +315,168 @@ function uploadFile<T>({
     error.value = true
     loading.value = false
     onError?.(new Error('创建上传任务失败'))
+  }
+}
+
+
+/**
+ * 通过文件名称检测文件类型返回对应的Content-Type
+ * @param fileName 文件名称
+ * @returns 对应的Content-Type字符串
+ */
+function getContentTypeByFileName(fileName: string) {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  if (!ext || ext === fileName) return 'application/octet-stream';
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg': return 'image/jpeg'
+    case 'png': return 'image/png'
+    case 'webp': return 'image/webp';
+    case 'svg': return 'image/svg+xml';
+    case 'gif': return 'image/gif'
+    case 'mp4': return 'video/mp4'
+    case 'mp3': return 'audio/mpeg';
+    case 'avi': return 'video/x-msvideo'
+    case 'mov': return 'video/mov'
+    case 'pdf': return 'application/pdf'
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    case 'xlsx': return 'application/vnd.ms-excel'
+    case 'txt': return 'text/plain'
+    case 'csv': return 'text/csv'
+    case 'wav': return 'audio/wav';
+    case 'ogg': return 'audio/ogg';
+    case 'html': return 'text/html';
+    case 'css': return 'text/css';
+    case 'js': return 'application/javascript';
+    case 'json': return 'application/json'
+    case 'xml': return 'application/xml'
+    case 'zip': return 'application/zip'
+    case 'rar': return 'application/x-rar-compressed'
+    case '7z': return 'application/x-7z-compressed'
+    case 'tar': return 'application/x-tar'
+    case 'gz': return 'application/x-gzip'
+    default: return 'application/octet-stream'
+  }
+}
+
+/**
+ * 通过url获取文件名称
+ * @param url 文件url
+ * @returns 文件名称
+ */
+function getFileNameByUrl(url: string) {
+  let fileName = url.split('/').pop() || ''
+  const ext = fileName.split('.').pop()
+  fileName = fileName.slice(0, 10)
+  fileName = fileName.replace(/[^\w]/g, '_')
+  return fileName + (ext ? '.' + ext : '')
+}
+
+/** 文件读成arrayBuffer */
+const fsm = uni.getFileSystemManager();
+async function readFileAsBuffer(url: string) {
+  return new Promise((resolve, reject) => {
+    fsm.readFile({
+      filePath: url,
+      success(res) {
+        const arrayBuffer = res.data; // 这就是文件二进制数据
+        resolve(arrayBuffer)
+      },
+      fail(err) {
+        console.error('文件读取失败:', err)
+        reject(err)
+      },
+    })
+  })
+}
+
+/** 单文件上传 */
+function runOne(url: string): Promise<string> | void {
+  return new Promise(async (resolve, reject) => {
+    const fileName = getFileNameByUrl(url)
+    const contentType = getContentTypeByFileName(fileName)
+    const arrayBuffer = await readFileAsBuffer(url)
+    const preSignUrl = await generatePreSignUrl(fileName)
+    const fileUrl = preSignUrl.split('?')[0]
+    uni.request({
+      url: preSignUrl,
+      method: 'PUT',
+      header: { 'Content-Type': contentType, },
+      data: arrayBuffer,
+      success(res) {
+        if (res.statusCode === 200) resolve(fileUrl)
+      },
+      fail(err) {
+        console.error('上传文件失败:', err)
+        reject(err)
+      },
+    })
+  })
+}
+
+/**
+ * 简易版通用S3预签名文件上传
+ */
+export function uploadFileToS3() {
+  /** 图片上传 */
+  function image(options?: any): Promise<string | string[]> {
+    return new Promise((resolve, reject) => {
+      uni.chooseImage({
+        success: async (result) => {
+          const tempFilePaths = result.tempFilePaths
+          const fileUrls = await Promise.all(tempFilePaths.map(runOne))
+          const formate = fileUrls?.length > 1 ? fileUrls : fileUrls[0]
+          resolve(formate)
+        },
+        fail(err) {
+          console.error("选择图片失败:", err)
+          reject(err)
+        },
+        ...options,
+      })
+    })
+  }
+  /** 视频上传 */
+  function video(options?: any): Promise<string> {
+    return new Promise((resolve, reject) => {
+      uni.chooseVideo({
+        success: async (result) => {
+          const fileUrl = await runOne(result.tempFilePath) || undefined
+          resolve(fileUrl)
+        },
+        fail(err) {
+          console.error("选择视频失败:", err)
+          reject(err)
+        },
+        ...options,
+      })
+    })
+  }
+  // #ifdef MP-WEIXIN
+  /** 文件上传 */
+  function file(options?: any): Promise<string | string[]> {
+    return new Promise((resolve, reject) => {
+      wx.chooseMessageFile({
+        success: async (result) => {
+          const tempFilePaths = result.tempFiles.map(item => item.path)
+          const fileUrls = await Promise.all(tempFilePaths.map(runOne))
+          const formate = fileUrls?.length > 1 ? fileUrls : fileUrls[0]
+          resolve(formate)
+        },
+        fail(err) {
+          console.error("选择文件失败:", err)
+          reject(err)
+        },
+        ...options,
+      })
+    })
+  }
+  // #endif
+  return {
+    image,
+    video,
+    // #ifdef MP-WEIXIN
+    file,
+    // #endif
   }
 }

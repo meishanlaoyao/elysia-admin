@@ -14,7 +14,7 @@ export interface ILoginForm {
  * @param loginForm 登录表单
  */
 export function login(loginForm: ILoginForm) {
-  return http.post<IAuthLoginRes>('/auth/login', loginForm)
+  return http.post<IAuthLoginRes>('/api/auth/login', loginForm)
 }
 
 /**
@@ -22,28 +22,28 @@ export function login(loginForm: ILoginForm) {
  * @param refreshToken 刷新token
  */
 export function refreshToken(refreshToken: string) {
-  return http.post<IDoubleTokenRes>('/auth/refresh', { refreshToken })
+  return http.post<IDoubleTokenRes>('/api/auth/refresh', { refreshToken })
 }
 
 /**
  * 获取用户信息
  */
 export function getUserInfo() {
-  return http.get<IUserInfoRes>('/wxmp/user/basic')
+  return http.get<IUserInfoRes>('/api/wxmp/user/basic')
 }
 
 /**
  * 退出登录
  */
 export function logout() {
-  return http.get<void>('/auth/logout')
+  return http.get<void>('/api/auth/logout')
 }
 
 /**
  * 修改用户信息
  */
 export function updateInfo(data: IUpdateInfo) {
-  return http.put('/wxmp/user/update', data)
+  return http.put('/api/wxmp/user/update', data)
 }
 
 /**
@@ -52,7 +52,7 @@ export function updateInfo(data: IUpdateInfo) {
  * @returns Promise 包含登录结果
  */
 export function wxLogin(data: { code: string }) {
-  return http.post<IAuthLoginRes>('/auth/login/wxmp', data)
+  return http.post<IAuthLoginRes>('/api/auth/login/wxmp', data)
 }
 
 /**
@@ -62,7 +62,7 @@ export function wxLogin(data: { code: string }) {
  * @returns Promise 包含登录结果
  */
 export function wxmpPhoneLogin(phoneCode: string, loginCode: string) {
-  return http.post<IAuthLoginRes>('/auth/login/wxmp-phone', { phoneCode, loginCode })
+  return http.post<IAuthLoginRes>('/api/auth/login/wxmp-phone', { phoneCode, loginCode })
 }
 
 /**
