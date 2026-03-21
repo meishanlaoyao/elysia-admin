@@ -273,7 +273,15 @@ const getUploadProps = (item: FormItem): Partial<UploadProps> => {
   const itemProps = getProps(item) as any
   const limit = itemProps?.limit || 1
 
-  // 初始化文件列表
+  // 初始化或同步文件列表：当 modelValue 有值但 fileListMap 未反映时，需要重新初始化
+  const currentValue = modelValue.value[item.key]
+  const currentUrls = Array.isArray(currentValue) ? currentValue : (currentValue ? [currentValue] : [])
+  const fileListUrls = fileListMap[item.key]?.map((f) => f.url).filter(Boolean) || []
+  const needSync = currentUrls.length > 0 && (
+    !fileListMap[item.key] ||
+    fileListUrls.length !== currentUrls.length ||
+    currentUrls.some((url, i) => url !== fileListUrls[i])
+  )
   if (!fileListMap[item.key]) {
     initFileList(item)
   }
@@ -399,6 +407,11 @@ const handleReset = () => {
     modelValue.value,
     Object.fromEntries(props.items.map(({ key }) => [key, undefined]))
   )
+
+  // 清空 upload 组件的文件列表，避免下次回显时数据不同步
+  props.items.filter((i) => i.type === 'upload').forEach((i) => {
+    fileListMap[i.key] = []
+  })
 
   // 触发 reset 事件
   emit('reset')
