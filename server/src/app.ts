@@ -73,12 +73,15 @@ async function configureOpenAPI(app: Elysia) {
  * 配置全局错误处理器
  */
 function configureErrorHandler(app: Elysia) {
-    app.onError(({ code, error }) => {
+    app.onError(({ code, error, set }) => {
         // 验证错误
         if (code === 'VALIDATION') {
             const errorMessage = (error as any).message || '验证失败';
             logger.warn('请求验证失败' + errorMessage);
-            if (errorMessage === '请先登陆后访问') return BaseResultData.fail(401, errorMessage);
+            if (errorMessage === '请先登陆后访问') {
+                set.status = 401;
+                return BaseResultData.fail(401, errorMessage);
+            };
             return BaseResultData.fail(400, errorMessage);
         }
         // 资源不存在
