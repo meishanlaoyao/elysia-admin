@@ -137,11 +137,11 @@ export async function update(ctx: Context) {
 
 export async function updateBasic(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
+        const data = ctx.body as typeof systemUserSchema.$inferSelect;
         const userId = (ctx as any)?.user?.userId as number;
         const { password, ...rest } = data;
         const user = rest as typeof systemUserSchema.$inferSelect;
-        await UpdateByKey(systemUserSchema, 'userId', { ...user, userId }, true);
+        await UpdateByKey(systemUserSchema, 'userId', null, { ...user, userId });
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -165,8 +165,7 @@ export async function updatePassword(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemUserSchema, 'userId', ids);
+        await SoftDeleteByKeys(systemUserSchema, 'userId', ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -187,7 +186,7 @@ export async function GetUserBy(key: string, val: any) {
 export async function RegisterUser(username: string, password: string) {
     try {
         password = BcryptHash(password);
-        await InsertOne(systemUserSchema, { username, password });
+        await InsertOne(systemUserSchema, null, { username, password });
     } catch (error) {
         logger.error('注册用户失败' + error);
     }
@@ -197,7 +196,7 @@ export async function RegisterUser(username: string, password: string) {
 export async function SetUserPassword(userId: number, password: string) {
     try {
         password = BcryptHash(password);
-        await UpdateByKey(systemUserSchema, 'userId', { password, userId }, true);
+        await UpdateByKey(systemUserSchema, 'userId', null, { password, userId });
     } catch (error) {
         logger.error('设置用户密码失败' + error);
     }

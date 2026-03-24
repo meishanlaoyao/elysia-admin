@@ -1,17 +1,24 @@
 {
   "name": "elysia-admin",
-  "version": "1.0.50",
+  "version": "1.1.0",
+  "description": "elysia-admin 基于 Elysia.js 构建，这是一个为 Bun 运行时 深度优化的现代 TypeScript Web 框架。",
+  "author": {
+    "name": "梅山老妖",
+    "email": "1360658549@qq.com",
+    "gitee": "https://gitee.com/nian-qian/elysia-admin"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
     "build": "bun run script/build.ts",
     "build:binary": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./dist_binary/server ./src/index.ts",
     "db:push": "bun ./script/generate-dbconfig.ts push",
     "db:pull": "bun ./script/generate-dbconfig.ts pull",
-    "docker:build": "docker build -t hnq1/xiaomei-elysia-server:latest .",
-    "docker:run": "docker run --name xiaomei-elysia-server -p 3000:3000 xiaomei-elysia-server:latest",
-    "docker:stop": "docker stop xiaomei-elysia-server",
-    "docker:rm": "docker rm xiaomei-elysia-server",
-    "docker:logs": "docker logs xiaomei-elysia-server"
+    "docker:build": "docker build -t hnq1/elysia-admin:latest .",
+    "docker:run": "docker run --name elysia-admin -p 3000:3000 elysia-admin:latest",
+    "docker:stop": "docker stop elysia-admin",
+    "docker:rm": "docker rm elysia-admin",
+    "docker:logs": "docker logs elysia-admin"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",

@@ -10,7 +10,6 @@ import {
 } from '@/core/database/repository';
 import { RunTransaction } from '@/core/database/transaction';
 import { logger } from '@/shared/logger';
-import { ParseDateFields } from '@/types/dto';
 import { systemIpBlackSchema } from '@database/schema/system_ip_black';
 import { IsIpAddress } from '@/core/check';
 import { CacheEnum } from '@/constants/enum';
@@ -53,11 +52,9 @@ export async function findAll(ctx: Context) {
 
 export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        if (data.ipAddress && !IsIpAddress(data.ipAddress)) {
-            return BaseResultData.fail(400, 'IP地址格式错误');
-        };
-        const res = await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', data, true);
+        const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
+        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
+        const res = await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', ctx, data);
         config.guard.ipBlacklist && await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res);
         return BaseResultData.ok();
     }
@@ -69,7 +66,7 @@ export async function update(ctx: Context) {
 export async function remove(ctx: Context) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ids);
+        await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ctx);
         config.guard.ipBlacklist && await CacheDelete(CacheEnum.IP_BLACK, 'ipBlackId', ids);
         return BaseResultData.ok();
     }

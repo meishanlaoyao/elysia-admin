@@ -10,14 +10,12 @@ import {
 } from '@/core/database/repository';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
-import { ParseDateFields } from '@/types/dto';
 import { systemDeptSchema } from '@database/schema/system_dept';
 import { ListToTree } from '@/core/function';
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemDeptSchema.$inferInsert;
-        await InsertOne(systemDeptSchema, data);
+        await InsertOne(systemDeptSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -77,8 +75,7 @@ export async function findOptions() {
 
 export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemDeptSchema, 'deptId', data, true);
+        await UpdateByKey(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -88,8 +85,7 @@ export async function update(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemDeptSchema, 'deptId', ids);
+        await SoftDeleteByKeys(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

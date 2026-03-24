@@ -15,8 +15,7 @@ import { StorageService, type StorageProviderType } from '@/infrastructure/stora
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemStorageSchema.$inferInsert;
-        await InsertOne(systemStorageSchema, data);
+        await InsertOne(systemStorageSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -87,8 +86,7 @@ export async function update(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemStorageSchema, 'storageId', ids);
+        await SoftDeleteByKeys(systemStorageSchema, 'storageId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

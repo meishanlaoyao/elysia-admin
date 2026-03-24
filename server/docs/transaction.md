@@ -583,7 +583,7 @@ await RunTransaction(async (tx) => {
 }, {
     onRollback: async (error) => {
         // 记录详细的错误信息
-        await InsertOne(systemOperLogSchema, {
+        await InsertOne(systemOperLogSchema, null, {
             operType: 'error',
             operName: '用户创建',
             errorMsg: error.message,
@@ -671,7 +671,7 @@ A: 大部分 db 工具函数不支持传入事务上下文，需要直接使用 
 ```typescript
 await RunTransaction(async (tx) => {
     // ❌ 不能这样用
-    // await InsertOne(userSchema, { name: 'test' });
+    // await InsertOne(userSchema, null, { name: 'test' });
     
     // ✅ 应该这样用
     await tx.insert(userSchema).values({ name: 'test' });

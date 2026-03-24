@@ -8,7 +8,6 @@ import {
     CreateQueryBuilder,
     FindPage,
 } from '@/core/database/repository';
-import { ParseDateFields } from '@/types/dto';
 import { systemApiSchema } from '@database/schema/system_api';
 import { CacheEnum } from '@/constants/enum';
 import { Del, Set } from '@/core/database/redis';
@@ -16,8 +15,7 @@ import { SYSTEM_API_METHOD } from '@/constants/dict';
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemApiSchema.$inferInsert;
-        await InsertOne(systemApiSchema, data);
+        await InsertOne(systemApiSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -72,8 +70,8 @@ export async function findOne(ctx: Context) {
 
 export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemApiSchema, 'apiId', data, true);
+        const data = ctx.body as typeof systemApiSchema.$inferSelect;
+        await UpdateByKey(systemApiSchema, 'apiId', ctx);
         const reverseMethodMap = Object.fromEntries(Object.entries(SYSTEM_API_METHOD).map(([key, value]) => [value, key]));
         if (data.status) {
             const key = `${CacheEnum.FALLBACK_API}${reverseMethodMap[data.apiMethod]}:${data.apiPath}`;
@@ -91,8 +89,7 @@ export async function update(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemApiSchema, 'apiId', ids);
+        await SoftDeleteByKeys(systemApiSchema, 'apiId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

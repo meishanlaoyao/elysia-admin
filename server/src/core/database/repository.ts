@@ -1,3 +1,5 @@
+import { Context } from 'elysia';
+import { ParseDateFields } from '@/types/dto';
 import { PgTable, TableConfig, PgColumn } from 'drizzle-orm/pg-core';
 import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count } from 'drizzle-orm';
 import pg from '@/core/database/pg';
@@ -40,41 +42,71 @@ type InferSelectModel<T extends PgTable> = T extends PgTable<infer Config extend
 /**
  * 通用插入函数 （不返回记录，性能更好）
  * @param schema - Drizzle ORM 表 schema
- * @param data - 要插入的数据
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据插入，用于覆盖 ctx.body 中的数据
  * @returns 插入操作的结果
  */
 export async function InsertOne<T extends PgTable>(
     schema: T,
-    data: InferInsertModel<T>
+    ctx: Context | null | undefined,
+    customData?: InferInsertModel<T>
 ) {
-    return await pg.insert(schema).values(data as any);
+    let data: any = undefined;
+    if (ctx) {
+        data = ctx.body;
+        const keyColumn = (schema as any)['createBy'];
+        const createBy = (ctx as any)?.user?.userId || null;
+        if (keyColumn && createBy) data.createBy = createBy;
+    } else {
+        if (customData) data = customData;
+    };
+    return await pg.insert(schema).values(data);
 };
 
 /**
  * 通用插入函数 （返回记录）
  * @param schema - Drizzle ORM 表 schema
- * @param data - 要插入的数据
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据插入，用于覆盖 ctx.body 中的数据
  * @returns 插入操作的结果
  */
 export async function InsertOneAndRes<T extends PgTable>(
     schema: T,
-    data: InferInsertModel<T>
+    ctx: Context | null | undefined,
+    customData?: InferInsertModel<T>
 ) {
-    const result = await pg.insert(schema).values(data as any).returning();
+    let data: any = undefined;
+    if (ctx) {
+        data = ctx.body;
+        const keyColumn = (schema as any)['createBy'];
+        const createBy = (ctx as any)?.user?.userId || null;
+        if (keyColumn && createBy) data.createBy = createBy;
+    } else {
+        if (customData) data = customData;
+    };
+    const result = await pg.insert(schema).values(data).returning();
     return result[0];
 };
 
 /**
  * 通用批量插入函数
  * @param schema - Drizzle ORM 表 schema
- * @param data - 要插入的数据数组
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据插入，用于覆盖 ctx.body 中的数据
  * @returns 插入操作的结果
  */
 export async function InsertMany<T extends PgTable>(
     schema: T,
-    data: InferInsertModel<T>[]
+    ctx: Context | null | undefined,
+    customData: InferInsertModel<T>[]
 ) {
-    return await pg.insert(schema).values(data as any);
+    let data = customData;
+    if (ctx) {
+        const keyColumn = (schema as any)['createBy'];
+        const createBy = (ctx as any)?.user?.userId || null;
+        if (keyColumn && createBy) data = data.map(item => ({ ...item, createBy }));
+    };
+    return await pg.insert(schema).values(data);
 };
 
 /**
@@ -90,9 +122,7 @@ export async function FindOneByKey<T extends PgTable>(
     value: any
 ): Promise<InferSelectModel<T> | null> {
     const keyColumn = (schema as any)[keyColumnName];
-    if (!keyColumn) {
-        throw new Error(`Column "${keyColumnName}" not found in schema`);
-    }
+    if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
     const data = await pg.select().from(schema as any).where(eq(keyColumn, value));
     return data.length > 0 ? (data[0] as InferSelectModel<T>) : null;
 };
@@ -119,24 +149,18 @@ export async function FindAll<T extends PgTable>(
     options?: QueryOptions<T>
 ): Promise<InferSelectModel<T>[]> {
     let query = pg.select().from(schema as any).where(where);
-
     // 添加排序
     if (options?.orderByColumn) {
         const column = typeof options.orderByColumn === 'string'
             ? (schema as any)[options.orderByColumn]
             : options.orderByColumn;
-
         if (column) {
             const sortFn = options.sortRule === 'asc' ? asc : desc;
             query = query.orderBy(sortFn(column)) as any;
-        }
-    }
-
+        };
+    };
     // 添加限制
-    if (options?.limit) {
-        query = query.limit(options.limit) as any;
-    }
-
+    if (options?.limit) query = query.limit(options.limit) as any;
     const data = await query;
     return data as InferSelectModel<T>[];
 };
@@ -145,67 +169,65 @@ export async function FindAll<T extends PgTable>(
  * 通用更新函数（根据主键）- 优化版
  * @param schema - Drizzle ORM 表 schema
  * @param keyColumnName - 主键字段名（字符串）
- * @param data - 要更新的数据（必须包含主键字段）
- * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据更新
  * @returns 更新操作的结果
  */
 export async function UpdateByKey<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    data: Partial<InferInsertModel<T>> & Record<string, any>,
-    autoUpdateTime: boolean = true
+    ctx: Context | null | undefined,
+    customData?: Partial<InferInsertModel<T>> & Record<string, any>
 ) {
     const keyColumn = (schema as any)[keyColumnName];
-    if (!keyColumn) {
-        throw new Error(`Column "${keyColumnName}" not found in schema`);
-    }
-
+    if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
+    let data: any = undefined;
+    if (ctx) {
+        data = ParseDateFields(ctx.body);
+        const updateByColumn = (schema as any)['updateBy'];
+        const updateBy = (ctx as any)?.user?.userId || null;
+        if (updateByColumn && updateBy) data.updateBy = updateBy;
+    } else {
+        if (customData) data = ParseDateFields(customData);
+    };
     const keyValue = (data as any)[keyColumnName];
-    if (keyValue === undefined || keyValue === null) {
-        throw new Error(`Key value for "${keyColumnName}" is required in data`);
-    }
-
-    // 只在需要时创建新对象
-    let updateData = data;
-    if (autoUpdateTime && 'updateTime' in schema) {
-        updateData = { ...data, updateTime: new Date() };
-    }
-
-    return await pg.update(schema).set(updateData as any).where(eq(keyColumn, keyValue));
+    if (keyValue === undefined || keyValue === null) throw new Error(`Key value for "${keyColumnName}" is required in data`);
+    const updateTimeColumn = (schema as any)['updateTime'];
+    if (updateTimeColumn) data.updateTime = new Date();
+    return await pg.update(schema).set(data).where(eq(keyColumn, keyValue));
 };
 
 /**
  * 通用更新函数（根据主键）- 返回更新后的完整记录
  * @param schema - Drizzle ORM 表 schema
  * @param keyColumnName - 主键字段名（字符串）
- * @param data - 要更新的数据（必须包含主键字段）
- * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据更新
  * @returns 更新后的完整记录
  */
 export async function UpdateByKeyAndRes<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    data: Partial<InferInsertModel<T>> & Record<string, any>,
-    autoUpdateTime: boolean = true
+    ctx: Context | null | undefined,
+    customData?: Partial<InferInsertModel<T>> & Record<string, any>
 ) {
     const keyColumn = (schema as any)[keyColumnName];
-    if (!keyColumn) {
-        throw new Error(`Column "${keyColumnName}" not found in schema`);
-    }
-
+    if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
+    let data: any = undefined;
+    if (ctx) {
+        data = ParseDateFields(ctx.body);
+        const updateByColumn = (schema as any)['updateBy'];
+        const updateBy = (ctx as any)?.user?.userId || null;
+        if (updateByColumn && updateBy) data.updateBy = updateBy;
+    } else {
+        if (customData) data = ParseDateFields(customData);
+    };
     const keyValue = (data as any)[keyColumnName];
-    if (keyValue === undefined || keyValue === null) {
-        throw new Error(`Key value for "${keyColumnName}" is required in data`);
-    }
-
-    // 只在需要时创建新对象
-    let updateData = data;
-    if (autoUpdateTime && 'updateTime' in schema) {
-        updateData = { ...data, updateTime: new Date() };
-    }
-
-    const result = await pg.update(schema).set(updateData as any).where(eq(keyColumn, keyValue)).returning();
-    return result[0]; // 返回更新后的第一条记录
+    if (keyValue === undefined || keyValue === null) throw new Error(`Key value for "${keyColumnName}" is required in data`);
+    const updateTimeColumn = (schema as any)['updateTime'];
+    if (updateTimeColumn) data.updateTime = new Date();
+    const result = await pg.update(schema).set(data).where(eq(keyColumn, keyValue)).returning();
+    return result[0];
 };
 
 /**
@@ -219,24 +241,29 @@ export async function UpdateByKeyAndRes<T extends PgTable>(
 export async function SoftDeleteByKeys<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    values: any[],
-    autoUpdateTime: boolean = true
+    ctx: Context | null | undefined,
+    customData?: number[]
 ) {
-    if (!values || values.length === 0) {
-        return; // 空数组直接返回，避免无效查询
-    }
-
     const keyColumn = (schema as any)[keyColumnName];
-    if (!keyColumn) {
-        throw new Error(`Column "${keyColumnName}" not found in schema`);
-    }
-
-    const updateData: any = { delFlag: true };
-    if (autoUpdateTime && 'updateTime' in schema) {
-        updateData.updateTime = new Date();
-    }
-
-    return await pg.update(schema).set(updateData).where(inArray(keyColumn, values));
+    if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
+    let ids = [];
+    let data: any = { delFlag: true, };
+    if (ctx) {
+        ids = ctx.params.ids.split(',').map(Number) as number[];
+        if (!ids || ids.length === 0) return;
+        const updateByColumn = (schema as any)['updateBy'];
+        const updateBy = (ctx as any)?.user?.userId || null;
+        if (updateByColumn && updateBy) data.updateBy = updateBy;
+    } else {
+        if (customData?.length) {
+            ids = customData;
+        } else {
+            return;
+        };
+    };
+    const updateTimeColumn = (schema as any)['updateTime'];
+    if (updateTimeColumn) data.updateTime = new Date();
+    return await pg.update(schema).set(data).where(inArray(keyColumn, ids));
 };
 
 /**
@@ -264,15 +291,9 @@ export async function HardDeleteByKeys<T extends PgTable>(
     keyColumnName: string,
     values: any[]
 ) {
-    if (!values || values.length === 0) {
-        return; // 空数组直接返回，避免无效查询
-    }
-
+    if (!values || values.length === 0) return; // 空数组直接返回，避免无效查询
     const keyColumn = (schema as any)[keyColumnName];
-    if (!keyColumn) {
-        throw new Error(`Column "${keyColumnName}" not found in schema`);
-    }
-
+    if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
     return await pg.delete(schema).where(inArray(keyColumn, values));
 };
 
@@ -316,40 +337,26 @@ export async function FindPage<T extends PgTable>(
     const offset = (Number(pageNum) - 1) * Number(pageSize);
     const limit = Number(pageSize);
     const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
-
     // 使用子查询 + 窗口函数，一次查询同时获取数据和总数
     let baseQuery = pg.select().from(schema as any).where(where);
-
     // 添加排序
     if (orderByColumn) {
         const column = typeof orderByColumn === 'string'
             ? (schema as any)[orderByColumn]
             : orderByColumn;
-
-        if (column) {
-            baseQuery = baseQuery.orderBy(sortFn(column)) as any;
-        }
-    }
-
+        if (column) baseQuery = baseQuery.orderBy(sortFn(column)) as any;
+    };
     // 先查询总数（如果数据量大，这个查询会被优化器缓存）
     const totalResult = await pg
         .select({ count: count() })
         .from(schema as any)
         .where(where);
     const total = Number(totalResult[0]?.count || 0);
-
     // 如果总数为 0，直接返回
-    if (total === 0) {
-        return { list: [], total: 0 };
-    }
-
+    if (total === 0) return { list: [], total: 0 };
     // 查询分页数据
     const list = await baseQuery.limit(limit).offset(offset);
-
-    return {
-        list: list as InferSelectModel<T>[],
-        total
-    };
+    return { list: list as InferSelectModel<T>[], total };
 };
 
 /**
@@ -383,11 +390,9 @@ export class QueryBuilder<T extends PgTable = any> {
      */
     private getColumn(column: string | PgColumn): PgColumn {
         if (typeof column === 'string') {
-            if (!this.schema) {
-                throw new Error('Schema is required when using string column names');
-            }
+            if (!this.schema) throw new Error('Schema is required when using string column names');
             return (this.schema as any)[column];
-        }
+        };
         return column;
     };
 
@@ -397,9 +402,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     eq(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(eq(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(eq(this.getColumn(column), value));
         return this;
     };
 
@@ -409,9 +412,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     ne(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(ne(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(ne(this.getColumn(column), value));
         return this;
     };
 
@@ -421,9 +422,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param values - 值数组
      */
     in(column: string | PgColumn, values: any[]): this {
-        if (values && values.length > 0) {
-            this.conditions.push(inArray(this.getColumn(column), values));
-        }
+        if (values && values.length > 0) this.conditions.push(inArray(this.getColumn(column), values));
         return this;
     };
 
@@ -433,9 +432,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param values - 值数组
      */
     notIn(column: string | PgColumn, values: any[]): this {
-        if (values && values.length > 0) {
-            this.conditions.push(notInArray(this.getColumn(column), values));
-        }
+        if (values && values.length > 0) this.conditions.push(notInArray(this.getColumn(column), values));
         return this;
     };
 
@@ -445,9 +442,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     like(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(like(this.getColumn(column), `%${value}%`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `%${value}%`));
         return this;
     };
 
@@ -457,9 +452,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     notLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(notLike(this.getColumn(column), `%${value}%`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(notLike(this.getColumn(column), `%${value}%`));
         return this;
     };
 
@@ -469,9 +462,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     ilike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(ilike(this.getColumn(column), `%${value}%`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(ilike(this.getColumn(column), `%${value}%`));
         return this;
     };
 
@@ -481,9 +472,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     notIlike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(notIlike(this.getColumn(column), `%${value}%`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(notIlike(this.getColumn(column), `%${value}%`));
         return this;
     };
 
@@ -493,9 +482,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     leftLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(like(this.getColumn(column), `%${value}`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `%${value}`));
         return this;
     };
 
@@ -505,9 +492,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     rightLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(like(this.getColumn(column), `${value}%`));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `${value}%`));
         return this;
     };
 
@@ -517,9 +502,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     gt(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(gt(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(gt(this.getColumn(column), value));
         return this;
     };
 
@@ -529,9 +512,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     gte(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(gte(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(gte(this.getColumn(column), value));
         return this;
     };
 
@@ -541,9 +522,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     lt(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(lt(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(lt(this.getColumn(column), value));
         return this;
     };
 
@@ -553,9 +532,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     lte(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') {
-            this.conditions.push(lte(this.getColumn(column), value));
-        }
+        if (value !== undefined && value !== null && value !== '') this.conditions.push(lte(this.getColumn(column), value));
         return this;
     };
 
@@ -573,7 +550,7 @@ export class QueryBuilder<T extends PgTable = any> {
             this.conditions.push(gte(col, new Date(startTime)));
         } else if (endTime) {
             this.conditions.push(lte(col, new Date(endTime)));
-        }
+        };
         return this;
     };
 
@@ -584,9 +561,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param endTime - 结束时间
      */
     between(column: string | PgColumn, startTime: any, endTime: any): this {
-        if (startTime && endTime) {
-            this.conditions.push(between(this.getColumn(column), new Date(startTime), new Date(endTime)));
-        }
+        if (startTime && endTime) this.conditions.push(between(this.getColumn(column), new Date(startTime), new Date(endTime)));
         return this;
     };
 
@@ -597,9 +572,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param endTime - 结束时间
      */
     notBetween(column: string | PgColumn, startTime: any, endTime: any): this {
-        if (startTime && endTime) {
-            this.conditions.push(notBetween(this.getColumn(column), new Date(startTime), new Date(endTime)));
-        }
+        if (startTime && endTime) this.conditions.push(notBetween(this.getColumn(column), new Date(startTime), new Date(endTime)));
         return this;
     };
 
@@ -629,17 +602,12 @@ export class QueryBuilder<T extends PgTable = any> {
         const orBuilder = new QueryBuilder(this.schema);
         callback(orBuilder);
         const conditions = orBuilder.conditions;
-
-        if (conditions.length === 0) {
-            return this;
-        }
-
+        if (conditions.length === 0) return this;
         if (conditions.length === 1) {
             this.conditions.push(conditions[0]);
         } else {
             this.conditions.push(or(...conditions)!);
-        }
-
+        };
         return this;
     };
 
@@ -651,15 +619,10 @@ export class QueryBuilder<T extends PgTable = any> {
         const notBuilder = new QueryBuilder(this.schema);
         callback(notBuilder);
         const conditions = notBuilder.conditions;
-
-        if (conditions.length === 0) {
-            return this;
-        }
-
+        if (conditions.length === 0) return this;
         const notCondition = conditions.length === 1
             ? conditions[0]
             : and(...conditions)!;
-
         this.conditions.push(not(notCondition));
         return this;
     };
@@ -669,9 +632,7 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param condition - SQL 条件
      */
     custom(condition: SQL | undefined): this {
-        if (condition) {
-            this.conditions.push(condition);
-        }
+        if (condition) this.conditions.push(condition);
         return this;
     };
 
@@ -680,12 +641,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @returns SQL 条件或 undefined
      */
     build(): SQL | undefined {
-        if (this.conditions.length === 0) {
-            return undefined;
-        }
-        if (this.conditions.length === 1) {
-            return this.conditions[0];
-        }
+        if (this.conditions.length === 0) return undefined;
+        if (this.conditions.length === 1) return this.conditions[0];
         return and(...this.conditions);
     };
 
@@ -694,12 +651,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @returns SQL 条件或 undefined
      */
     buildOr(): SQL | undefined {
-        if (this.conditions.length === 0) {
-            return undefined;
-        }
-        if (this.conditions.length === 1) {
-            return this.conditions[0];
-        }
+        if (this.conditions.length === 0) return undefined;
+        if (this.conditions.length === 1) return this.conditions[0];
         return or(...this.conditions);
     };
 
@@ -786,75 +739,54 @@ export async function ApplyJoins<T = any>(
         const primaryKeyColumn = typeof primaryKey === 'string'
             ? (joinSchema as any)[primaryKey]
             : primaryKey;
-
         // 收集所有外键值并去重
         const foreignKeyValuesSet = new Set<any>();
         for (const item of data) {
             const val = (item as any)[foreignKeyName];
-            if (val !== null && val !== undefined) {
-                foreignKeyValuesSet.add(val);
-            }
-        }
-
+            if (val !== null && val !== undefined) foreignKeyValuesSet.add(val);
+        };
         const foreignKeyValues = Array.from(foreignKeyValuesSet);
-
-        if (foreignKeyValues.length === 0) {
-            return { fieldName, data: null, multiple, defaultValue };
-        }
-
+        if (foreignKeyValues.length === 0) return { fieldName, data: null, multiple, defaultValue };
         // 构建联查条件
         const joinConditions: SQL[] = [inArray(primaryKeyColumn, foreignKeyValues)];
-        if (joinWhere) {
-            joinConditions.push(joinWhere);
-        }
-
+        if (joinWhere) joinConditions.push(joinWhere);
         // 查询联查表数据
         const joinData = await pg
             .select()
             .from(joinSchema as any)
             .where(and(...joinConditions));
-
         // 将联查数据按主键分组
         const joinDataMap = new Map<any, any[]>();
         for (const item of joinData) {
             const key = (item as any)[primaryKeyName];
-            if (!joinDataMap.has(key)) {
-                joinDataMap.set(key, []);
-            }
+            if (!joinDataMap.has(key)) joinDataMap.set(key, []);
             joinDataMap.get(key)!.push(item);
-        }
-
+        };
         return { fieldName, data: joinDataMap, multiple, defaultValue, foreignKeyName };
     });
-
     // 等待所有联查完成
     const joinResults = await Promise.all(joinPromises);
-
     // 合并所有联查结果到主表数据
     for (const result of joinResults) {
         const { fieldName, data: joinDataMap, multiple, defaultValue, foreignKeyName } = result;
-
         if (!joinDataMap) {
             // 没有外键值的情况
             for (const item of data) {
                 (item as any)[fieldName] = multiple ? (defaultValue || []) : defaultValue;
-            }
+            };
             continue;
-        }
-
+        };
         // 合并数据
         for (const item of data) {
             const foreignKeyValue = (item as any)[foreignKeyName];
             const joinItems = joinDataMap.get(foreignKeyValue) || [];
-
             if (multiple) {
                 (item as any)[fieldName] = joinItems.length > 0 ? joinItems : (defaultValue || []);
             } else {
                 (item as any)[fieldName] = joinItems.length > 0 ? joinItems[0] : defaultValue;
-            }
-        }
-    }
-
+            };
+        };
+    };
     return data;
 };
 
@@ -872,10 +804,8 @@ export async function FindAllWithJoin<T extends PgTable>(
 ): Promise<any[]> {
     const where = builder.build();
     const joinConfigs = builder.getJoinConfigs();
-
     // 先查询主表数据
     const mainData = await FindAll(schema, where, options);
-
     // 应用联查
     return await ApplyJoins(mainData, joinConfigs);
 };
@@ -894,12 +824,9 @@ export async function FindPageWithJoin<T extends PgTable>(
 ): Promise<PaginationResult<any>> {
     const where = builder.build();
     const joinConfigs = builder.getJoinConfigs();
-
     // 先执行分页查询
     const result = await FindPage(schema, where, options);
-
     // 应用联查
     result.list = await ApplyJoins(result.list, joinConfigs);
-
     return result;
 };

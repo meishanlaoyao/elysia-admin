@@ -9,7 +9,6 @@ import {
     FindOneByKey,
     FindAll,
 } from '@/core/database/repository';
-import { ParseDateFields } from '@/types/dto';
 import { monitorJobSchema } from 'database/schema/monitor_job';
 import { AddCronJob, RemoveCronJob, GetCronJob } from '@/shared/cron';
 import { inArray } from 'drizzle-orm';
@@ -18,7 +17,7 @@ export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferInsert;
         if (data.status && data.jobName && data.jobCron) AddCronJob(data.jobName, data.jobCron, data.jobName, data.jobArgs || undefined);
-        await InsertOne(monitorJobSchema, data);
+        await InsertOne(monitorJobSchema, ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -61,7 +60,7 @@ export async function findList(ctx: Context) {
 
 export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
+        const data = ctx.body as typeof monitorJobSchema.$inferSelect;
         const jobId = data.jobId;
         const oldJob = await FindOneByKey(monitorJobSchema, 'jobId', jobId);
         if (oldJob && data.jobName) {
@@ -70,14 +69,12 @@ export async function update(ctx: Context) {
             const isRunning = GetCronJob(oldJobName);
             if (oldJobName !== newJobName && isRunning) RemoveCronJob(oldJobName);
             if (data.status !== false) {
-                if (data.jobCron) {
-                    AddCronJob(newJobName, String(data.jobCron), newJobName, data.jobArgs);
-                }
+                if (data.jobCron) AddCronJob(newJobName, String(data.jobCron), newJobName, data.jobArgs || '');
             } else {
                 if (isRunning) RemoveCronJob(oldJobName);
             };
         };
-        await UpdateByKey(monitorJobSchema, 'jobId', data, true);
+        await UpdateByKey(monitorJobSchema, 'jobId', ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -94,7 +91,7 @@ export async function remote(ctx: Context) {
                 if (GetCronJob(jobName)) RemoveCronJob(jobName);
             };
         };
-        await SoftDeleteByKeys(monitorJobSchema, 'jobId', ids);
+        await SoftDeleteByKeys(monitorJobSchema, 'jobId', ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

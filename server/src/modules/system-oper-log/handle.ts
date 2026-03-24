@@ -14,7 +14,7 @@ import { SensitiveFields } from '@/constants/base';
 
 export async function create(data: typeof systemOperLogSchema.$inferInsert) {
     try {
-        await InsertOne(systemOperLogSchema, data);
+        await InsertOne(systemOperLogSchema, null, data);
     } catch (error) {
         logger.error('插入操作日志失败' + error);
     }
@@ -49,8 +49,7 @@ export async function findList(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemOperLogSchema, 'logId', ids);
+        await SoftDeleteByKeys(systemOperLogSchema, 'logId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

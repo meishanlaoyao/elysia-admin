@@ -12,7 +12,6 @@ import {
     InsertMany,
     HardDelete
 } from '@/core/database/repository';
-import { ParseDateFields } from '@/types/dto';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
 import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
@@ -22,8 +21,7 @@ import { logger } from '@/shared/logger';
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemRoleSchema.$inferInsert;
-        await InsertOne(systemRoleSchema, data);
+        await InsertOne(systemRoleSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -111,8 +109,7 @@ export async function findOne(ctx: Context) {
 
 export async function update(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemRoleSchema, 'roleId', data, true);
+        await UpdateByKey(systemRoleSchema, 'roleId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -126,10 +123,8 @@ export async function updatePermission(ctx: Context) {
             roleId: number;
             permissions: Array<{ menuId: number; menuBtnId?: number }>
         };
-
         // 删除该角色的所有权限关联（硬删除）
         await HardDelete(systemRoleMenuSchema, eq(systemRoleMenuSchema.roleId, roleId));
-
         // 批量插入新的权限关联
         if (permissions && permissions.length > 0) {
             const insertData = permissions.map(perm => ({
@@ -137,9 +132,8 @@ export async function updatePermission(ctx: Context) {
                 menuId: perm.menuId,
                 menuBtnId: perm.menuBtnId || null
             }));
-            await InsertMany(systemRoleMenuSchema, insertData);
-        }
-
+            await InsertMany(systemRoleMenuSchema, ctx, insertData);
+        };
         return BaseResultData.ok();
     }
     catch (error) {
@@ -149,8 +143,7 @@ export async function updatePermission(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemRoleSchema, 'roleId', ids);
+        await SoftDeleteByKeys(systemRoleSchema, 'roleId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

@@ -9,7 +9,6 @@ import {
     FindAll,
     FindAllWithJoin,
 } from '@/core/database/repository';
-import { ParseDateFields } from '@/types/dto';
 import { systemMenuSchema, systemMenuBtnSchema } from '@database/schema/system_menu';
 import { systemRoleMenuSchema } from '@database/schema/system_role';
 import { ListToTree } from '@/core/function';
@@ -20,8 +19,7 @@ import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemMenuSchema.$inferInsert;
-        await InsertOne(systemMenuSchema, data);
+        await InsertOne(systemMenuSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -31,8 +29,7 @@ export async function createMenu(ctx: Context) {
 
 export async function createMenuBtn(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemMenuBtnSchema.$inferInsert;
-        await InsertOne(systemMenuBtnSchema, data);
+        await InsertOne(systemMenuBtnSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -95,8 +92,7 @@ export async function findTree(ctx: Context) {
 
 export async function updateMenu(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemMenuSchema, 'menuId', data, true);
+        await UpdateByKey(systemMenuSchema, 'menuId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -106,8 +102,7 @@ export async function updateMenu(ctx: Context) {
 
 export async function updateMenuBtn(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemMenuBtnSchema, 'btnId', data, true);
+        await UpdateByKey(systemMenuBtnSchema, 'btnId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -117,8 +112,7 @@ export async function updateMenuBtn(ctx: Context) {
 
 export async function removeMenu(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemMenuSchema, 'menuId', ids);
+        await SoftDeleteByKeys(systemMenuSchema, 'menuId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -128,8 +122,7 @@ export async function removeMenu(ctx: Context) {
 
 export async function removeMenuBtn(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ids);
+        await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

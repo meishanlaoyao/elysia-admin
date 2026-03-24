@@ -12,8 +12,27 @@ import { businessMerchantSchema } from 'database/schema/business_merchant';
 
 export async function create(ctx: Context) {
     try {
-        const data = ctx.body as typeof businessMerchantSchema.$inferInsert;
-        await InsertOne(businessMerchantSchema, data);
+        await InsertOne(businessMerchantSchema, ctx);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function update(ctx: Context) {
+    try {
+        await UpdateByKey(businessMerchantSchema, 'id', ctx);
+        return BaseResultData.ok();
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function remove(ctx: Context) {
+    try {
+        await SoftDeleteByKeys(businessMerchantSchema, 'id', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

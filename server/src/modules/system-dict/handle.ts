@@ -12,12 +12,10 @@ import {
 } from '@/core/database/repository';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
-import { ParseDateFields } from '@/types/dto';
 
 export async function createType(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemDictTypeSchema.$inferInsert;
-        await InsertOne(systemDictTypeSchema, data);
+        await InsertOne(systemDictTypeSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -27,8 +25,7 @@ export async function createType(ctx: Context) {
 
 export async function createData(ctx: Context) {
     try {
-        const data = ctx.body as typeof systemDictDataSchema.$inferInsert;
-        await InsertOne(systemDictDataSchema, data);
+        await InsertOne(systemDictDataSchema, ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -148,8 +145,7 @@ export async function findOneType(ctx: Context) {
 
 export async function updateType(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemDictTypeSchema, 'dictId', data, true);
+        await UpdateByKey(systemDictTypeSchema, 'dictId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -159,8 +155,7 @@ export async function updateType(ctx: Context) {
 
 export async function updateData(ctx: Context) {
     try {
-        const data = ParseDateFields(ctx.body);
-        await UpdateByKey(systemDictDataSchema, 'dictCode', data, true);
+        await UpdateByKey(systemDictDataSchema, 'dictCode', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -170,8 +165,7 @@ export async function updateData(ctx: Context) {
 
 export async function removeType(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemDictTypeSchema, 'dictId', ids);
+        await SoftDeleteByKeys(systemDictTypeSchema, 'dictId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -181,8 +175,7 @@ export async function removeType(ctx: Context) {
 
 export async function removeData(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemDictDataSchema, 'dictCode', ids);
+        await SoftDeleteByKeys(systemDictDataSchema, 'dictCode', ctx);
         return BaseResultData.ok();
     }
     catch (error) {

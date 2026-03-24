@@ -13,7 +13,7 @@ import { logger } from '@/shared/logger';
 // 插入登陆日志
 export async function create(data: typeof systemLoginLogSchema.$inferInsert) {
     try {
-        await InsertOne(systemLoginLogSchema, data);
+        await InsertOne(systemLoginLogSchema, null, data);
     } catch (error) {
         logger.error('插入登陆日志失败' + error);
     }
@@ -48,8 +48,7 @@ export async function findList(ctx: Context) {
 
 export async function remove(ctx: Context) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemLoginLogSchema, 'logId', ids);
+        await SoftDeleteByKeys(systemLoginLogSchema, 'logId', ctx);
         return BaseResultData.ok();
     }
     catch (error) {
