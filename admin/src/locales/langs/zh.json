@@ -306,6 +306,13 @@
       "job": "定时任务",
       "server": "服务监控",
       "cache": "缓存列表"
+    },
+    "business": {
+      "title": "支付管理",
+      "merchant": "商户管理",
+      "orders": "订单管理",
+      "payments": "支付记录",
+      "refund": "退款管理"
     }
   },
   "table": {

@@ -306,6 +306,13 @@
       "job": "Scheduled Tasks",
       "server": "Server Monitoring",
       "cache": "Cache List"
+    },
+    "business": {
+      "title": "Payment Management",
+      "merchant": "Merchant Manage",
+      "orders": "Order Manage",
+      "payments": "Payment Record",
+      "refund": "Refund Manage"
     }
   },
   "table": {

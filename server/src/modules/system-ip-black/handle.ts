@@ -3,12 +3,10 @@ import { eq } from 'drizzle-orm';
 import config from '@/config';
 import { BaseResultData } from '@/core/result';
 import {
-    InsertOneAndRes,
     UpdateByKeyAndRes,
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindAll,
-    FindOneByKey,
 } from '@/core/database/repository';
 import { RunTransaction } from '@/core/database/transaction';
 import { logger } from '@/shared/logger';
