@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { Get } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
-import { systemUserSchema, systemUserRoleSchema } from 'database/schema/system_user';
+import { systemUserSchema, systemUserRoleSchema } from '@database/schema/system_user';
 import { BcryptHash, BcryptCompare } from '@/shared/bcrypt';
 import {
     InsertOne,

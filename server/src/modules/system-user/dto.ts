@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { SelectSystemUser } from "database/schema/system_user";
+import { SelectSystemUser } from "@database/schema/system_user";
 import { CrudDto } from '@/types/dto';
 
 export const CreateDto = {

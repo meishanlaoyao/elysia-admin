@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { CrudDto } from '@/types/dto';
-import { InsertSystemStorage, SelectSystemStorage } from 'database/schema/system_storage';
+import { InsertSystemStorage, SelectSystemStorage } from '@database/schema/system_storage';
 
 export const CreateDto = CrudDto.create(
     InsertSystemStorage,

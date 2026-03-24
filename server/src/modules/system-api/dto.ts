@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { InsertSystemApi, SelectSystemApi } from "database/schema/system_api";
+import { InsertSystemApi, SelectSystemApi } from "@database/schema/system_api";
 import { CrudDto } from '@/types/dto';
 
 export const CreateDto = CrudDto.create(

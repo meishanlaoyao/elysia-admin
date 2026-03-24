@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { CrudDto, BaseResultDto } from '@/types/dto';
-import { InsertSystemRole, SelectSystemRole } from "database/schema/system_role";
+import { InsertSystemRole, SelectSystemRole } from "@database/schema/system_role";
 
 export const CreateDto = CrudDto.create(
     InsertSystemRole,

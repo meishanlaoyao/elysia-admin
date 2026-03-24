@@ -10,7 +10,7 @@ import {
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
 import { RunTransaction } from '@/core/database/transaction';
-import { systemStorageSchema } from 'database/schema/system_storage';
+import { systemStorageSchema } from '@database/schema/system_storage';
 import { StorageService, type StorageProviderType } from '@/infrastructure/storage';
 
 export async function create(ctx: Context) {

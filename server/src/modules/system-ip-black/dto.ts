@@ -1,5 +1,5 @@
 import { t } from 'elysia';
-import { InsertSystemIpBlack, SelectSystemIpBlack } from "database/schema/system_ip_black";
+import { InsertSystemIpBlack, SelectSystemIpBlack } from "@database/schema/system_ip_black";
 import { CrudDto } from '@/types/dto';
 
 export const CreateDto = CrudDto.create(

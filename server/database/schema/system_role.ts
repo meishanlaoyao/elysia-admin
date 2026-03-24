@@ -1,6 +1,6 @@
 import { pgTable, bigserial, varchar, boolean, bigint, integer } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
-import { BaseSchema } from 'database/base-schema';
+import { BaseSchema } from '@database/base-schema';
 import { systemMenuSchema, systemMenuBtnSchema } from './system_menu';
 
 export const systemRoleSchema = pgTable(

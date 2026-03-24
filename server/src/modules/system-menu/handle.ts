@@ -10,8 +10,8 @@ import {
     FindAllWithJoin,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
-import { systemMenuSchema, systemMenuBtnSchema } from 'database/schema/system_menu';
-import { systemRoleMenuSchema } from 'database/schema/system_role';
+import { systemMenuSchema, systemMenuBtnSchema } from '@database/schema/system_menu';
+import { systemRoleMenuSchema } from '@database/schema/system_role';
 import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';

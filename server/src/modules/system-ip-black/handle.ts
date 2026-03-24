@@ -11,7 +11,7 @@ import {
 import { RunTransaction } from '@/core/database/transaction';
 import { logger } from '@/shared/logger';
 import { ParseDateFields } from '@/types/dto';
-import { systemIpBlackSchema } from 'database/schema/system_ip_black';
+import { systemIpBlackSchema } from '@database/schema/system_ip_black';
 import { IsIpAddress } from '@/core/check';
 import { CacheEnum } from '@/constants/enum';
 import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';

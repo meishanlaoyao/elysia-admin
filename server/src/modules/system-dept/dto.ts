@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { CrudDto } from '@/types/dto';
-import { InsertSystemDept, SelectSystemDept } from "database/schema/system_dept";
+import { InsertSystemDept, SelectSystemDept } from "@database/schema/system_dept";
 
 export const CreateDto = CrudDto.create(
     InsertSystemDept,

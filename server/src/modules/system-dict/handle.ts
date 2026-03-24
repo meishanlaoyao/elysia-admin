@@ -1,6 +1,6 @@
 import { Context } from 'elysia';
 import { BaseResultData } from '@/core/result';
-import { systemDictDataSchema, systemDictTypeSchema } from 'database/schema/system_dict';
+import { systemDictDataSchema, systemDictTypeSchema } from '@database/schema/system_dict';
 import {
     InsertOne,
     FindOneByKey,

@@ -7,7 +7,7 @@ import {
     FindPage,
 } from '@/core/database/repository';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
-import { systemOperLogSchema } from 'database/schema/system_oper_log';
+import { systemOperLogSchema } from '@database/schema/system_oper_log';
 import { SanitizeObject } from '@/core/function';
 import { logger } from '@/shared/logger';
 import { SensitiveFields } from '@/constants/base';

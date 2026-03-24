@@ -9,7 +9,7 @@ import {
     FindPage,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
-import { systemApiSchema } from 'database/schema/system_api';
+import { systemApiSchema } from '@database/schema/system_api';
 import { CacheEnum } from '@/constants/enum';
 import { Del, Set } from '@/core/database/redis';
 import { SYSTEM_API_METHOD } from '@/constants/dict';

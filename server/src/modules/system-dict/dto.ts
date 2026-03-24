@@ -4,7 +4,7 @@ import {
     InsertSystemDictType,
     SelectSystemDictData,
     SelectSystemDictType
-} from 'database/schema/system_dict';
+} from '@database/schema/system_dict';
 import { CrudDto } from '@/types/dto';
 
 export const CreateTypeDto = CrudDto.create(

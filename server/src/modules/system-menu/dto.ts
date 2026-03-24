@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { CrudDto } from '@/types/dto';
-import { InsertSystemMenu, SelectSystemMenu, InsertSystemMenuBtn, SelectSystemMenuBtn } from "database/schema/system_menu";
+import { InsertSystemMenu, SelectSystemMenu, InsertSystemMenuBtn, SelectSystemMenuBtn } from "@database/schema/system_menu";
 
 export const CreateMenuDto = CrudDto.create(
     InsertSystemMenu,

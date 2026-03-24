@@ -1,6 +1,6 @@
 import { pgTable, bigserial, varchar, boolean, bigint } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
-import { BaseSchema } from 'database/base-schema';
+import { BaseSchema } from '@database/base-schema';
 
 export const systemLoginLogSchema = pgTable(
     'system_login_log',

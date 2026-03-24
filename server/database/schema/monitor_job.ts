@@ -1,6 +1,6 @@
 import { pgTable, bigserial, varchar, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
-import { BaseSchema } from 'database/base-schema';
+import { BaseSchema } from '@database/base-schema';
 
 export const monitorJobSchema = pgTable(
     'monitor_job',

@@ -11,7 +11,7 @@ import {
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
 import { ParseDateFields } from '@/types/dto';
-import { systemDeptSchema } from 'database/schema/system_dept';
+import { systemDeptSchema } from '@database/schema/system_dept';
 import { ListToTree } from '@/core/function';
 
 export async function create(ctx: Context) {

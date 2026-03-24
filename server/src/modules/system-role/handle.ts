@@ -15,8 +15,8 @@ import {
 import { ParseDateFields } from '@/types/dto';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
-import { systemRoleSchema, systemRoleMenuSchema } from 'database/schema/system_role';
-import { systemUserRoleSchema } from 'database/schema/system_user';
+import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
+import { systemUserRoleSchema } from '@database/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
 import { logger } from '@/shared/logger';
 

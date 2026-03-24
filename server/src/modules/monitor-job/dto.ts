@@ -1,6 +1,6 @@
 import { t } from 'elysia';
 import { CrudDto } from '@/types/dto';
-import { InsertMonitorJob, SelectMonitorJob } from 'database/schema/monitor_job';
+import { InsertMonitorJob, SelectMonitorJob } from '@database/schema/monitor_job';
 
 export const CreateDto = CrudDto.create(
     InsertMonitorJob,

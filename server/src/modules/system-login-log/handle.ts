@@ -6,7 +6,7 @@ import {
     CreateQueryBuilder,
     FindPage,
 } from '@/core/database/repository';
-import { systemLoginLogSchema } from 'database/schema/system_login_log';
+import { systemLoginLogSchema } from '@database/schema/system_login_log';
 import { logger } from '@/shared/logger';
 
 
