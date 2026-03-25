@@ -1,8 +1,8 @@
-import { createApp } from '@/app';
-import { InitSeedData } from 'script/seed';
-import { logger } from '@/shared/logger';
-import { StopAllCronJobs } from '@/shared/cron';
 import config from "@/config";
+import { createApp } from '@/app';
+import { logger } from '@/shared/logger';
+import { InitSeedData } from 'script/seed';
+import { StopAllCronJobs } from '@/shared/cron';
 
 /**
  * 应用启动入口

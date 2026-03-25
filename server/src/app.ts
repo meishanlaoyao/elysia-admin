@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
-import { BunAdapter } from 'elysia/adapter/bun';
-import { cors } from '@elysiajs/cors';
-import { staticPlugin } from '@elysiajs/static';
-import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
-import { RegisterRoutes } from '@/modules';
-import { BaseResultData } from '@/core/result';
 import config from "@/config";
+import { cors } from '@elysiajs/cors';
 import { logger } from '@/shared/logger';
+import { RegisterRoutes } from '@/modules';
+import { BunAdapter } from 'elysia/adapter/bun';
+import { staticPlugin } from '@elysiajs/static';
+import { BaseResultData } from '@/core/result';
+import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 
 /**
  * 创建并配置 Elysia 应用实例

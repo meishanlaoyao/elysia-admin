@@ -13,6 +13,7 @@ export const businessMerchantSchema = pgTable(
         privateKey: text('private_key'), // 商户私钥
         publicKey: text('public_key'), // 支付平台公钥（支付宝公钥）
         config: jsonb('config'), // 扩展配置（api_v3_key、notify_url 等）
+        status: boolean('status').default(false), // 状态
         ...BaseSchema,
     }
 );
