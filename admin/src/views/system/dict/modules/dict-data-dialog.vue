@@ -60,6 +60,7 @@ const formRef = ref()
 
 // 表单数据
 const formData = reactive({
+    dictCode: undefined as number | undefined,
     dictLabel: '',
     dictType: '',
     dictValue: '',
@@ -68,6 +69,19 @@ const formData = reactive({
     tagType: '',
     customClass: '',
 })
+
+function getDefaultFormData(dictType = '') {
+    return {
+        dictCode: undefined as number | undefined,
+        dictLabel: '',
+        dictType,
+        dictValue: '',
+        dictSort: 0,
+        remark: '',
+        tagType: '',
+        customClass: '',
+    }
+}
 
 // 字典类型选项
 const dictTypeOptions = computed(() => {
@@ -150,16 +164,22 @@ const initFormData = () => {
     const isEdit = props.type === 'edit' && props.data
     const row = props.data
 
-    Object.assign(formData, {
-        ...row,
-        dictType: row?.dictType || '',
-        dictLabel: isEdit && row ? row.dictLabel || '' : '',
-        dictValue: isEdit && row ? row.dictValue || '' : '',
-        dictSort: isEdit && row ? row.dictSort || 0 : 0,
-        remark: isEdit && row ? row.remark || '' : '',
-        tagType: isEdit && row ? row.tagType || '' : '',
-        customClass: isEdit && row ? row.customClass || '' : '',
-    })
+    // 先重置为干净默认值，避免上次编辑字段（如 dictCode）残留到新增请求
+    Object.assign(formData, getDefaultFormData(row?.dictType || ''))
+
+    if (isEdit && row) {
+        Object.assign(formData, {
+            ...getDefaultFormData(row.dictType || ''),
+            dictCode: row.dictCode,
+            dictLabel: row.dictLabel || '',
+            dictType: row.dictType || '',
+            dictValue: row.dictValue || '',
+            dictSort: row.dictSort || 0,
+            remark: row.remark || '',
+            tagType: row.tagType || '',
+            customClass: row.customClass || '',
+        })
+    }
 }
 
 /**
@@ -203,6 +223,7 @@ const handleSubmit = async () => {
  */
 const handleClosed = () => {
     formRef.value?.reset()
+    Object.assign(formData, getDefaultFormData())
 }
 </script>
 

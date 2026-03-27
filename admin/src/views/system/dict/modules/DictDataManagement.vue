@@ -154,7 +154,7 @@ const handleSelectionChangeData = (selection: DictDataListItem[]): void => {
 const showDialogData = (type: DialogType, row?: DictDataListItem): void => {
     console.log('打开弹窗:', { type, row })
     dialogTypeData.value = type
-    currentDictDataData.value = row || { dictType: searchFormData.value.dictType }
+    currentDictDataData.value = row ? { ...row } : { dictType: searchFormData.value.dictType }
     nextTick(() => {
         dialogVisibleData.value = true
     })
