@@ -7,6 +7,7 @@ declare namespace Api {
             requestMethod: string;
             operatorType: string | null;
             userId: number | null;
+            operName: string | null;
             operUrl: string | null;
             operIp: string | null;
             operLocation: string | null;

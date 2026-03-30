@@ -1,7 +1,7 @@
 /*
 PostgreSQL Backup
 Database: elysia-admin/public
-Backup Time: 2026-03-27 10:25:26
+Backup Time: 2026-03-30 10:00:07
 */
 
 DROP SEQUENCE IF EXISTS "public"."business_merchant_id_seq";
@@ -348,7 +348,8 @@ CREATE TABLE "system_login_log" (
   "update_time" timestamptz(6),
   "update_by" int8,
   "del_flag" bool DEFAULT false,
-  "remark" varchar(255) COLLATE "pg_catalog"."default"
+  "remark" varchar(255) COLLATE "pg_catalog"."default",
+  "login_name" varchar(64) COLLATE "pg_catalog"."default"
 )
 ;
 ALTER TABLE "system_login_log" OWNER TO "postgres";
@@ -416,7 +417,8 @@ CREATE TABLE "system_oper_log" (
   "update_by" int8,
   "del_flag" bool DEFAULT false,
   "remark" varchar(255) COLLATE "pg_catalog"."default",
-  "action" varchar(255) COLLATE "pg_catalog"."default"
+  "action" varchar(255) COLLATE "pg_catalog"."default",
+  "oper_name" varchar(64) COLLATE "pg_catalog"."default"
 )
 ;
 ALTER TABLE "system_oper_log" OWNER TO "postgres";
@@ -539,7 +541,7 @@ COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_ip_black" IN SHARE MODE;
 DELETE FROM "public"."system_ip_black";
-INSERT INTO "public"."system_ip_black" ("ip_black_id","ip_address","status","create_time","create_by","update_time","update_by","del_flag","remark") VALUES (6, '192.168.2.3', 't', '2026-01-24 07:45:47.878+00', NULL, '2026-02-13 02:42:32.315+00', NULL, 'f', '测试黑名单功能')
+INSERT INTO "public"."system_ip_black" ("ip_black_id","ip_address","status","create_time","create_by","update_time","update_by","del_flag","remark") VALUES (6, '192.168.2.3', 't', '2026-01-24 07:45:47.878+00', NULL, '2026-03-30 01:52:30.745+00', 1, 'f', '测试黑名单功能')
 ;
 COMMIT;
 BEGIN;
@@ -583,7 +585,7 @@ COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_user" IN SHARE MODE;
 DELETE FROM "public"."system_user";
-INSERT INTO "public"."system_user" ("user_id","username","password","nickname","email","phone","sex","avatar","create_time","create_by","update_time","update_by","del_flag","remark","status","dept_id") VALUES (13, 'xiaomei', '$2b$10$ZVclyurmYrDZqiZE.L2/H.PCKgTENOM9u0Hh2zNv/QjvtnMrNgxhy', '罗德风', '2652365944@qq.com', NULL, '0', NULL, '2025-12-16 02:36:49.177028+00', NULL, NULL, NULL, 'f', NULL, 't', NULL),(20, 'admin123', '$2b$10$a5yygkWI2t3HZxGDqP3Ifej15jK/OyZ6eC4iL.c4x/QpmrLfeEbOa', '老妖', '423235235@qq.com', '19890987675', '1', NULL, '2026-02-04 06:39:33.443815+00', NULL, NULL, NULL, 'f', NULL, 't', 1),(14, 'qiaozhi', '$2b$10$6OiXvq9fYO.WS214b3m79e0UC4yk9cCftFUc4AKKBW/EcGuXxKwRu', '乔治', '43242@qq.com', '19898767656', '1', NULL, '2026-02-03 06:19:16.744+00', NULL, NULL, NULL, 'f', NULL, 't', 8),(1, 'admin', '$2b$10$YfJS21FBqTmpM4pc8I0j.uXX5rnhEiDM76Bm4u2h0mLzStfdFXgTi', '梅山老妖', '1360658549@qq.com', '19899999999', '0', 'http://192.168.2.22:9000/public/20260213/1770946743312_avatar.jpg', '2025-12-12 08:41:41.858+00', NULL, '2026-02-06 03:34:28.268+00', 1765869150583, 'f', '专注于用户体验跟视觉设计', 't', 4)
+INSERT INTO "public"."system_user" ("user_id","username","password","nickname","email","phone","sex","avatar","create_time","create_by","update_time","update_by","del_flag","remark","status","dept_id") VALUES (13, 'xiaomei', '$2b$10$ZVclyurmYrDZqiZE.L2/H.PCKgTENOM9u0Hh2zNv/QjvtnMrNgxhy', '罗德风', '2652365944@qq.com', NULL, '0', NULL, '2025-12-16 02:36:49.177028+00', NULL, NULL, NULL, 'f', NULL, 't', NULL),(20, 'admin123', '$2b$10$a5yygkWI2t3HZxGDqP3Ifej15jK/OyZ6eC4iL.c4x/QpmrLfeEbOa', '老妖', '423235235@qq.com', '19890987675', '1', NULL, '2026-02-04 06:39:33.443815+00', NULL, NULL, NULL, 'f', NULL, 't', 1),(14, 'qiaozhi', '$2b$10$6OiXvq9fYO.WS214b3m79e0UC4yk9cCftFUc4AKKBW/EcGuXxKwRu', '乔治', '43242@qq.com', '19898767656', '1', NULL, '2026-02-03 06:19:16.744+00', NULL, NULL, NULL, 'f', NULL, 't', 8),(1, 'admin', '$2b$10$YfJS21FBqTmpM4pc8I0j.uXX5rnhEiDM76Bm4u2h0mLzStfdFXgTi', '梅山老妖', '1360658549@qq.com', '19899999999', '0', '', '2025-12-12 08:41:41.858+00', NULL, '2026-02-06 03:34:28.268+00', 1765869150583, 'f', '专注于用户体验跟视觉设计', 't', 4)
 ;
 COMMIT;
 BEGIN;
@@ -678,7 +680,7 @@ SELECT setval('"system_ip_black_ip_black_id_seq"', 6, true);
 ALTER SEQUENCE "system_ip_black_ip_black_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_login_log_log_id_seq"
 OWNED BY "system_login_log"."log_id";
-SELECT setval('"system_login_log_log_id_seq"', 176, true);
+SELECT setval('"system_login_log_log_id_seq"', 183, true);
 ALTER SEQUENCE "system_login_log_log_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_menu_btn_btn_id_seq"
 OWNED BY "system_menu_btn"."btn_id";
@@ -690,7 +692,7 @@ SELECT setval('"system_menu_menu_id_seq"', 28, true);
 ALTER SEQUENCE "system_menu_menu_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_oper_log_oper_id_seq"
 OWNED BY "system_oper_log"."oper_id";
-SELECT setval('"system_oper_log_oper_id_seq"', 222, true);
+SELECT setval('"system_oper_log_oper_id_seq"', 224, true);
 ALTER SEQUENCE "system_oper_log_oper_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_role_role_id_seq"
 OWNED BY "system_role"."role_id";

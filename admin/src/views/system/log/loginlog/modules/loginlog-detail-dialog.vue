@@ -4,15 +4,20 @@
             <ElDescriptionsItem label="日志ID">
                 {{ data?.logId || '-' }}
             </ElDescriptionsItem>
-            <ElDescriptionsItem label="用户ID">
-                {{ data?.createBy || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="登录类型">
-                {{ data?.loginType || '-' }}
-            </ElDescriptionsItem>
             <ElDescriptionsItem label="登录状态">
                 <ElTag :type="data?.status ? 'success' : 'danger'">
                     {{ data?.status ? '成功' : '失败' }}
+                </ElTag>
+            </ElDescriptionsItem>
+            <ElDescriptionsItem label="用户ID">
+                {{ data?.createBy || '-' }}
+            </ElDescriptionsItem>
+            <ElDescriptionsItem label="用户">
+                {{ data?.loginName || '-' }}
+            </ElDescriptionsItem>
+            <ElDescriptionsItem label="登录类型">
+                <ElTag :type="dictStore.getTagType('system_user_type', data?.loginType || '')">
+                    {{ dictStore.getDictLabel('system_user_type', data?.loginType || '') }}
                 </ElTag>
             </ElDescriptionsItem>
             <ElDescriptionsItem label="客户端类型">
@@ -53,7 +58,10 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { useDictStore } from '@/store/modules/dict'
 import { ElTag } from 'element-plus'
+
+const dictStore = useDictStore()
 
 interface Props {
     visible: boolean

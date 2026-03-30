@@ -7,6 +7,7 @@ export const systemLoginLogSchema = pgTable(
     {
         logId: bigserial('log_id', { mode: 'number' }).primaryKey(), // 登录日志 ID
         loginType: varchar('login_type', { length: 32 }), // 登录类型
+        loginName: varchar('login_name', { length: 64 }), // 登录用户名称
         clientType: varchar('client_type', { length: 32 }), // 客户端类型
         clientPlatform: varchar('client_platform', { length: 32 }), // 客户端平台
         ipaddr: varchar('ipaddr', { length: 128 }), // IP 地址

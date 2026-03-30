@@ -56,7 +56,7 @@ export async function accountPasswordLogin(ctx: Context) {
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
-        (ctx.headers as any).userId = user.userId || '';
+        (ctx as any).user = userInfo;
         return BaseResultData.ok(tokens);
     } catch (error) {
         return BaseResultData.fail(500, error);

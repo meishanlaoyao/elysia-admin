@@ -61,7 +61,7 @@ const {
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
             { type: 'index', width: 60, label: '序号', align: 'center' }, // 序号
-            { prop: 'createBy', label: '用户ID', align: 'center' },
+            { prop: 'loginName', label: '用户', align: 'center' },
             {
                 prop: 'loginType', label: '用户类型', align: 'center', formatter: (row: LoginLogListItem) => h(
                     ElTag,

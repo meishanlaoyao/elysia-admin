@@ -1,56 +1,61 @@
 <template>
     <ElDialog v-model="dialogVisible" title="操作日志详情" width="750px" align-center>
-        <ElDescriptions :column="2" border label-width="90px">
-            <ElDescriptionsItem label="日志ID">
-                {{ data?.operId || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作人员">
-                {{ data?.userId || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="模块">
-                {{ data?.title || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作">
-                {{ data?.action || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作状态">
-                <ElTag :type="data?.status ? 'success' : 'danger'">
-                    {{ data?.status ? '成功' : '失败' }}
-                </ElTag>
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="请求方式">
-                <ElTag :type="dictStore.getTagType('api_request_method', data?.requestMethod)">
-                    {{ dictStore.getDictLabel('api_request_method', data?.requestMethod) || '-' }}
-                </ElTag>
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作类型">
-                {{ data?.operatorType || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作IP">
-                {{ data?.operIp || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作地点">
-                {{ data?.operLocation || '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="请求URL" :span="2">
-                <div class="url-text">{{ data?.operUrl || '-' }}</div>
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="耗时">
-                {{ data?.costTime !== null && data?.costTime !== undefined ? `${data.costTime} ms` : '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="操作时间">
-                {{ data?.createTime ? dayjs(data.createTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="请求参数" :span="2">
-                <div class="json-text">{{ formatJson(data?.operParam) }}</div>
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="返回结果" :span="2">
-                <div class="json-text">{{ formatJson(data?.jsonResult) }}</div>
-            </ElDescriptionsItem>
-            <ElDescriptionsItem label="备注" :span="2">
-                {{ data?.remark || '-' }}
-            </ElDescriptionsItem>
-        </ElDescriptions>
+        <div class="dialog-content">
+            <ElDescriptions :column="2" border label-width="100px">
+                <ElDescriptionsItem label="日志ID">
+                    {{ data?.operId || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作状态">
+                    <ElTag :type="data?.status ? 'success' : 'danger'">
+                        {{ data?.status ? '成功' : '失败' }}
+                    </ElTag>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作员ID">
+                    {{ data?.userId || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作人员">
+                    {{ data?.operName || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="模块">
+                    {{ data?.title || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作">
+                    {{ data?.action || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="请求方式">
+                    <ElTag :type="dictStore.getTagType('api_request_method', data?.requestMethod)">
+                        {{ dictStore.getDictLabel('api_request_method', data?.requestMethod) || '-' }}
+                    </ElTag>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作类型">
+                    {{ data?.operatorType || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作IP">
+                    {{ data?.operIp || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作地点">
+                    {{ data?.operLocation || '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="耗时">
+                    {{ data?.costTime !== null && data?.costTime !== undefined ? `${data.costTime} ms` : '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="操作时间">
+                    {{ data?.createTime ? dayjs(data.createTime).format('YYYY-MM-DD HH:mm:ss') : '-' }}
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="请求URL" :span="2">
+                    <div class="url-text">{{ data?.operUrl || '-' }}</div>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="请求参数" :span="2">
+                    <div class="json-text">{{ formatJson(data?.operParam) }}</div>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="返回结果" :span="2">
+                    <div class="json-text">{{ formatJson(data?.jsonResult) }}</div>
+                </ElDescriptionsItem>
+                <ElDescriptionsItem label="备注" :span="2">
+                    {{ data?.remark || '-' }}
+                </ElDescriptionsItem>
+            </ElDescriptions>
+        </div>
         <template #footer>
             <div class="dialog-footer">
                 <ElButton @click="dialogVisible = false">关闭</ElButton>
@@ -99,20 +104,26 @@ const formatJson = (jsonStr: string | null | undefined): string => {
 </script>
 
 <style scoped lang="scss">
-.url-text,
-.json-text {
-    word-break: break-all;
-    white-space: pre-wrap;
-    line-height: 1.5;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    max-height: 300px;
+.dialog-content {
+    margin-top: -20px;
+    max-height: 50vh;
     overflow-y: auto;
-}
 
-.json-text {
-    background-color: var(--el-fill-color-light);
-    padding: 8px;
-    border-radius: 4px;
+    .url-text,
+    .json-text {
+        word-break: break-all;
+        white-space: pre-wrap;
+        line-height: 1.5;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .json-text {
+        background-color: var(--el-fill-color-light);
+        padding: 8px;
+        border-radius: 4px;
+    }
 }
 </style>

@@ -3,6 +3,7 @@ declare namespace Api {
         interface LoginLogListItem {
             logId?: number;
             loginType?: string;
+            loginName?: string;
             clientType?: string;
             clientPlatform?: string;
             ipaddr?: string;

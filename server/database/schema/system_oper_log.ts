@@ -11,6 +11,7 @@ export const systemOperLogSchema = pgTable(
         requestMethod: varchar('request_method', { length: 10 }), // 请求方式 GET / POST / PUT / DELETE
         operatorType: varchar('operator_type', { length: 32 }), // 操作人类型 admin / user / anonymous
         userId: bigint('user_id', { mode: 'number' }), // 操作人 ID
+        operName: varchar('oper_name', { length: 64 }), // 操作人名称
         operUrl: varchar('oper_url', { length: 256 }), // 操作URL
         operIp: varchar('oper_ip', { length: 128 }), // 操作IP
         operLocation: varchar('oper_location', { length: 256 }), // 操作地点
