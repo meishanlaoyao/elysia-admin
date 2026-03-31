@@ -17,7 +17,7 @@ declare namespace Api {
             remark?: null | string;
         }
 
-        type StorageList = Api.Common.PaginatedResponse<StorageListItem>;
+        type StorageList = Api.Common.PaginatedResponse<StorageListItem>
 
         type StorageSearchParams = Partial<
             Pick<StorageListItem, 'name'> &

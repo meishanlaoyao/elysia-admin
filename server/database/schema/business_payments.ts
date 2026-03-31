@@ -2,14 +2,14 @@ import { pgTable, bigserial, varchar, jsonb, bigint, decimal } from 'drizzle-orm
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@database/base-schema';
 import { businessOrdersSchema } from './business_orders';
-import { merchantPaymentConfigsSchema } from './merchant_payment_configs';
+import { businessMerchantConfigsSchema } from './business_merchant';
 
 export const businessPaymentsSchema = pgTable(
     'business_payments',
     {
         id: bigserial('id', { mode: 'number' }).primaryKey(), // 支付记录ID
         orderId: bigint('order_id', { mode: 'number' }).notNull().references(() => businessOrdersSchema.id), // 关联订单ID
-        merchantConfigId: bigint('merchant_config_id', { mode: 'number' }).notNull().references(() => merchantPaymentConfigsSchema.id), // 关联商户配置ID
+        merchantConfigId: bigint('merchant_config_id', { mode: 'number' }).notNull().references(() => businessMerchantConfigsSchema.id), // 关联商户配置ID
         paymentNo: varchar('payment_no', { length: 64 }).unique(), // 支付订单号
         channel: varchar('channel', { length: 20 }).notNull(), // 支付渠道
         platform: varchar('platform', { length: 20 }), // 支付平台 (字典：system_pay_platform)

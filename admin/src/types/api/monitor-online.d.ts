@@ -13,7 +13,7 @@ declare namespace Api {
             loginTime: Date;
         }
 
-        type OnlineList = Api.Common.PaginatedResponse<OnlineListItem>;
+        type OnlineList = Api.Common.PaginatedResponse<OnlineListItem>
 
         type OnlineSearchParams = Partial<Api.Common.CommonSearchParams>
     }

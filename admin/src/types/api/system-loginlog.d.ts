@@ -20,7 +20,7 @@ declare namespace Api {
             remark?: null | string;
         }
 
-        type LoginLogList = Api.Common.PaginatedResponse<LoginLogListItem>;
+        type LoginLogList = Api.Common.PaginatedResponse<LoginLogListItem>
 
         type LoginLogSearchParams = Partial<
             Api.Common.CommonSearchParams

@@ -1,6 +1,6 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="title" width="600px" align-center @closed="handleClosed">
-        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="100px"
+    <ElDialog v-model="dialogVisible" :title="title" width="500px" align-center @closed="handleClosed">
+        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="80px"
             :show-reset="false" :show-submit="false" />
         <template #footer>
             <div class="dialog-footer">
@@ -12,17 +12,17 @@
 </template>
 
 <script setup lang="ts">
-import { fetchCreateJob, fetchUpdateJob } from '@/api/monitor/job'
+import { fetchCreateMerchant, fetchUpdateMerchant } from '@/api/business/merchant'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
 import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 
-type JobListItem = Api.MonitorJob.JobListItem
+type MerchantListItem = Api.BusinessMerchant.MerchantListItem
 
 interface Props {
     visible: boolean
     type: string
-    data?: Partial<JobListItem>
+    data?: Partial<MerchantListItem>
 }
 
 interface Emits {
@@ -40,39 +40,21 @@ const dialogVisible = computed({
 })
 const loading = ref(false)
 
-const title = computed(() => (props.type === 'add' ? '新增定时任务' : '编辑定时任务'))
+const title = computed(() => (props.type === 'add' ? '新增商户' : '编辑商户'))
 
 // 表单实例
 const formRef = ref()
 
 // 表单数据
-const formData = reactive({
-    jobName: '',
-    jobCron: '',
-    jobArgs: '',
-    status: true,
-    remark: ''
-})
+const formData = ref<Partial<MerchantListItem>>()
 
 // 表单项配置
 const formItems = computed<FormItem[]>(() => [
     {
-        label: '任务名称',
-        key: 'jobName',
+        label: '商户名称',
+        key: 'name',
         type: 'input',
-        props: { placeholder: '请输入任务名称' }
-    },
-    {
-        label: 'Cron表达式',
-        key: 'jobCron',
-        type: 'input',
-        props: { placeholder: '请输入Cron表达式，如：0 0 * * * ?' }
-    },
-    {
-        label: '任务参数',
-        key: 'jobArgs',
-        type: 'input',
-        props: { type: 'textarea', rows: 3, placeholder: '请输入任务参数，如：["param1", "param2"]' }
+        props: { placeholder: '请输入商户名称' }
     },
     {
         label: '状态',
@@ -89,16 +71,10 @@ const formItems = computed<FormItem[]>(() => [
 
 // 表单验证规则
 const rules: FormRules = {
-    jobName: [
-        { required: true, message: '请输入任务名称', trigger: 'blur' },
+    name: [
+        { required: true, message: '请输入商户名称', trigger: 'blur' },
         { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
     ],
-    jobCron: [
-        { required: true, message: '请输入Cron表达式', trigger: 'blur' }
-    ],
-    jobArgs: [
-        { required: true, message: '请输入任务参数', trigger: 'blur' }
-    ]
 }
 
 /**
@@ -109,30 +85,16 @@ const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
     const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        jobName: isEdit && row.jobName ? row.jobName || '' : '',
-        jobCron: isEdit && row.jobCron ? row.jobCron || '' : '',
-        jobArgs: isEdit && row.jobArgs ? row.jobArgs || '' : '',
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true
-    })
-}
-
-/**
- * 监听对话框状态变化
- * 当对话框打开时初始化表单数据
- */
-watch(
-    () => props.visible,
-    (visible) => {
-        if (visible) {
-            nextTick(() => {
-                initFormData()
-            })
+    if (isEdit) {
+        formData.value = { ...row }
+    } else {
+        formData.value = {
+            name: '',
+            status: true,
+            remark: ''
         }
     }
-)
+}
 
 /**
  * 提交表单
@@ -144,9 +106,9 @@ const handleSubmit = () => {
         try {
             loading.value = true
             if (props.type === 'add') {
-                await fetchCreateJob(formData as JobListItem)
+                await fetchCreateMerchant(formData.value!)
             } else {
-                await fetchUpdateJob(formData as JobListItem)
+                await fetchUpdateMerchant(formData.value!)
             }
             emit('submit')
             dialogVisible.value = false
@@ -164,4 +126,21 @@ const handleSubmit = () => {
 const handleClosed = () => {
     formRef.value?.reset()
 }
+
+/**
+ * 监听对话框状态变化
+ * 当对话框打开时初始化表单数据
+ */
+watch(
+    () => props.visible,
+    (visible) => {
+        if (visible) {
+            nextTick(() => {
+                initFormData()
+            })
+        }
+    }
+)
 </script>
+
+<style scoped lang='scss'></style>

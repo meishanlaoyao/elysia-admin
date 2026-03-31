@@ -23,7 +23,7 @@ declare namespace Api {
             remark?: null | string;
         }
 
-        type OperLogList = Api.Common.PaginatedResponse<OperLogListItem>;
+        type OperLogList = Api.Common.PaginatedResponse<OperLogListItem>
 
         type OperLogSearchParams = Partial<
             Api.Common.CommonSearchParams

@@ -9,7 +9,6 @@
                 </ElSpace>
             </div>
         </template>
-
         <div v-loading="loading" class="detail-content">
             <template v-if="cacheType && (cacheKey !== undefined && cacheKey !== null)">
                 <div v-if="cacheValue || detailData.length > 0" class="detail-wrapper">
@@ -23,9 +22,7 @@
                             <span class="value">{{ cacheKey }}</span>
                         </div>
                     </div>
-
                     <ElDivider />
-
                     <div class="detail-editor">
                         <div class="editor-header">
                             <span>缓存值</span>
@@ -40,15 +37,12 @@
                                 </ElButton>
                             </ElSpace>
                         </div>
-
                         <ElInput v-model="cacheValue" type="textarea" :rows="20" placeholder="缓存值"
                             class="cache-textarea" />
                     </div>
                 </div>
-
                 <ElEmpty v-else description="暂无缓存数据" />
             </template>
-
             <ElEmpty v-else description="请先选择缓存键" />
         </div>
     </ElCard>
@@ -90,7 +84,6 @@ const loadDetail = async () => {
         originalValue.value = ''
         return
     }
-
     loading.value = true
     try {
         const res = await fetchGetCacheKey({

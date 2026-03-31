@@ -78,11 +78,25 @@ export const useDictStore = defineStore(
             return item?.tagType || 'primary'
         }
 
+        /**
+         * 获取字典key获取字典数据对象
+         * @param dictType 字典类型
+         * @param keyField 字典key字段
+         * @param keyValue 字典key值
+         * @returns 字典value
+         */
+        const getDictItemByKey = (dictType: string, keyField: keyof Api.SystemDict.DictDataListItem = 'dictValue', keyValue: string = ''): Api.SystemDict.DictDataListItem | undefined => {
+            const dict = getDictData([dictType])[dictType]
+            const item = dict.value?.find(item => item[keyField] === keyValue)
+            return item || undefined
+        }
+
         return {
             dictData,
             getDictData,
             getDictLabel,
             getTagType,
+            getDictItemByKey,
         }
     }
 )

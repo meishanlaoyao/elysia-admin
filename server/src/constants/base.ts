@@ -1,4 +1,9 @@
 /**
  * 敏感字段名列表
  */
-export const SensitiveFields = ['password', 'token'];
+export const SensitiveFields = [
+    'password',
+    'token',
+    'privateKey',
+    'publicKey',
+];

@@ -308,11 +308,11 @@
       "cache": "Cache List"
     },
     "business": {
-      "title": "Payment Management",
+      "title": "Payment Module",
       "merchant": "Merchant Manage",
       "orders": "Order Manage",
       "payments": "Payment Record",
-      "refund": "Refund Manage"
+      "refund": "Refund Record"
     }
   },
   "table": {

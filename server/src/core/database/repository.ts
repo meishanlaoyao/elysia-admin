@@ -365,8 +365,8 @@ export async function FindPage<T extends PgTable>(
 export interface JoinConfig<T extends PgTable = any, J extends PgTable = any> {
     joinSchema: J; // 要联查的表 schema
     fieldName: string; // 联查结果存放的字段名
-    foreignKey: string | PgColumn; // 主表的外键字段
-    primaryKey: string | PgColumn; // 联查表的主键字段
+    foreignKey: string | PgColumn; // 要联查的表的外键字段
+    primaryKey: string | PgColumn; // 主表的主键字段
     defaultValue?: any; // 联查没有结果时的默认值
     where?: SQL | undefined; // 联查表的额外查询条件
     multiple?: boolean; // 是否返回多条记录（默认 true）

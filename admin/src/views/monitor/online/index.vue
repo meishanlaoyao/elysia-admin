@@ -97,8 +97,8 @@ const {
                     const buttons = []
                     if (auth.hasAuth('monitor:online:forceLogout')) {
                         buttons.push(h(ArtButtonTable, {
-                            type: 'delete',
-                            text: '强退',
+                            icon: 'majesticons:status-offline',
+                            class: 'bg-error/12 text-error',
                             onClick: () => forceLogout(row)
                         }))
                     }

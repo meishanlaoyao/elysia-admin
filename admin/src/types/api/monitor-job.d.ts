@@ -14,7 +14,7 @@ declare namespace Api {
             remark?: null | string;
         }
 
-        type JobList = Api.Common.PaginatedResponse<JobListItem>;
+        type JobList = Api.Common.PaginatedResponse<JobListItem>
 
         type JobSearchParams = Partial<
             Pick<JobListItem, 'jobName' | 'status'> &

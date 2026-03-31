@@ -14,7 +14,7 @@
     <template #footer>
       <span class="dialog-footer">
         <ElButton @click="handleCancel">取 消</ElButton>
-        <ElButton type="primary" @click="handleSubmit">确 定</ElButton>
+        <ElButton type="primary" :loading="loading" @click="handleSubmit">确 定</ElButton>
       </span>
     </template>
   </ElDialog>
@@ -96,6 +96,7 @@ const emit = defineEmits<Emits>()
 
 const formRef = ref()
 const isEdit = ref(false)
+const loading = ref(false)
 
 const form = reactive<MenuFormData>({
   menuType: 'menu',
@@ -275,18 +276,17 @@ const resetForm = (): void => {
  * 加载表单数据（编辑模式）
  */
 const loadFormData = (): void => {
+  loading.value = false
   if (!props.editData) {
     isEdit.value = false
     return
   }
-
   // 如果 editData 只有 parentMenuId，说明是新增子项，不是编辑
   if (props.editData.parentMenuId && !props.editData.menuId && !props.editData.btnId) {
     isEdit.value = false
     // 清除可能残留的 ID
     delete form.menuId
     delete form.btnId
-
     // 如果是新增菜单，设置 parentId
     if (form.menuType === 'menu') {
       form.parentId = props.editData.parentMenuId
@@ -296,11 +296,9 @@ const loadFormData = (): void => {
     }
     return
   }
-
   // 检查是否真的是编辑模式（必须有 menuId 或 btnId）
   const hasMenuId = props.editData.menuId && typeof props.editData.menuId === 'number'
   const hasBtnId = props.editData.btnId && typeof props.editData.btnId === 'number'
-
   if (!hasMenuId && !hasBtnId) {
     isEdit.value = false
     // 清除可能残留的 ID
@@ -308,9 +306,7 @@ const loadFormData = (): void => {
     delete form.btnId
     return
   }
-
   isEdit.value = true
-
   if (form.menuType === 'menu') {
     const row = props.editData
     form.menuId = row.menuId
@@ -351,10 +347,12 @@ const handleSubmit = async (): Promise<void> => {
   if (!formRef.value) return
 
   try {
+    loading.value = true
     await formRef.value.validate()
     emit('submit', { ...form })
     handleCancel()
   } catch {
+    loading.value = false
     ElMessage.error('表单校验失败，请检查输入')
   }
 }

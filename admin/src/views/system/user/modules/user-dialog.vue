@@ -6,7 +6,7 @@
     <template #footer>
       <div class="dialog-footer">
         <ElButton @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+        <ElButton type="primary" :loading="loading" @click="handleSubmit">提交</ElButton>
       </div>
     </template>
   </ElDialog>
@@ -43,6 +43,8 @@ const dialogVisible = computed({
   get: () => props.visible,
   set: (value) => emit('update:visible', value)
 })
+
+const loading = ref(false)
 
 const dialogType = computed(() => props.type)
 
@@ -224,6 +226,7 @@ const handleGetDeptOptions = async () => {
  * 根据对话框类型（新增/编辑）填充表单
  */
 const initFormData = () => {
+  loading.value = false
   const isEdit = props.type === 'edit' && props.data
   const row = props.data || {}
   if (isEdit && row.userId) {
@@ -258,6 +261,7 @@ const handleSubmit = async () => {
   if (!formRef.value) return
   formRef.value.validate().then(async () => {
     try {
+      loading.value = true
       if (dialogType.value == 'add') {
         await fetchCreateUser(formData)
       } else {
@@ -265,7 +269,9 @@ const handleSubmit = async () => {
       }
       emit('submit')
       dialogVisible.value = false
-    } catch { }
+    } catch {
+      loading.value = false
+    }
   }).catch(() => {
     ElMessage.error('表单校验失败，请检查输入')
   })

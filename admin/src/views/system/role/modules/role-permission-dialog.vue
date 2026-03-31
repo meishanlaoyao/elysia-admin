@@ -171,21 +171,16 @@ const savePermission = async () => {
     ElMessage.error('角色信息不存在')
     return
   }
-
   try {
     loading.value = true
     const tree = treeRef.value
     if (!tree) return
-
     // 使用 check-strictly 模式后，只需要获取选中的节点，不需要半选中节点
     const checkedKeys = tree.getCheckedKeys() as (number | string)[]
-
     // 构建权限数组，区分菜单和按钮
     const permissions: Array<{ menuId: number; menuBtnId?: number }> = []
-
     // 用于记录已处理的菜单ID，避免重复
     const processedMenuIds = new Set<number>()
-
     checkedKeys.forEach(key => {
       if (typeof key === 'string' && key.startsWith('btn_')) {
         // 按钮权限：需要找到对应的菜单ID
@@ -206,7 +201,6 @@ const savePermission = async () => {
             }
             return null
           }
-
           const menuId = findMenuIdForBtn(menuTreeData.value)
           if (menuId) {
             permissions.push({ menuId, menuBtnId: btnId })
@@ -237,12 +231,10 @@ const savePermission = async () => {
 const toggleExpandAll = () => {
   const tree = treeRef.value
   if (!tree) return
-
   const nodes = tree.store.nodesMap
   Object.values(nodes).forEach((node: any) => {
     node.expanded = !isExpandAll.value
   })
-
   isExpandAll.value = !isExpandAll.value
 }
 
@@ -269,9 +261,7 @@ const getAllNodeKeys = (nodes: MenuListItem[]): (number | string)[] => {
 const toggleSelectAll = () => {
   const tree = treeRef.value
   if (!tree) return
-
   const shouldSelectAll = !isSelectAll.value
-
   if (shouldSelectAll) {
     const allKeys = getAllNodeKeys(menuTreeData.value)
     tree.setCheckedKeys(allKeys)
@@ -288,10 +278,8 @@ const toggleSelectAll = () => {
 const handleTreeCheck = () => {
   const tree = treeRef.value
   if (!tree) return
-
   const checkedKeys = tree.getCheckedKeys()
   const allKeys = getAllNodeKeys(menuTreeData.value)
-
   isSelectAll.value = checkedKeys.length === allKeys.length && allKeys.length > 0
 }
 </script>

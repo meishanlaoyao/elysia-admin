@@ -14,7 +14,7 @@ declare namespace Api {
             remark?: null | string;
         }
 
-        type ApiList = Api.Common.PaginatedResponse<ApiListItem>;
+        type ApiList = Api.Common.PaginatedResponse<ApiListItem>
 
         type ApiSearchParams = Partial<
             Pick<ApiListItem, 'apiName' | 'apiPath' | 'apiMethod'> &

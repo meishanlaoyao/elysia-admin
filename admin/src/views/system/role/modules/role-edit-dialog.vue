@@ -5,7 +5,7 @@
       :show-reset="false" :show-submit="false" />
     <template #footer>
       <ElButton @click="handleClosed">取消</ElButton>
-      <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+      <ElButton type="primary" :loading="loading" @click="handleSubmit">提交</ElButton>
     </template>
   </ElDialog>
 </template>
@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const loading = ref(false)
 const formRef = ref()
 
 /**
@@ -127,6 +128,7 @@ watch(
  * 根据弹窗类型填充表单或重置表单
  */
 const initFormData = () => {
+  loading.value = false
   const isEdit = props.dialogType === 'edit' && props.roleData
   const row = props.roleData || {}
   Object.assign(form, {
@@ -156,6 +158,7 @@ const handleSubmit = async () => {
   if (!formRef.value) return
   formRef.value.validate().then(async () => {
     try {
+      loading.value = true
       if (props.dialogType == 'add') {
         await fetchCreateRole(form)
       } else {
@@ -163,7 +166,9 @@ const handleSubmit = async () => {
       }
       emit('submit')
       visible.value = false
-    } catch { }
+    } catch {
+      loading.value = false
+    }
   }).catch(() => {
     ElMessage.error('表单校验失败，请检查输入')
   })

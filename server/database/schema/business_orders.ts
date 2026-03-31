@@ -16,7 +16,7 @@ export const businessOrdersSchema = pgTable(
         currency: varchar('currency', { length: 10 }).default('CNY'), // 货币类型
         status: varchar('status', { length: 20 }).default('0'), // 订单状态 （字典：system_orders_status）
         expireAt: timestamp('expire_at'), // 订单过期时间
-        paymentMethod: varchar('payment_method', { length: 20 }), // 支付方式
+        paymentMethod: varchar('payment_method', { length: 20 }).notNull(), // 支付方式
         extra: jsonb('extra').default({}), // 扩展字段（用于保存业务附加信息）
         ...BaseSchema,
     }
