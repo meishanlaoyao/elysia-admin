@@ -62,7 +62,10 @@ interface IConfig {
     guard: {
         ipBlacklist: boolean;
         apiSwitch: boolean;
-    }
+    },
+    orders: {
+        timeout: number;
+    },
 };
 
 export default config as IConfig;

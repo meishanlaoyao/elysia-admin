@@ -4,6 +4,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useDictStore } from '@/store/modules/dict'
+
 interface Props {
     modelValue: Record<string, any>
 }
@@ -15,6 +18,9 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const dictStore = useDictStore()
+const { system_orders_status, system_pay_method } = dictStore.getDictData(['system_orders_status', 'system_pay_method'])
+
 // 表单数据双向绑定
 const searchBarRef = ref()
 const formData = computed({
@@ -25,22 +31,36 @@ const formData = computed({
 // 表单配置
 const formItems = computed(() => [
     {
-        label: '商户名称',
-        key: 'name',
+        label: '订单号',
+        key: 'orderNo',
         type: 'input',
-        props: { placeholder: '请输入商户名称' },
-        clearable: true
+        props: { placeholder: '请输入订单号', clearable: true },
+    },
+    {
+        label: '支付方式',
+        key: 'paymentMethod',
+        type: 'select',
+        props: {
+            placeholder: '请选择支付方式',
+            clearable: true,
+            options: system_pay_method.value?.map(item => ({
+                label: item.dictLabel,
+                value: item.dictValue
+            })) || []
+        },
     },
     {
         label: '状态',
         key: 'status',
         type: 'select',
-        placeholder: '请选择状态',
-        clearable: true,
-        options: [
-            { label: '启用', value: true },
-            { label: '禁用', value: false }
-        ]
+        props: {
+            placeholder: '请选择状态',
+            clearable: true,
+            options: system_orders_status.value?.map(item => ({
+                label: item.dictLabel,
+                value: item.dictValue
+            })) || []
+        },
     },
     {
         label: '创建日期',
@@ -65,14 +85,12 @@ const formItems = computed(() => [
 
 // 事件
 function handleReset() {
-    console.log('重置表单')
     emit('reset')
 }
 
 async function handleSearch() {
     await searchBarRef.value.validate()
     emit('search', formData.value)
-    console.log('表单数据', formData.value)
 }
 </script>
 

@@ -66,6 +66,7 @@ const selectedRows = ref<MerchantListItem[]>([])
 const searchForm = ref({
     name: undefined,
     status: undefined,
+    daterange: undefined,
 })
 
 const {

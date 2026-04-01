@@ -52,3 +52,6 @@ smtp:
 guard:
   ipBlacklist: true # 是否启用IP黑名单
   apiSwitch: true # 是否启用api开关
+
+orders:
+  timeout: 900000 # 订单超时时间 15分钟（毫秒）
