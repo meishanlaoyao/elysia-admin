@@ -1,4 +1,4 @@
-import type { IRouteModule } from "@/core/route";
+import type { IRouteModule } from "@/types/route";
 import { accountPasswordLogin, refreshToken, registerUser, forgetPassword, resetPassword, logout } from "./handle";
 import { AccountPasswordLoginDto, RegisterUserDto, ForgetPasswordDto, ResetPasswordDto, RefreshTokenDto } from "./dto";
 

@@ -1,7 +1,7 @@
 import { t } from 'elysia';
 import config from '@/config';
 import type { Elysia } from "elysia";
-import type { IRoute } from "@/core/route";
+import type { IRoute } from "@/types/route";
 import { LoadRouteModules } from '@/core/route-registry';
 
 export const RouteList: { tags: string[], route: IRoute }[] = [];

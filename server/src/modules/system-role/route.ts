@@ -1,4 +1,4 @@
-import type { IRouteModule } from "@/core/route";
+import type { IRouteModule } from "@/types/route";
 import { create, findList, findOptions, findOne, update, remove, findOnePermission, updatePermission } from "./handle";
 import { CreateDto, UpdateDto, ListDto, UpdatePermissionDto } from './dto';
 

@@ -1,4 +1,4 @@
-import type { IRouteModule } from "@/core/route";
+import type { IRouteModule } from "@/types/route";
 import { findTypeList, findCacheList, findKey, updateKey, removeType, removeKey } from './handle';
 import { CacheListDto, CacheKeyDto, UpdateCacheDto } from './dto';
 

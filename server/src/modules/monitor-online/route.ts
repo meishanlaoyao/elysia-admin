@@ -1,4 +1,4 @@
-import type { IRouteModule } from "@/core/route";
+import type { IRouteModule } from "@/types/route";
 import { ListDto } from './dto';
 import { findList, forceLogout } from './handle';
 

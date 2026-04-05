@@ -1,4 +1,4 @@
-import type { IRouteModule } from '@/core/route';
+import type { IRouteModule } from '@/types/route';
 import { logger } from '@/shared/logger';
 
 /**

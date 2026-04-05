@@ -1,4 +1,4 @@
-import type { IRouteModule } from "@/core/route";
+import type { IRouteModule } from "@/types/route";
 import { findSimple, findTree, createMenu, createMenuBtn, updateMenu, removeMenu, updateMenuBtn, removeMenuBtn } from "./handle";
 import { CreateMenuDto, CreateMenuBtnDto, FindAllMenuDto, UpdateMenuDto, UpdateMenuBtnDto } from './dto';
 
