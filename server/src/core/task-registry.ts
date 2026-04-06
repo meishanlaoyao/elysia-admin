@@ -1,6 +1,6 @@
 import { RegisterTasks } from '@/shared/cron';
 import { logger } from '@/shared/logger';
-import type { ITask } from '@/core/task';
+import type { ITask } from '@/types/task';
 
 /**
  * 注册所有任务

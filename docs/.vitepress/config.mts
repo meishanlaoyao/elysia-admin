@@ -32,11 +32,15 @@ export default defineConfig({
       {
         text: '指南',
         items: [
-          { text: '权限管理', link: '/guide/rbac' },
-          { text: '接口开发规范', link: '/guide/api-dev' },
-          { text: '文件存储', link: '/guide/storage' },
+          { text: '第一个接口', link: '/guide/first-api' },
+          { text: '参数验证', link: '/guide/parameter-validation' },
           { text: '定时任务', link: '/guide/cron' },
-          { text: '日志与监控', link: '/guide/logging' },
+          { text: '数据库操作', link: '/guide/database-operation' },
+          { text: '缓存操作', link: '/guide/cache' },
+          { text: '文件存储', link: '/guide/storage' },
+          { text: '中间件', link: '/guide/middleware' },
+          { text: '部署', link: '/guide/deploy' },
+          { text: '最佳实践', link: '/guide/best-practices' },
         ]
       },
       {
@@ -44,16 +48,7 @@ export default defineConfig({
         items: [
           { text: '项目结构', link: '/architecture/structure' },
           { text: '数据库设计', link: '/architecture/database' },
-          { text: '全栈类型安全', link: '/architecture/type-safety' },
           { text: '内置命令', link: '/architecture/commands' },
-        ]
-      },
-      {
-        text: '运维',
-        items: [
-          { text: 'Docker 部署', link: '/deploy/docker' },
-          { text: 'PM2 部署', link: '/deploy/pm2' },
-          { text: '环境变量', link: '/deploy/env' },
         ]
       },
       {

@@ -1,7 +1,7 @@
 import { Cron } from 'croner';
 import { logger } from './logger';
-import type { ITask } from '@/core/task';
 import { RedisLock } from '@/core/database/redis-lock';
+import type { ITask } from '@/types/task';
 
 // 存储所有定时任务实例
 const cronJobs = new Map<string, Cron>();
