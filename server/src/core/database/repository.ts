@@ -234,8 +234,8 @@ export async function UpdateByKeyAndRes<T extends PgTable>(
  * 通用批量软删除函数 - 优化版
  * @param schema - Drizzle ORM 表 schema
  * @param keyColumnName - 主键字段名（字符串）
- * @param values - 主键值数组
- * @param autoUpdateTime - 是否自动更新 updateTime 字段，默认为 true
+ * @param ctx - Elysia 上下文对象
+ * @param customData - 自定义数据删除
  * @returns 删除操作的结果
  */
 export async function SoftDeleteByKeys<T extends PgTable>(
