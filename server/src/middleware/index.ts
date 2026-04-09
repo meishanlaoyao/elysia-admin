@@ -1,13 +1,13 @@
 import { Elysia } from 'elysia'
 import config from '@/config';
-import { AuthGuard } from '@/guards/auth';
-import { PermissionGuard } from '@/guards/permission';
-import { IpBlackGuard } from '@/guards/ipblack';
-import { ApiGuard } from '@/guards/api';
-import { IpRateLimitGuard, IpRateLimitRecord } from '@/guards/ipratelimit';
-import { AnalysisRoute } from './analysis';
-import { AddOperLog } from '@/modules/system-oper-log/handle';
 import { logger } from '@/shared/logger';
+import { AddOperLog } from '@/modules/system-oper-log/handle';
+import { AnalysisRoute } from './analysis';
+import { AuthGuard } from './guards/auth';
+import { PermissionGuard } from './guards/permission';
+import { IpBlackGuard } from './guards/ipblack';
+import { ApiGuard } from './guards/api';
+import { IpRateLimitGuard, IpRateLimitRecord } from './guards/ipratelimit';
 
 const { guard } = config;
 const isPrint = false; // 是否打印日志

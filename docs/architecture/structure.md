@@ -256,12 +256,6 @@ elysia-admin
 │   │   ├── result.ts             # 结果处理层
 │   │   ├── route-registry.ts     # 路由注册层
 │   │   └── task-registry.ts      # 任务注册层
-│   ├── guards                    # 守卫层
-│   │   ├── api.ts                # API 开关
-│   │   ├── auth.ts               # 认证守卫
-│   │   ├── ipblack.ts            # IP 黑名单守卫
-│   │   ├── ipratelimit.ts        # IP 限流守卫
-│   │   └── permission.ts         # 权限守卫
 │   ├── infrastructure            # 基础设施层
 │   │   ├── clients               # 客户端层
 │   │   │   └── smtp.ts           # SMTP 客户端实例
@@ -274,6 +268,12 @@ elysia-admin
 │   │       ├── index.ts          # 存储提供层总入口
 │   │       └── types.ts          # 存储提供层类型定义文件
 │   ├── middleware                # 中间件层
+│   │   ├── guards                    # 守卫层
+│   │   │   ├── api.ts                # API 开关
+│   │   │   ├── auth.ts               # 认证守卫
+│   │   │   ├── ipblack.ts            # IP 黑名单守卫
+│   │   │   ├── ipratelimit.ts        # IP 限流守卫
+│   │   │   └── permission.ts         # 权限守卫
 │   │   ├── analysis.ts           # 分析中间件
 │   │   └── index.ts              # 中间件层总入口
 │   ├── modules                   # 模块层

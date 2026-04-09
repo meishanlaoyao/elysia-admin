@@ -1,1 +1,342 @@
 # 部署
+
+本章将介绍如何将 `Elysia Admin` 部署到生产环境，包括无运维面板部署和有运维面板部署两种方式。
+
+## 无运维面板部署
+
+### 二进制部署
+
+二进制部署是最简单的部署方式，通过 `build:binary` 命令将应用构建为独立的可执行文件，无需安装 `Node.js` 或 `Bun` 运行时。
+
+**注意事项：**
+- `Bun` 不支持跨平台编译，必须在目标平台上进行打包
+- 在 `Windows` 平台打包只能得到 `Windows` 可执行文件
+- 在 `Linux` 平台打包只能得到 `Linux` 可执行文件
+
+**打包步骤：**
+
+1. 进入 `server` 目录并设置生产环境变量：
+```bash
+cd server
+
+# Windows
+$env:NODE_ENV="production"; bun run build:binary
+
+# Linux / macOS
+NODE_ENV="production" bun run build:binary
+```
+
+2. 打包完成后，会在 `dist_binary` 目录下生成可执行文件 `server`（Linux/macOS）或 `server.exe`（Windows）
+
+3. 将可执行文件上传到服务器，并配置生产环境配置文件 `production.yaml`
+
+4. 直接运行：
+```bash
+# Linux / macOS
+./server
+
+# Windows
+server.exe
+```
+
+**使用 systemd 管理服务（Linux）：**
+
+创建服务文件 `/etc/systemd/system/elysia-admin.service`：
+```ini
+[Unit]
+Description=Elysia Admin Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/your/app
+ExecStart=/path/to/your/app/server
+Restart=on-failure
+RestartSec=10
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+```
+
+启动服务：
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable elysia-admin
+sudo systemctl start elysia-admin
+sudo systemctl status elysia-admin
+```
+
+### Docker 部署
+
+`Docker` 部署适合容器化环境，提供了良好的隔离性和可移植性。
+
+**前置要求：**
+- 已安装 Docker
+- 已安装 Docker Compose（可选）
+
+**部署步骤：**
+
+1. 进入 server 目录：
+```bash
+cd server
+```
+
+2. 构建 Docker 镜像：
+```bash
+bun docker:build
+# 或者
+docker build -t hnq1/elysia-admin:latest .
+```
+
+3. 运行容器：
+```bash
+bun docker:run
+# 或者
+docker run -d \
+  --name elysia-admin \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -v /path/to/production.yaml:/app/production.yaml \
+  hnq1/elysia-admin:latest
+```
+
+**使用 Docker Compose（推荐）：**
+
+创建 `docker-compose.yml` 文件：
+```yaml
+version: '3.8'
+
+services:
+  app:
+    image: hnq1/elysia-admin:latest
+    container_name: elysia-admin
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./production.yaml:/app/production.yaml
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: elysia-admin-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=elysia_admin
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=your_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: elysia-admin-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+启动服务：
+```bash
+docker-compose up -d
+```
+
+**常用 Docker 命令：**
+```bash
+# 查看日志
+bun docker:logs
+# 或者
+docker logs -f elysia-admin
+
+# 停止容器
+bun docker:stop
+
+# 删除容器
+bun docker:rm
+
+# 重启容器
+docker restart elysia-admin
+```
+
+### PM2 部署
+
+`PM2` 是一个生产级的 `Node.js` 进程管理器，提供了负载均衡、自动重启、日志管理等功能。
+
+**前置要求：**
+- 服务器已安装 `Node.js`（建议 v22.13.0 或更高版本）
+- 已安装 `PM2` 和 `Bun`
+
+**安装依赖：**
+```bash
+npm i -g pm2 bun
+```
+
+**部署步骤：**
+
+1. 进入 `server` 目录并进行打包：
+```bash
+cd server
+
+# Windows
+$env:NODE_ENV="production"; bun run build
+
+# Linux / macOS
+NODE_ENV="production" bun run build
+```
+
+2. 打包完成后，会在 `dist` 目录下生成以下文件：
+```
+dist
+├── public/              # 静态资源目录
+├── ecosystem.config.cjs # PM2 配置文件
+├── index.js             # 应用入口文件
+└── production.yaml      # 生产环境配置文件
+```
+
+3. 将 `dist` 目录上传到服务器。
+
+4. 在服务器上启动应用：
+```bash
+cd /path/to/app/dist
+pm2 start ecosystem.config.cjs
+```
+
+**PM2 常用命令：**
+```bash
+# 查看应用状态
+pm2 status
+
+# 查看应用日志
+pm2 logs elysia-admin
+
+# 重启应用
+pm2 restart elysia-admin
+
+# 停止应用
+pm2 stop elysia-admin
+
+# 删除应用
+pm2 delete elysia-admin
+
+# 保存 PM2 进程列表（开机自启）
+pm2 save
+
+# 设置 PM2 开机自启
+pm2 startup
+```
+## 有服务器运维面板
+
+### 宝塔面板
+
+宝塔面板是一款简单易用的服务器运维面板，支持一键部署和管理应用。
+
+**推荐版本：** >= 11.0.0
+
+**安装宝塔面板：**
+
+访问 [宝塔官网](https://www.bt.cn/new/download.html) 下载并安装宝塔面板。
+
+**部署步骤：**
+
+1. 安装环境依赖
+
+进入宝塔面板，依次安装以下软件：
+- `PostgreSQL`（推荐 16.x）
+- `Redis`（推荐 7.x）
+- `Nginx`（用于反向代理）
+
+2. 安装 Node.js 和 Bun
+
+在宝塔面板中进入 `网站` -> `Node项目`，安装 `Node.js`（推荐 v22.13.0 或更高版本）。
+
+然后在终端中安装 Bun：
+```bash
+npm i -g bun
+```
+
+3. 上传项目文件
+
+将打包后的 `dist` 目录上传到服务器（例如：`/www/wwwroot/elysia-admin`）
+
+4. 配置 Node 项目
+
+在宝塔面板的 `Node项目` 中添加项目：
+
+![项目配置](/guide/3.png)
+
+5. 启动项目
+
+在 Node 项目管理页面点击 `启动` 按钮，或在终端中执行：
+```bash
+cd /www/wwwroot/elysia-admin
+pm2 start ecosystem.config.cjs
+```
+
+## 部署后检查
+
+部署完成后，建议进行以下检查：
+
+1. **健康检查：** 访问 `http://your-domain/` 确认应用正常运行
+
+2. **日志检查：** 查看应用日志，确认没有错误信息
+```bash
+# PM2 部署
+pm2 logs elysia-admin
+
+# Docker 部署
+docker logs elysia-admin
+
+# 二进制部署（systemd）
+journalctl -u elysia-admin -f
+```
+
+3. **性能监控：** 使用 PM2 监控应用性能
+```bash
+pm2 monit
+```
+
+4. **数据库连接：** 确认应用能正常连接数据库和 Redis
+
+5. **API 测试：** 测试关键 API 接口是否正常响应
+
+## 安全建议
+
+1. **修改默认端口：** 不要使用默认的 3000 端口
+
+2. **配置防火墙：** 只开放必要的端口（80、443）
+
+3. **使用 HTTPS：** 配置 SSL 证书，强制使用 HTTPS
+
+4. **定期更新：** 及时更新系统和依赖包
+
+5. **备份数据：** 定期备份数据库和重要文件
+
+6. **限制访问：** 配置 IP 白名单或使用 VPN
+
+## 故障排查
+
+如果部署过程中遇到问题，可以按以下步骤排查：
+
+1. 查看应用日志，定位错误信息
+2. 检查端口是否被占用：`netstat -tunlp | grep 3000`
+3. 检查防火墙规则：`firewall-cmd --list-all`
+4. 验证数据库连接：使用数据库客户端测试连接
+5. 检查文件权限：确保应用有读写权限
+6. 查看系统资源：`top` 或 `htop` 检查 CPU 和内存使用情况
+
+如果问题仍未解决，请查看 [常见问题](/other/faq.html) 或在 Gitee 提交 Issue。

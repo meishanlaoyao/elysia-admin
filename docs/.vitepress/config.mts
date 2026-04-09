@@ -40,7 +40,6 @@ export default defineConfig({
           { text: '文件存储', link: '/guide/storage' },
           { text: '中间件', link: '/guide/middleware' },
           { text: '部署', link: '/guide/deploy' },
-          { text: '最佳实践', link: '/guide/best-practices' },
         ]
       },
       {
