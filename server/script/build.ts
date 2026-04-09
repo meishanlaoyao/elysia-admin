@@ -58,8 +58,8 @@ const ecosystemConfig = `// PM2 配置文件
 module.exports = {
   apps: [{
     name: '${appConfig.app.id}', // 应用名称
-    script: 'bun', // 启动脚本 如果不是全局的，需要指定bun的完整路径
-    args: 'index.js', // 启动参数
+    script: 'bun', // 启动脚本 如果没有配置环境变量，就需要指定bun的完整路径
+    args: 'run index.js', // 启动参数
     watch: false, // 不监听文件变化
     max_memory_restart: '500M', // 内存超过 500M 自动重启
     env: {
