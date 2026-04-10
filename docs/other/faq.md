@@ -36,7 +36,7 @@ module.exports = {
   ]
 };
 ```
-```conf
+```txt
 # nginx
 http {
     upstream elysia_app {
