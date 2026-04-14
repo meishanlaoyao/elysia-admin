@@ -35,11 +35,13 @@
 - 追求开发效率：希望降低学习成本，拒绝重复造轮子，需要一套开箱即用、规范化的全栈脚手架。
 
 ## 在线体验
-- 官网地址：<http://elysia-admin.top>
-- 演示地址：<http://elysia-admin.top/admin>
+- 官网地址：<https://elysia-admin.top>
+- 演示地址：<https://elysia-admin.top/admin>
   - 账号：`admin`
   - 密码：`123456` (建议仅用于体验，勿修改核心数据)
-- 代码下载：<https://gitee.com/nian-qian/elysia-admin>
+- 代码下载：
+  - gitee仓库：<https://gitee.com/nian-qian/elysia-admin>
+  - github仓库：<https://github.com/meishanlaoyao/elysia-admin>
 
 **提示**：演示环境为公共测试服，请勿进行破坏性操作。
 

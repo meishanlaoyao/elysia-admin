@@ -63,7 +63,7 @@ export default defineConfig({
       label: '目录'
     },
     socialLinks: [
-      // { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+      { icon: 'github', link: 'https://github.com/meishanlaoyao/elysia-admin' },
       { icon: 'gitee', link: 'https://gitee.com/nian-qian/elysia-admin' },
     ],
     editLink: {

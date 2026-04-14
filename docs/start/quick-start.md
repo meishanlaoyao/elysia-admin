@@ -13,7 +13,11 @@
 ## 下载源码
 
 ```bash
+# gitee
 git clone https://gitee.com/nian-qian/elysia-admin.git
+
+# github
+git clone https://github.com/meishanlaoyao/elysia-admin.git
 ```
 
 ## 启动项目
