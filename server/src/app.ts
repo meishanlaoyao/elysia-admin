@@ -1,12 +1,12 @@
 import { Elysia } from "elysia";
 import config from "@/config";
-import { queues } from '@/queue';
 import { cors } from '@elysiajs/cors';
 import { logger } from '@/shared/logger';
 import { RegisterRoutes } from '@/modules';
 import { BaseResultData } from '@/core/result';
 import { staticPlugin } from '@elysiajs/static';
 import { BunAdapter } from 'elysia/adapter/bun';
+import { queues } from '@/infrastructure/queue';
 import { createBullBoard } from '@bull-board/api';
 import { ElysiaAdapter } from '@bull-board/elysia';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
