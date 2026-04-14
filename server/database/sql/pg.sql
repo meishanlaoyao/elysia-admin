@@ -1,7 +1,7 @@
 /*
 PostgreSQL Backup
 Database: elysia-admin/public
-Backup Time: 2026-04-09 11:06:58
+Backup Time: 2026-04-14 13:32:53
 */
 
 DROP SEQUENCE IF EXISTS "public"."business_merchant_id_seq";
@@ -19,6 +19,8 @@ DROP SEQUENCE IF EXISTS "public"."system_login_log_log_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_menu_btn_btn_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_menu_menu_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_oper_log_oper_id_seq";
+DROP SEQUENCE IF EXISTS "public"."system_queue_queue_id_seq";
+DROP SEQUENCE IF EXISTS "public"."system_redis_config_redis_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_role_role_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_storage_storage_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_user_user_id_seq";
@@ -37,6 +39,8 @@ DROP TABLE IF EXISTS "public"."system_login_log";
 DROP TABLE IF EXISTS "public"."system_menu";
 DROP TABLE IF EXISTS "public"."system_menu_btn";
 DROP TABLE IF EXISTS "public"."system_oper_log";
+DROP TABLE IF EXISTS "public"."system_queue";
+DROP TABLE IF EXISTS "public"."system_redis_config";
 DROP TABLE IF EXISTS "public"."system_role";
 DROP TABLE IF EXISTS "public"."system_role_menu";
 DROP TABLE IF EXISTS "public"."system_storage";
@@ -127,6 +131,18 @@ MAXVALUE 9223372036854775807
 START 1
 CACHE 1;
 CREATE SEQUENCE "system_oper_log_oper_id_seq" 
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE SEQUENCE "system_queue_queue_id_seq" 
+INCREMENT 1
+MINVALUE  1
+MAXVALUE 9223372036854775807
+START 1
+CACHE 1;
+CREATE SEQUENCE "system_redis_config_redis_id_seq" 
 INCREMENT 1
 MINVALUE  1
 MAXVALUE 9223372036854775807
@@ -422,6 +438,40 @@ CREATE TABLE "system_oper_log" (
 )
 ;
 ALTER TABLE "system_oper_log" OWNER TO "postgres";
+CREATE TABLE "system_queue" (
+  "queue_id" int8 NOT NULL DEFAULT nextval('system_queue_queue_id_seq'::regclass),
+  "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "key" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "redis_id" int8 NOT NULL,
+  "concurrency" int4 NOT NULL DEFAULT 1,
+  "status" bool DEFAULT true,
+  "create_time" timestamptz(6) DEFAULT now(),
+  "create_by" int8,
+  "update_time" timestamptz(6),
+  "update_by" int8,
+  "del_flag" bool DEFAULT false,
+  "remark" varchar(255) COLLATE "pg_catalog"."default"
+)
+;
+ALTER TABLE "system_queue" OWNER TO "postgres";
+CREATE TABLE "system_redis_config" (
+  "redis_id" int8 NOT NULL DEFAULT nextval('system_redis_config_redis_id_seq'::regclass),
+  "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
+  "host" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
+  "port" int4 NOT NULL DEFAULT 6379,
+  "username" varchar(100) COLLATE "pg_catalog"."default",
+  "password" varchar(255) COLLATE "pg_catalog"."default",
+  "db" int4 NOT NULL DEFAULT 0,
+  "status" bool DEFAULT true,
+  "create_time" timestamptz(6) DEFAULT now(),
+  "create_by" int8,
+  "update_time" timestamptz(6),
+  "update_by" int8,
+  "del_flag" bool DEFAULT false,
+  "remark" varchar(255) COLLATE "pg_catalog"."default"
+)
+;
+ALTER TABLE "system_redis_config" OWNER TO "postgres";
 CREATE TABLE "system_role" (
   "role_id" int8 NOT NULL DEFAULT nextval('system_role_role_id_seq'::regclass),
   "role_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -553,11 +603,13 @@ COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_login_log" IN SHARE MODE;
 DELETE FROM "public"."system_login_log";
+INSERT INTO "public"."system_login_log" ("log_id","login_type","client_type","client_platform","ipaddr","login_location","user_agent","os","message","status","create_time","create_by","update_time","update_by","del_flag","remark","login_name") VALUES (190, 'admin', 'web', 'chrome', '127.0.0.1', '内网地址', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'Windows 10/11', '操作成功', 't', '2026-04-11 03:08:15.412106+00', 1, NULL, NULL, 'f', NULL, 'admin'),(191, 'admin', 'web', 'chrome', '127.0.0.1', '内网地址', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'Windows 10/11', '操作成功', 't', '2026-04-14 01:35:40.562436+00', 1, NULL, NULL, 'f', NULL, 'admin'),(192, 'admin', 'web', 'chrome', '127.0.0.1', '内网地址', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'Windows 10/11', '操作成功', 't', '2026-04-14 02:05:02.472273+00', 1, NULL, NULL, 'f', NULL, 'admin'),(193, 'admin', 'web', 'chrome', '127.0.0.1', '内网地址', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'Windows 10/11', '操作成功', 't', '2026-04-14 02:05:45.402643+00', 1, NULL, NULL, 'f', NULL, 'admin'),(194, 'admin', 'web', 'chrome', '127.0.0.1', '内网地址', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'Windows 10/11', '操作成功', 't', '2026-04-14 02:14:40.578726+00', 1, NULL, NULL, 'f', NULL, 'admin')
+;
 COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_menu" IN SHARE MODE;
 DELETE FROM "public"."system_menu";
-INSERT INTO "public"."system_menu" ("menu_id","path","name","component","title","icon","show_badge","show_text_badge","is_hide","is_hide_tab","link","is_iframe","keep_alive","fixed_tab","create_time","create_by","update_time","update_by","del_flag","remark","active_path","sort","parent_id","status","is_full_page") VALUES (1, '/dashboard', 'Dashboard', '/index/index', 'menus.dashboard.title', 'ri:pie-chart-line', 'f', NULL, 'f', 'f', NULL, 'f', 't', 'f', '2026-01-07 06:44:03.266366+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, NULL, 't', 'f'),(2, 'console', 'Console', '/dashboard/console', 'menus.dashboard.console', 'ri:home-smile-2-line', 'f', NULL, 'f', 'f', NULL, 'f', 'f', 't', '2026-01-07 06:53:09.690864+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, 1, 't', 'f'),(6, 'user-center', 'UserCenter', '/system/user-center', 'menus.system.userCenter', 'ri:user-line', 'f', NULL, 't', 't', NULL, 'f', 't', 'f', '2026-01-07 07:20:40.477837+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, 3, 't', 'f'),(7, 'menu', 'Menus', '/system/menu', 'menus.system.menu', 'ri:menu-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:21:53.540874+00', NULL, '2026-02-07 07:54:25.944+00', NULL, 'f', NULL, '', 2, 3, 't', 'f'),(8, 'dept', 'Dept', '/system/dept', 'menus.system.dept', 'material-symbols:groups-2-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:10.052595+00', NULL, '2026-02-07 07:54:30.697+00', NULL, 'f', NULL, '', 3, 3, 't', 'f'),(20, 'loginLog', 'LoginLog', '/system/log/loginlog', 'menus.system.loginLog', 'ri:login-circle-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:40:46.820945+00', NULL, NULL, NULL, 'f', NULL, '', 0, 19, 't', 'f'),(21, 'operLog', 'OperLog', '/system/log/operlog', 'menus.system.operLog', 'ri:settings-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:41:30.611732+00', NULL, NULL, NULL, 'f', NULL, '', 0, 19, 't', 'f'),(9, 'dict', 'Dict', '/system/dict', 'menus.system.dict', 'material-symbols:book-2-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:25.225276+00', NULL, '2026-02-07 07:54:36.764+00', NULL, 'f', NULL, '', 4, 3, 't', 'f'),(10, 'api', 'Api', '/system/api', 'menus.system.api', 'tabler:api', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:39.036648+00', NULL, '2026-02-07 07:54:44.057+00', NULL, 'f', NULL, '', 5, 3, 't', 'f'),(18, 'blacklist', 'Blacklist', '/system/blacklist', 'menus.system.blacklist', 'material-symbols:block-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-24 05:35:39.52242+00', NULL, '2026-02-07 07:54:50.803+00', NULL, 'f', NULL, '', 6, 3, 't', 'f'),(3, '/system', 'System', '/index/index', 'menus.system.title', 'ri:user-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 06:57:44.645285+00', NULL, '2026-02-11 07:00:27.571+00', NULL, 'f', NULL, '', 1, 0, 't', 'f'),(22, '/monitor', 'Monitor', '/index/index', 'menus.monitor.title', 'material-symbols:screenshot-monitor-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 06:54:25.075336+00', NULL, '2026-02-11 07:00:34.323+00', NULL, 'f', NULL, '', 2, 0, 't', 'f'),(19, 'log', 'Log', '', 'menus.system.log', 'ri:file-list-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:39:40.82449+00', NULL, '2026-02-11 08:46:25.261+00', NULL, 'f', NULL, '', 8, 3, 't', 'f'),(27, 'storage', 'Storage', '/system/storage', 'menus.system.storage', 'material-symbols:folder-data-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-11 08:47:49.316326+00', NULL, '2026-02-11 08:52:33.669+00', NULL, 'f', NULL, '', 7, 3, 't', 'f'),(28, 'cache', 'Cache', '/monitor/cache', 'menus.monitor.cache', 'devicon-plain:redis', 'f', '', 'f', 'f', '', 'f', 'f', 'f', '2026-03-03 01:33:32.38431+00', NULL, NULL, NULL, 'f', NULL, '', 0, 22, 't', 'f'),(4, 'user', 'User', '/system/user', 'menus.system.user', 'ri:user-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:03:52.388903+00', NULL, '2026-02-07 07:19:41.863+00', NULL, 'f', NULL, '', 0, 3, 't', 'f'),(23, 'online', 'Online', '/monitor/online', 'menus.monitor.online', 'majesticons:status-online', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 07:27:32.894399+00', NULL, '2026-02-07 07:29:04.073+00', NULL, 'f', NULL, '', 1, 22, 't', 'f'),(24, 'job', 'Job', '/monitor/job', 'menus.monitor.job', 'material-symbols:emoji-food-beverage-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 07:43:57.396393+00', NULL, NULL, NULL, 'f', NULL, '', 2, 22, 't', 'f'),(5, 'role', 'Role', '/system/role', 'menus.system.role', 'ri:user-settings-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:05:15.131251+00', NULL, '2026-02-07 07:54:13.275+00', NULL, 'f', NULL, '', 1, 3, 't', 'f'),(26, '/outside/iframe/openapi', 'OpenApi', '', 'menus.outside.openapi', 'akar-icons:graphql-fill', 'f', '', 'f', 'f', 'http://localhost:3000/api/openapi', 't', 't', 'f', '2026-02-11 06:55:41.405065+00', NULL, '2026-03-30 02:53:22.697+00', 1, 'f', NULL, '', 4, 0, 't', 'f'),(29, '/business', 'Business', '/index/index', 'menus.business.title', 'ic:baseline-payment', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:56:03.153104+00', 1, '2026-03-30 03:24:37.636+00', 1, 'f', NULL, '', 3, 0, 't', 'f'),(30, 'merchant', 'Merchant', '/business/merchant', 'menus.business.merchant', 'material-symbols:lock-person-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:57:41.733813+00', 1, '2026-03-30 03:25:52.057+00', 1, 'f', NULL, '', 0, 29, 't', 'f'),(31, 'orders', 'Orders', '/business/orders', 'menus.business.orders', 'material-symbols:orders-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:58:17.068076+00', 1, '2026-03-30 03:29:38.503+00', 1, 'f', NULL, '', 1, 29, 't', 'f'),(32, 'payments', 'Payments', '/business/payments', 'menus.business.payments', 'tabler:brand-paypal', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:58:49.41562+00', 1, '2026-03-30 03:29:51.609+00', 1, 'f', NULL, '', 2, 29, 't', 'f'),(33, 'refund', 'Refund', '/business/refund', 'menus.business.refund', 'material-symbols:quick-reference-all-outline-rounded', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 03:00:26.516263+00', 1, '2026-03-30 03:29:55.728+00', 1, 'f', NULL, '', 3, 29, 't', 'f')
+INSERT INTO "public"."system_menu" ("menu_id","path","name","component","title","icon","show_badge","show_text_badge","is_hide","is_hide_tab","link","is_iframe","keep_alive","fixed_tab","create_time","create_by","update_time","update_by","del_flag","remark","active_path","sort","parent_id","status","is_full_page") VALUES (1, '/dashboard', 'Dashboard', '/index/index', 'menus.dashboard.title', 'ri:pie-chart-line', 'f', NULL, 'f', 'f', NULL, 'f', 't', 'f', '2026-01-07 06:44:03.266366+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, NULL, 't', 'f'),(2, 'console', 'Console', '/dashboard/console', 'menus.dashboard.console', 'ri:home-smile-2-line', 'f', NULL, 'f', 'f', NULL, 'f', 'f', 't', '2026-01-07 06:53:09.690864+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, 1, 't', 'f'),(6, 'user-center', 'UserCenter', '/system/user-center', 'menus.system.userCenter', 'ri:user-line', 'f', NULL, 't', 't', NULL, 'f', 't', 'f', '2026-01-07 07:20:40.477837+00', NULL, NULL, NULL, 'f', NULL, NULL, 0, 3, 't', 'f'),(7, 'menu', 'Menus', '/system/menu', 'menus.system.menu', 'ri:menu-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:21:53.540874+00', NULL, '2026-02-07 07:54:25.944+00', NULL, 'f', NULL, '', 2, 3, 't', 'f'),(8, 'dept', 'Dept', '/system/dept', 'menus.system.dept', 'material-symbols:groups-2-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:10.052595+00', NULL, '2026-02-07 07:54:30.697+00', NULL, 'f', NULL, '', 3, 3, 't', 'f'),(20, 'loginLog', 'LoginLog', '/system/log/loginlog', 'menus.system.loginLog', 'ri:login-circle-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:40:46.820945+00', NULL, NULL, NULL, 'f', NULL, '', 0, 19, 't', 'f'),(21, 'operLog', 'OperLog', '/system/log/operlog', 'menus.system.operLog', 'ri:settings-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:41:30.611732+00', NULL, NULL, NULL, 'f', NULL, '', 0, 19, 't', 'f'),(9, 'dict', 'Dict', '/system/dict', 'menus.system.dict', 'material-symbols:book-2-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:25.225276+00', NULL, '2026-02-07 07:54:36.764+00', NULL, 'f', NULL, '', 4, 3, 't', 'f'),(10, 'api', 'Api', '/system/api', 'menus.system.api', 'tabler:api', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:22:39.036648+00', NULL, '2026-02-07 07:54:44.057+00', NULL, 'f', NULL, '', 5, 3, 't', 'f'),(18, 'blacklist', 'Blacklist', '/system/blacklist', 'menus.system.blacklist', 'material-symbols:block-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-24 05:35:39.52242+00', NULL, '2026-02-07 07:54:50.803+00', NULL, 'f', NULL, '', 6, 3, 't', 'f'),(3, '/system', 'System', '/index/index', 'menus.system.title', 'ri:user-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 06:57:44.645285+00', NULL, '2026-02-11 07:00:27.571+00', NULL, 'f', NULL, '', 1, 0, 't', 'f'),(22, '/monitor', 'Monitor', '/index/index', 'menus.monitor.title', 'material-symbols:screenshot-monitor-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 06:54:25.075336+00', NULL, '2026-02-11 07:00:34.323+00', NULL, 'f', NULL, '', 2, 0, 't', 'f'),(27, 'storage', 'Storage', '/system/storage', 'menus.system.storage', 'material-symbols:folder-data-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-11 08:47:49.316326+00', NULL, '2026-02-11 08:52:33.669+00', NULL, 'f', NULL, '', 7, 3, 't', 'f'),(28, 'cache', 'Cache', '/monitor/cache', 'menus.monitor.cache', 'devicon-plain:redis', 'f', '', 'f', 'f', '', 'f', 'f', 'f', '2026-03-03 01:33:32.38431+00', NULL, NULL, NULL, 'f', NULL, '', 0, 22, 't', 'f'),(4, 'user', 'User', '/system/user', 'menus.system.user', 'ri:user-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:03:52.388903+00', NULL, '2026-02-07 07:19:41.863+00', NULL, 'f', NULL, '', 0, 3, 't', 'f'),(23, 'online', 'Online', '/monitor/online', 'menus.monitor.online', 'majesticons:status-online', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 07:27:32.894399+00', NULL, '2026-02-07 07:29:04.073+00', NULL, 'f', NULL, '', 1, 22, 't', 'f'),(24, 'job', 'Job', '/monitor/job', 'menus.monitor.job', 'material-symbols:emoji-food-beverage-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-02-07 07:43:57.396393+00', NULL, NULL, NULL, 'f', NULL, '', 2, 22, 't', 'f'),(5, 'role', 'Role', '/system/role', 'menus.system.role', 'ri:user-settings-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-07 07:05:15.131251+00', NULL, '2026-02-07 07:54:13.275+00', NULL, 'f', NULL, '', 1, 3, 't', 'f'),(26, '/outside/iframe/openapi', 'OpenApi', '', 'menus.outside.openapi', 'akar-icons:graphql-fill', 'f', '', 'f', 'f', 'http://localhost:3000/api/openapi', 't', 't', 'f', '2026-02-11 06:55:41.405065+00', NULL, '2026-03-30 02:53:22.697+00', 1, 'f', NULL, '', 4, 0, 't', 'f'),(29, '/business', 'Business', '/index/index', 'menus.business.title', 'ic:baseline-payment', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:56:03.153104+00', 1, '2026-03-30 03:24:37.636+00', 1, 'f', NULL, '', 3, 0, 't', 'f'),(30, 'merchant', 'Merchant', '/business/merchant', 'menus.business.merchant', 'material-symbols:lock-person-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:57:41.733813+00', 1, '2026-03-30 03:25:52.057+00', 1, 'f', NULL, '', 0, 29, 't', 'f'),(31, 'orders', 'Orders', '/business/orders', 'menus.business.orders', 'material-symbols:orders-outline', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:58:17.068076+00', 1, '2026-03-30 03:29:38.503+00', 1, 'f', NULL, '', 1, 29, 't', 'f'),(32, 'payments', 'Payments', '/business/payments', 'menus.business.payments', 'tabler:brand-paypal', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 02:58:49.41562+00', 1, '2026-03-30 03:29:51.609+00', 1, 'f', NULL, '', 2, 29, 't', 'f'),(33, 'refund', 'Refund', '/business/refund', 'menus.business.refund', 'material-symbols:quick-reference-all-outline-rounded', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-03-30 03:00:26.516263+00', 1, '2026-03-30 03:29:55.728+00', 1, 'f', NULL, '', 3, 29, 't', 'f'),(34, '/outside/iframe/bullmq', 'Bullmq', '', 'menus.monitor.bullmq', 'mdi:bullseye-arrow', 'f', '', 'f', 'f', 'http://localhost:3000/api/bullmq', 't', 't', 'f', '2026-04-14 02:04:15.316618+00', 1, '2026-04-14 02:05:31.267+00', 1, 'f', NULL, '', 3, 22, 't', 'f'),(19, 'log', 'Log', '', 'menus.system.log', 'ri:file-list-3-line', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-01-31 08:39:40.82449+00', NULL, '2026-04-14 02:13:20.475+00', 1, 'f', NULL, '', 9, 3, 't', 'f'),(35, 'queue', 'Queue', '/system/queue', 'menus.system.queue', 'tdesign:queue', 'f', '', 'f', 'f', '', 'f', 't', 'f', '2026-04-14 02:14:12.208544+00', 1, NULL, NULL, 'f', NULL, '', 8, 3, 't', 'f')
 ;
 COMMIT;
 BEGIN;
@@ -569,6 +621,16 @@ COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_oper_log" IN SHARE MODE;
 DELETE FROM "public"."system_oper_log";
+INSERT INTO "public"."system_oper_log" ("oper_id","title","request_method","operator_type","user_id","oper_url","oper_ip","oper_location","oper_param","json_result","cost_time","status","create_time","create_by","update_time","update_by","del_flag","remark","action","oper_name") VALUES (284, '系统菜单', '2', NULL, NULL, '/api/system/menu', NULL, NULL, '{"body":{"title":"menus.monitor.bullmq","path":"/outside/iframe/bullmq","name":"Bullmq","component":"","icon":"mdi:bullseye-arrow","showBadge":false,"showTextBadge":"","isHide":false,"isHideTab":false,"link":"http://localhost:3000/api/bullmq","isIframe":false,"keepAlive":false,"fixedTab":false,"activePath":"","sort":0,"status":true,"parentId":22}}', '', 11, 'f', '2026-04-14 01:52:36.483504+00', NULL, NULL, NULL, 'f', NULL, '创建菜单', NULL),(285, '系统菜单', '2', 'admin', 1, '/api/system/menu', '127.0.0.1', '内网地址', '{"body":{"title":"menus.monitor.bullmq","path":"/outside/iframe/bullmq","name":"Bullmq","component":"","icon":"mdi:bullseye-arrow","showBadge":false,"showTextBadge":"","isHide":false,"isHideTab":false,"link":"http://localhost:3000/api/bullmq","isIframe":false,"keepAlive":true,"fixedTab":false,"activePath":"","sort":3,"status":true,"parentId":22,"createBy":1}}', '{"code":200,"msg":"操作成功","data":null}', 59, 't', '2026-04-14 02:04:15.326832+00', NULL, NULL, NULL, 'f', NULL, '创建菜单', 'admin'),(286, '系统角色', '3', 'admin', 1, '/api/system/role/permission', '127.0.0.1', '内网地址', '{"body":{"roleId":1,"permissions":[{"menuId":1},{"menuId":2},{"menuId":3},{"menuId":4},{"menuId":4,"menuBtnId":25},{"menuId":4,"menuBtnId":26},{"menuId":4,"menuBtnId":27},{"menuId":4,"menuBtnId":28},{"menuId":6},{"menuId":5},{"menuId":5,"menuBtnId":29},{"menuId":5,"menuBtnId":30},{"menuId":5,"menuBtnId":31},{"menuId":5,"menuBtnId":32},{"menuId":7},{"menuId":7,"menuBtnId":2},{"menuId":7,"menuBtnId":3},{"menuId":7,"menuBtnId":5},{"menuId":7,"menuBtnId":1},{"menuId":8},{"menuId":8,"menuBtnId":9},{"menuId":8,"menuBtnId":10},{"menuId":8,"menuBtnId":11},{"menuId":8,"menuBtnId":12},{"menuId":9},{"menuId":9,"menuBtnId":17},{"menuId":9,"menuBtnId":18},{"menuId":9,"menuBtnId":19},{"menuId":9,"menuBtnId":20},{"menuId":9,"menuBtnId":21},{"menuId":9,"menuBtnId":22},{"menuId":9,"menuBtnId":23},{"menuId":9,"menuBtnId":24},{"menuId":10},{"menuId":10,"menuBtnId":14},{"menuId":10,"menuBtnId":15},{"menuId":10,"menuBtnId":16},{"menuId":10,"menuBtnId":13},{"menuId":18},{"menuId":18,"menuBtnId":33},{"menuId":18,"menuBtnId":34},{"m', '{"code":200,"msg":"操作成功","data":null}', 41, 't', '2026-04-14 02:04:56.811753+00', NULL, NULL, NULL, 'f', NULL, '更新角色权限', 'admin'),(287, '系统菜单', '3', 'admin', 1, '/api/system/menu', '127.0.0.1', '内网地址', '{"body":{"menuId":34,"path":"/outside/iframe/bullmq","name":"Bullmq","component":"","title":"menus.monitor.bullmq","icon":"mdi:bullseye-arrow","showBadge":false,"showTextBadge":"","isHide":false,"isHideTab":false,"link":"http://localhost:3000/api/bullmq","isIframe":true,"keepAlive":true,"fixedTab":false,"activePath":"","sort":3,"status":true,"parentId":22,"updateBy":1,"updateTime":{}}}', '{"code":200,"msg":"操作成功","data":null}', 27, 't', '2026-04-14 02:05:31.281633+00', NULL, NULL, NULL, 'f', NULL, '更新菜单', 'admin'),(288, '系统菜单', '3', 'admin', 1, '/api/system/menu', '127.0.0.1', '内网地址', '{"body":{"menuId":19,"path":"log","name":"Log","component":"","title":"menus.system.log","icon":"ri:file-list-3-line","showBadge":false,"showTextBadge":"","isHide":false,"isHideTab":false,"link":"","isIframe":false,"keepAlive":true,"fixedTab":false,"activePath":"","sort":9,"status":true,"parentId":3,"updateBy":1,"updateTime":{}}}', '{"code":200,"msg":"操作成功","data":null}', 18, 't', '2026-04-14 02:13:20.490602+00', NULL, NULL, NULL, 'f', NULL, '更新菜单', 'admin'),(289, '系统菜单', '2', 'admin', 1, '/api/system/menu', '127.0.0.1', '内网地址', '{"body":{"title":"menus.system.queue","path":"queue","name":"Queue","component":"/system/queue","icon":"tdesign:queue","showBadge":false,"showTextBadge":"","isHide":false,"isHideTab":false,"link":"","isIframe":false,"keepAlive":true,"fixedTab":false,"activePath":"","sort":8,"status":true,"parentId":3,"createBy":1}}', '{"code":200,"msg":"操作成功","data":null}', 36, 't', '2026-04-14 02:14:12.222355+00', NULL, NULL, NULL, 'f', NULL, '创建菜单', 'admin'),(290, '系统角色', '3', 'admin', 1, '/api/system/role/permission', '127.0.0.1', '内网地址', '{"body":{"roleId":1,"permissions":[{"menuId":1},{"menuId":2},{"menuId":3},{"menuId":4},{"menuId":4,"menuBtnId":25},{"menuId":4,"menuBtnId":26},{"menuId":4,"menuBtnId":27},{"menuId":4,"menuBtnId":28},{"menuId":6},{"menuId":5},{"menuId":5,"menuBtnId":29},{"menuId":5,"menuBtnId":30},{"menuId":5,"menuBtnId":31},{"menuId":5,"menuBtnId":32},{"menuId":7},{"menuId":7,"menuBtnId":2},{"menuId":7,"menuBtnId":3},{"menuId":7,"menuBtnId":5},{"menuId":7,"menuBtnId":1},{"menuId":8},{"menuId":8,"menuBtnId":9},{"menuId":8,"menuBtnId":10},{"menuId":8,"menuBtnId":11},{"menuId":8,"menuBtnId":12},{"menuId":9},{"menuId":9,"menuBtnId":17},{"menuId":9,"menuBtnId":18},{"menuId":9,"menuBtnId":19},{"menuId":9,"menuBtnId":20},{"menuId":9,"menuBtnId":21},{"menuId":9,"menuBtnId":22},{"menuId":9,"menuBtnId":23},{"menuId":9,"menuBtnId":24},{"menuId":10},{"menuId":10,"menuBtnId":14},{"menuId":10,"menuBtnId":15},{"menuId":10,"menuBtnId":16},{"menuId":10,"menuBtnId":13},{"menuId":18},{"menuId":18,"menuBtnId":33},{"menuId":18,"menuBtnId":34},{"m', '{"code":200,"msg":"操作成功","data":null}', 26, 't', '2026-04-14 02:14:32.935277+00', NULL, NULL, NULL, 'f', NULL, '更新角色权限', 'admin')
+;
+COMMIT;
+BEGIN;
+LOCK TABLE "public"."system_queue" IN SHARE MODE;
+DELETE FROM "public"."system_queue";
+COMMIT;
+BEGIN;
+LOCK TABLE "public"."system_redis_config" IN SHARE MODE;
+DELETE FROM "public"."system_redis_config";
 COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_role" IN SHARE MODE;
@@ -579,7 +641,7 @@ COMMIT;
 BEGIN;
 LOCK TABLE "public"."system_role_menu" IN SHARE MODE;
 DELETE FROM "public"."system_role_menu";
-INSERT INTO "public"."system_role_menu" ("role_id","menu_id","menu_btn_id") VALUES (2, 1, NULL),(2, 2, NULL),(1, 1, NULL),(1, 2, NULL),(1, 3, NULL),(1, 4, NULL),(1, 4, 25),(1, 4, 26),(1, 4, 27),(1, 4, 28),(1, 6, NULL),(1, 5, NULL),(1, 5, 29),(1, 5, 30),(1, 5, 31),(1, 5, 32),(1, 7, NULL),(1, 7, 2),(1, 7, 3),(1, 7, 5),(1, 7, 1),(1, 8, NULL),(1, 8, 9),(1, 8, 10),(1, 8, 11),(1, 8, 12),(1, 9, NULL),(1, 9, 17),(1, 9, 18),(1, 9, 19),(1, 9, 20),(1, 9, 21),(1, 9, 22),(1, 9, 23),(1, 9, 24),(1, 10, NULL),(1, 10, 14),(1, 10, 15),(1, 10, 16),(1, 10, 13),(1, 18, NULL),(1, 18, 33),(1, 18, 34),(1, 18, 35),(1, 18, 36),(1, 27, NULL),(1, 27, 47),(1, 27, 48),(1, 27, 49),(1, 27, 50),(1, 19, NULL),(1, 20, NULL),(1, 20, 37),(1, 20, 38),(1, 21, NULL),(1, 21, 39),(1, 21, 40),(1, 22, NULL),(1, 28, NULL),(1, 28, 51),(1, 28, 52),(1, 28, 53),(1, 23, NULL),(1, 23, 41),(1, 23, 42),(1, 24, NULL),(1, 24, 43),(1, 24, 44),(1, 24, 45),(1, 24, 46),(1, 29, NULL),(1, 30, NULL),(1, 30, 54),(1, 30, 55),(1, 30, 57),(1, 30, 56),(1, 31, NULL),(1, 31, 58),(1, 31, 59),(1, 32, NULL),(1, 33, NULL),(1, 26, NULL)
+INSERT INTO "public"."system_role_menu" ("role_id","menu_id","menu_btn_id") VALUES (2, 1, NULL),(2, 2, NULL),(1, 1, NULL),(1, 2, NULL),(1, 3, NULL),(1, 4, NULL),(1, 4, 25),(1, 4, 26),(1, 4, 27),(1, 4, 28),(1, 6, NULL),(1, 5, NULL),(1, 5, 29),(1, 5, 30),(1, 5, 31),(1, 5, 32),(1, 7, NULL),(1, 7, 2),(1, 7, 3),(1, 7, 5),(1, 7, 1),(1, 8, NULL),(1, 8, 9),(1, 8, 10),(1, 8, 11),(1, 8, 12),(1, 9, NULL),(1, 9, 17),(1, 9, 18),(1, 9, 19),(1, 9, 20),(1, 9, 21),(1, 9, 22),(1, 9, 23),(1, 9, 24),(1, 10, NULL),(1, 10, 14),(1, 10, 15),(1, 10, 16),(1, 10, 13),(1, 18, NULL),(1, 18, 33),(1, 18, 34),(1, 18, 35),(1, 18, 36),(1, 27, NULL),(1, 27, 47),(1, 27, 48),(1, 27, 49),(1, 27, 50),(1, 35, NULL),(1, 19, NULL),(1, 20, NULL),(1, 20, 37),(1, 20, 38),(1, 21, NULL),(1, 21, 39),(1, 21, 40),(1, 22, NULL),(1, 28, NULL),(1, 28, 51),(1, 28, 52),(1, 28, 53),(1, 23, NULL),(1, 23, 41),(1, 23, 42),(1, 24, NULL),(1, 24, 43),(1, 24, 44),(1, 24, 45),(1, 24, 46),(1, 34, NULL),(1, 29, NULL),(1, 30, NULL),(1, 30, 54),(1, 30, 55),(1, 30, 57),(1, 30, 56),(1, 31, NULL),(1, 31, 58),(1, 31, 59),(1, 32, NULL),(1, 33, NULL),(1, 26, NULL)
 ;
 COMMIT;
 BEGIN;
@@ -615,6 +677,8 @@ ALTER TABLE "system_login_log" ADD CONSTRAINT "system_login_log_pkey" PRIMARY KE
 ALTER TABLE "system_menu" ADD CONSTRAINT "system_menu_pkey" PRIMARY KEY ("menu_id");
 ALTER TABLE "system_menu_btn" ADD CONSTRAINT "system_menu_btn_pkey" PRIMARY KEY ("btn_id");
 ALTER TABLE "system_oper_log" ADD CONSTRAINT "system_oper_log_pkey" PRIMARY KEY ("oper_id");
+ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_pkey" PRIMARY KEY ("queue_id");
+ALTER TABLE "system_redis_config" ADD CONSTRAINT "system_redis_config_pkey" PRIMARY KEY ("redis_id");
 ALTER TABLE "system_role" ADD CONSTRAINT "system_role_pkey" PRIMARY KEY ("role_id");
 ALTER TABLE "system_storage" ADD CONSTRAINT "system_storage_pkey" PRIMARY KEY ("storage_id");
 ALTER TABLE "system_user" ADD CONSTRAINT "system_user_pkey" PRIMARY KEY ("user_id");
@@ -632,6 +696,8 @@ ALTER TABLE "system_dict_type" ADD CONSTRAINT "system_dict_type_dict_name_unique
 ALTER TABLE "system_dict_type" ADD CONSTRAINT "system_dict_type_dict_type_unique" UNIQUE ("dict_type");
 ALTER TABLE "system_ip_black" ADD CONSTRAINT "system_ip_black_ip_address_unique" UNIQUE ("ip_address");
 ALTER TABLE "system_menu_btn" ADD CONSTRAINT "system_menu_btn_menu_id_system_menu_menu_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."system_menu" ("menu_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_key_unique" UNIQUE ("key");
+ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_redis_id_system_redis_config_redis_id_fk" FOREIGN KEY ("redis_id") REFERENCES "public"."system_redis_config" ("redis_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_menu_btn_id_system_menu_btn_btn_id_fk" FOREIGN KEY ("menu_btn_id") REFERENCES "public"."system_menu_btn" ("btn_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_menu_id_system_menu_menu_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."system_menu" ("menu_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_role_id_system_role_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."system_role" ("role_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -686,7 +752,7 @@ SELECT setval('"system_ip_black_ip_black_id_seq"', 6, true);
 ALTER SEQUENCE "system_ip_black_ip_black_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_login_log_log_id_seq"
 OWNED BY "system_login_log"."log_id";
-SELECT setval('"system_login_log_log_id_seq"', 189, true);
+SELECT setval('"system_login_log_log_id_seq"', 194, true);
 ALTER SEQUENCE "system_login_log_log_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_menu_btn_btn_id_seq"
 OWNED BY "system_menu_btn"."btn_id";
@@ -694,12 +760,20 @@ SELECT setval('"system_menu_btn_btn_id_seq"', 59, true);
 ALTER SEQUENCE "system_menu_btn_btn_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_menu_menu_id_seq"
 OWNED BY "system_menu"."menu_id";
-SELECT setval('"system_menu_menu_id_seq"', 33, true);
+SELECT setval('"system_menu_menu_id_seq"', 35, true);
 ALTER SEQUENCE "system_menu_menu_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_oper_log_oper_id_seq"
 OWNED BY "system_oper_log"."oper_id";
-SELECT setval('"system_oper_log_oper_id_seq"', 283, true);
+SELECT setval('"system_oper_log_oper_id_seq"', 290, true);
 ALTER SEQUENCE "system_oper_log_oper_id_seq" OWNER TO "postgres";
+ALTER SEQUENCE "system_queue_queue_id_seq"
+OWNED BY "system_queue"."queue_id";
+SELECT setval('"system_queue_queue_id_seq"', 1, false);
+ALTER SEQUENCE "system_queue_queue_id_seq" OWNER TO "postgres";
+ALTER SEQUENCE "system_redis_config_redis_id_seq"
+OWNED BY "system_redis_config"."redis_id";
+SELECT setval('"system_redis_config_redis_id_seq"', 1, false);
+ALTER SEQUENCE "system_redis_config_redis_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_role_role_id_seq"
 OWNED BY "system_role"."role_id";
 SELECT setval('"system_role_role_id_seq"', 6, true);
