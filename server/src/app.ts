@@ -1,11 +1,14 @@
 import { Elysia } from "elysia";
 import config from "@/config";
+import { queues } from '@/queue';
 import { cors } from '@elysiajs/cors';
 import { logger } from '@/shared/logger';
 import { RegisterRoutes } from '@/modules';
-import { BunAdapter } from 'elysia/adapter/bun';
-import { staticPlugin } from '@elysiajs/static';
 import { BaseResultData } from '@/core/result';
+import { staticPlugin } from '@elysiajs/static';
+import { BunAdapter } from 'elysia/adapter/bun';
+import { createBullBoard } from '@bull-board/api';
+import { ElysiaAdapter } from '@bull-board/elysia';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 
 /**
@@ -14,7 +17,7 @@ import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 export async function createApp() {
     const { prefix, maxRequestBodySize, timeout } = config.app;
     const app = new Elysia({
-        prefix,
+        prefix: prefix as any,
         normalize: true,
         adapter: BunAdapter,
         aot: true,
@@ -32,20 +35,50 @@ export async function createApp() {
     app.use(await staticPlugin());
 
     // 开发环境：启用 OpenAPI 文档
-    if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app as Elysia);
+    if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app);
+
+    // 配置 BullMQ UI
+    await configureBullMQUI(app);
 
     // 注册全局中间件
     GlobalMiddleware(app as Elysia);
-    GlobalResponseMiddleware(app as Elysia);
+    GlobalResponseMiddleware(app);
 
     // 配置全局错误处理
-    configureErrorHandler(app as Elysia);
+    configureErrorHandler(app);
 
     // 注册业务路由
-    const routeStats = await RegisterRoutes(app as Elysia);
+    const routeStats = await RegisterRoutes(app);
     logger.info(`✓ 路由注册完成: 公共接口 ${routeStats.publicCount} 个, 权限接口 ${routeStats.authCount} 个`);
 
     return app;
+};
+
+/**
+ * 配置 BullMQ UI
+ */
+async function configureBullMQUI(app: Elysia) {
+    try {
+        /**
+         * 如果你已经找到了这里，那么恭喜你孩子，我将告诉你解决方案：
+         * 去 node_modules\@bull-board\ui\dist\index.ejs 
+         * 修改 <base href="<%= basePath %>" />
+         * 改成 <base href="你的app.prefix即可<%= basePath %>" />
+         */
+        const serverAdapter = new ElysiaAdapter('/bullmq');
+        createBullBoard({
+            queues,
+            serverAdapter,
+            options: {
+                uiBasePath: 'node_modules/@bull-board/ui',
+            },
+        });
+        const bullboardPlugin = await serverAdapter.registerPlugin();
+        app.use(bullboardPlugin);
+        logger.info('BullMQ 已启用');
+    } catch (error) {
+        logger.error('BullMQ 配置失败', { error });
+    }
 };
 
 /**
@@ -74,6 +107,7 @@ async function configureOpenAPI(app: Elysia) {
  */
 function configureErrorHandler(app: Elysia) {
     app.onError(({ code, error, set }) => {
+        console.log(code, error)
         // 验证错误
         if (code === 'VALIDATION') {
             const errorMessage = (error as any).message || '验证失败';
@@ -85,7 +119,7 @@ function configureErrorHandler(app: Elysia) {
             return BaseResultData.fail(400, errorMessage);
         }
         // 资源不存在
-        else if (code === 'NOT_FOUND') {
+        else if (code === 'NOT_FOUND' || code == 404) {
             return BaseResultData.fail(404);
         }
         // 可能是自定义错误

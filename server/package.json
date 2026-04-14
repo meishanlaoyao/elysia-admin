@@ -21,14 +21,17 @@
     "docker:logs": "docker logs elysia-admin"
   },
   "dependencies": {
+    "@bull-board/api": "^6.21.1",
+    "@bull-board/elysia": "^6.21.1",
     "@elysiajs/cors": "^1.4.0",
     "@elysiajs/static": "^1.4.7",
+    "bullmq": "^5.73.4",
     "croner": "^10.0.1",
     "dayjs": "^1.11.19",
     "drizzle-orm": "^0.45.1",
     "drizzle-typebox": "^0.3.3",
     "elysia": "latest",
-    "ioredis": "^5.8.2",
+    "ioredis": "^5.10.1",
     "jose": "^6.1.3",
     "nodemailer": "^7.0.11",
     "postgres": "^3.4.7",

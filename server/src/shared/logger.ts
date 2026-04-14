@@ -60,10 +60,11 @@ class Logger {
         console.log(`🚀 ${appId} 启动成功`);
         console.log('='.repeat(60) + Colors.reset);
         console.log(`${Colors.bright}服务地址:${Colors.reset}     ${Colors.cyan}${baseUrl}${Colors.reset}`);
+        console.log(`${Colors.bright}BullMQ队列:${Colors.reset}   ${Colors.cyan}${baseUrl}/bullmq${Colors.reset}`);
         if (openApiEnabled) {
             console.log(`${Colors.bright}API文档:${Colors.reset}      ${Colors.cyan}${baseUrl}/openapi${Colors.reset}`);
             console.log(`${Colors.bright}OpenAPI JSON:${Colors.reset} ${Colors.cyan}${baseUrl}/openapi/json${Colors.reset}`);
-        }
+        };
         console.log(`${Colors.bright}启动时间:${Colors.reset}     ${new Date().toLocaleString('zh-CN')}`);
         console.log(`${Colors.bright}运行环境:${Colors.reset}     ${env === 'production' ? Colors.red : Colors.yellow}${env}${Colors.reset}`);
         console.log(`${Colors.bright}Bun版本:${Colors.reset}      ${bunVersion || 'N/A'}`);
