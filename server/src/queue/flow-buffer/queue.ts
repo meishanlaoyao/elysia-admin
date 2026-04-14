@@ -1,13 +1,13 @@
 /**
- * 系统调度队列
+ * 流量缓冲队列
  */
-import config from "@/config";
 import Redis from "ioredis";
-import { Queue, } from "bullmq";
+import config from "@/config";
+import { Queue } from "bullmq";
 
 const { id } = config.app;
-const SystemCronQueue = new Queue(
-    `${id}-system-cron-queue`,
+const FlowBufferQueue = new Queue(
+    `${id}-flow-buffer-queue`,
     {
         connection: new Redis({
             host: 'localhost',
@@ -20,4 +20,4 @@ const SystemCronQueue = new Queue(
     },
 );
 
-export default SystemCronQueue;
+export default FlowBufferQueue;

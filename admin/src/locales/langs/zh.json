@@ -298,14 +298,16 @@
       "log": "日志管理",
       "loginLog": "登陆日志",
       "operLog": "操作日志",
-      "storage": "存储配置"
+      "storage": "存储配置",
+      "queue": "队列配置"
     },
     "monitor": {
       "title": "系统监控",
       "online": "在线用户",
       "job": "定时任务",
       "server": "服务监控",
-      "cache": "缓存列表"
+      "cache": "缓存列表",
+      "bullmq": "队列监控"
     },
     "business": {
       "title": "支付模块",

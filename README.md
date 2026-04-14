@@ -2,7 +2,7 @@
   <a href="https://elysiajs.com">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://elysia.zhcndoc.com/assets/elysia.svg">
-      <img src="https://elysia.zhcndoc.com/assets/elysia.svg" height="128">
+      <img src="./docs/public/logo.svg" height="128">
     </picture>
     <h1 align="center">Elysia Admin</h1>
   </a>
@@ -14,7 +14,7 @@
 
 这是一个前后端分离的企业级后台管理系统，采用最新的技术栈构建：
 
-- **后端**: Elysia.js + Bun + PostgreSQL + Redis + Drizzle ORM
+- **后端**: Elysia.js + Bun + PostgreSQL + Redis + Drizzle ORM + BullMQ + Croner + Nodemailer
 - **前端**: Vue 3 + TypeScript + Element Plus + Vite + Pinia
 
 ## 性能表现

@@ -298,14 +298,16 @@
       "log": "Log Manage",
       "loginLog": "Login Log",
       "operLog": "Oper Log",
-      "storage": "Storage Config"
+      "storage": "Storage Config",
+      "queue": "Queue Config"
     },
     "monitor": {
       "title": "System Monitor",
       "online": "Online Users",
       "job": "Scheduled Tasks",
       "server": "Server Monitoring",
-      "cache": "Cache List"
+      "cache": "Cache List",
+      "bullmq": "Queue Monitoring"
     },
     "business": {
       "title": "Payment Module",

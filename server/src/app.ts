@@ -96,7 +96,7 @@ async function configureOpenAPI(app: Elysia) {
                 },
             },
         }));
-        logger.info('OpenAPI 文档已启用');
+        logger.info('OpenAPI 已启用');
     } catch (error) {
         logger.error('OpenAPI 配置失败', { error });
     }
@@ -107,7 +107,6 @@ async function configureOpenAPI(app: Elysia) {
  */
 function configureErrorHandler(app: Elysia) {
     app.onError(({ code, error, set }) => {
-        console.log(code, error)
         // 验证错误
         if (code === 'VALIDATION') {
             const errorMessage = (error as any).message || '验证失败';
