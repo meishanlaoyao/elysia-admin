@@ -5,24 +5,40 @@
 ## 基本命令
 
 ### dev
-在开发环境下启动后端服务。
+在开发环境下启动后端服务（仅主进程）。
 
 **使用方式：**
 ```bash
 bun dev
 ```
 
+### dev:workers
+构建 Processor 文件后启动 Worker 进程（定时任务、队列消费）。
+
+**使用方式：**
+```bash
+bun dev:workers
+```
+
+### dev:all
+同时启动主进程和 Worker 进程，两个进程的日志合并输出，`[server]` 和 `[workers]` 前缀区分，Ctrl+C 同时关闭。
+
+**使用方式：**
+```bash
+bun dev:all
+```
+
 **指定运行环境：**
 ```bash
 # Windows
-$env:NODE_ENV="development"; pnpm dev
+$env:NODE_ENV="development"; bun dev:all
 
 # Linux / macOS
-NODE_ENV="development"; pnpm dev
+NODE_ENV="development" bun dev:all
 ```
 
 ### build
-构建后端服务，生成生产环境代码。
+构建后端服务，生成生产环境代码。同时会构建 Worker 进程和所有 Processor 文件。
 
 **使用方式：**
 ```bash
@@ -35,11 +51,34 @@ bun build
 $env:NODE_ENV="production"; bun run build
 
 # Linux / macOS
-NODE_ENV="production"; bun run build
+NODE_ENV="production" bun run build
+```
+
+**构建产物：**
+```
+dist/
+├── index.js              # 主进程
+├── workers.js            # Worker 进程
+├── cjs/                  # BullMQ 沙箱 bootstrap（自动复制）
+├── processors/           # 各队列 Processor
+│   ├── system-cron.js
+│   ├── flow-buffer.js
+│   └── trade-order.js
+└── production.yaml       # 配置文件
+```
+
+### build:processors
+单独构建所有 Processor 文件，开发时修改 `processor.ts` 后执行。
+
+**使用方式：**
+```bash
+bun build:processors
 ```
 
 ### build:binary
-将后端服务构建为二进制可执行文件，适用于无需依赖 Node.js 环境的部署场景。
+将后端服务构建为二进制可执行文件，适用于无需依赖运行时的部署场景。
+
+> 注意：二进制模式不包含 Worker 进程，队列功能需单独部署。
 
 **使用方式：**
 ```bash
@@ -52,7 +91,7 @@ bun build:binary
 $env:NODE_ENV="production"; bun run build:binary
 
 # Linux / macOS
-NODE_ENV="production"; bun run build:binary
+NODE_ENV="production" bun run build:binary
 ```
 
 ## 数据库命令

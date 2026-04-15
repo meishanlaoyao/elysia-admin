@@ -298,8 +298,7 @@
       "log": "日志管理",
       "loginLog": "登陆日志",
       "operLog": "操作日志",
-      "storage": "存储配置",
-      "queue": "队列配置"
+      "storage": "存储配置"
     },
     "monitor": {
       "title": "系统监控",

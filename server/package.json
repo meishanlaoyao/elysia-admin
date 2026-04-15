@@ -10,7 +10,10 @@
   "license": "MIT",
   "scripts": {
     "dev": "bun run --watch src/index.ts",
+    "dev:workers": "bun run script/build-processors.ts && bun run src/infrastructure/queue/runtime/worker.ts",
+    "dev:all": "concurrently -n server,workers -c cyan,yellow \"bun run dev\" \"bun run dev:workers\"",
     "build": "bun run script/build.ts",
+    "build:processors": "bun run script/build-processors.ts",
     "build:binary": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./dist_binary/server ./src/index.ts",
     "db:push": "bun ./script/generate-dbconfig.ts push",
     "db:pull": "bun ./script/generate-dbconfig.ts pull",
@@ -41,6 +44,7 @@
     "@elysiajs/openapi": "^1.4.11",
     "@types/nodemailer": "^7.0.4",
     "bun-types": "latest",
+    "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.8"
   },
   "module": "src/index.js"

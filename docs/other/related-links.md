@@ -30,6 +30,10 @@
    - URL: [https://zod.dev/](https://zod.dev/)
    - 摘要: 声明式类型验证库，用于实现项目中的请求参数校验与类型推断。
    - 访问日期: 2026-04-09
+5. **BullMQ Documentation**
+   - URL: [https://docs.bullmq.io/](https://docs.bullmq.io/)
+   - 摘要: BullMQ 是一个基于 Redis 构建，专为 Node.js 和 Python 设计的高性能、分布式消息队列与任务批处理库。
+   - 访问日期: 2026-04-15
 
 ## 数据库与缓存
 数据持久化与性能优化的技术支柱。

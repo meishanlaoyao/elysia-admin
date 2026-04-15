@@ -37,11 +37,11 @@ export async function createApp() {
     // 开发环境：启用 OpenAPI 文档
     if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app);
 
-    // 配置 BullMQ UI
-    await configureBullMQUI(app);
+    // 配置 BullMQ UI (存在问题，正常接口会被拦住)
+    // await configureBullMQUI(app);
 
     // 注册全局中间件
-    GlobalMiddleware(app as Elysia);
+    GlobalMiddleware(app);
     GlobalResponseMiddleware(app);
 
     // 配置全局错误处理
@@ -110,7 +110,7 @@ function configureErrorHandler(app: Elysia) {
         // 验证错误
         if (code === 'VALIDATION') {
             const errorMessage = (error as any).message || '验证失败';
-            logger.warn('请求验证失败' + errorMessage);
+            logger.warn('请求验证失败：' + errorMessage);
             if (errorMessage === '请先登陆后访问') {
                 set.status = 401;
                 return BaseResultData.fail(401, errorMessage);

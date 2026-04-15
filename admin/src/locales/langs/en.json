@@ -298,8 +298,7 @@
       "log": "Log Manage",
       "loginLog": "Login Log",
       "operLog": "Oper Log",
-      "storage": "Storage Config",
-      "queue": "Queue Config"
+      "storage": "Storage Config"
     },
     "monitor": {
       "title": "System Monitor",

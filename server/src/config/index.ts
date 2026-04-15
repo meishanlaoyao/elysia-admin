@@ -1,8 +1,16 @@
-import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { YAML } from 'bun';
 
 const appEnv = process.env.NODE_ENV || 'development';
-const text = await readFile(new URL(`./${appEnv}.yaml`, import.meta.url), "utf-8");
+
+// CONFIG_PATH 环境变量强制指定 yaml 绝对路径
+// 未设置时从当前文件目录查找（适用于主进程和 worker 进程）
+// processor 子进程必须通过 CONFIG_PATH 传入，见 core/worker.ts
+const configPath = process.env.CONFIG_PATH
+    ?? resolve(import.meta.dirname, `${appEnv}.yaml`);
+
+const text = readFileSync(configPath, 'utf-8');
 const config = YAML.parse(text);
 
 interface IConfig {

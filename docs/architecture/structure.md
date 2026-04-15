@@ -230,6 +230,7 @@ elysia-admin
 │   └── base-schema.ts            # 基础字段定义
 ├── public                        # 静态资源目录
 ├── script                        # 脚本工具目录
+│   ├── build-processors.ts       # 构建 worker 脚本
 │   ├── build.ts                  # 构建脚本
 │   ├── generate-dbconfig.ts      # 数据库拉取推送脚本
 │   ├── generate-registry.ts      # 生成注册表脚本
@@ -259,6 +260,12 @@ elysia-admin
 │   ├── infrastructure            # 基础设施层
 │   │   ├── clients               # 客户端层
 │   │   │   └── smtp.ts           # SMTP 客户端实例
+│   │   ├── queue                 # 队列
+│   │   │   ├── config
+│   │   │   ├── core
+│   │   │   ├── queues
+│   │   │   ├── runtime
+│   │   │   └── index.ts
 │   │   └── storage               # 存储层
 │   │       ├── providers         # 存储提供层
 │   │       │   ├── cos.ts        # COS 存储提供层

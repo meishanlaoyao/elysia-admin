@@ -39,6 +39,7 @@ export default defineConfig({
           { text: '缓存操作', link: '/guide/cache' },
           { text: '文件存储', link: '/guide/storage' },
           { text: '中间件', link: '/guide/middleware' },
+          { text: '队列', link: '/guide/queue' },
           { text: '部署', link: '/guide/deploy' },
         ]
       },

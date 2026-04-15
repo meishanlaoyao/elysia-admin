@@ -12,6 +12,7 @@
 - `Bun` 不支持跨平台编译，必须在目标平台上进行打包
 - 在 `Windows` 平台打包只能得到 `Windows` 可执行文件
 - 在 `Linux` 平台打包只能得到 `Linux` 可执行文件
+- 二进制模式**不包含 Worker 进程**，队列和定时任务功能需单独部署
 
 **打包步骤：**
 
@@ -175,7 +176,7 @@ docker restart elysia-admin
 
 ### PM2 部署
 
-`PM2` 是一个生产级的 `Node.js` 进程管理器，提供了负载均衡、自动重启、日志管理等功能。
+`PM2` 是一个生产级的进程管理器，提供了自动重启、日志管理等功能。本项目采用**主进程 + Worker 进程**双进程架构，PM2 会分别管理两个进程。
 
 **前置要求：**
 - 服务器已安装 `Node.js`（建议 v22.13.0 或更高版本）
@@ -201,14 +202,20 @@ NODE_ENV="production" bun run build
 
 2. 打包完成后，会在 `dist` 目录下生成以下文件：
 ```
-dist
+dist/
 ├── public/              # 静态资源目录
 ├── ecosystem.config.cjs # PM2 配置文件
-├── index.js             # 应用入口文件
+├── index.js             # 主进程入口
+├── workers.js           # Worker 进程入口（队列消费 + 定时任务）
+├── cjs/                 # BullMQ 沙箱 bootstrap（Worker 进程依赖）
+├── processors/          # 各队列 Processor 文件
+│   ├── system-cron.js
+│   ├── flow-buffer.js
+│   └── trade-order.js
 └── production.yaml      # 生产环境配置文件
 ```
 
-3. 将 `dist` 目录上传到服务器。
+3. 将整个 `dist` 目录上传到服务器。
 
 4. 在服务器上启动应用：
 ```bash
@@ -216,22 +223,33 @@ cd /path/to/app/dist
 pm2 start ecosystem.config.cjs
 ```
 
+PM2 会同时启动两个进程：
+- `{appId}` — 主进程（HTTP 服务）
+- `{appId}-workers` — Worker 进程（队列消费、定时任务）
+
 **PM2 常用命令：**
 ```bash
-# 查看应用状态
+# 查看所有进程状态
 pm2 status
 
-# 查看应用日志
+# 查看主进程日志
 pm2 logs elysia-admin
 
-# 重启应用
+# 查看 Worker 进程日志
+pm2 logs elysia-admin-workers
+
+# 重启所有进程
+pm2 restart all
+
+# 重启单个进程
 pm2 restart elysia-admin
+pm2 restart elysia-admin-workers
 
-# 停止应用
-pm2 stop elysia-admin
+# 停止所有进程
+pm2 stop all
 
-# 删除应用
-pm2 delete elysia-admin
+# 删除所有进程
+pm2 delete all
 
 # 保存 PM2 进程列表（开机自启）
 pm2 save
@@ -239,6 +257,7 @@ pm2 save
 # 设置 PM2 开机自启
 pm2 startup
 ```
+
 ## 有服务器运维面板
 
 ### 宝塔面板
@@ -293,10 +312,18 @@ pm2 start ecosystem.config.cjs
 
 1. **健康检查：** 访问 `http://your-domain/` 确认应用正常运行
 
-2. **日志检查：** 查看应用日志，确认没有错误信息
+2. **进程状态：** 确认主进程和 Worker 进程均正常运行
 ```bash
-# PM2 部署
+pm2 status
+```
+
+3. **日志检查：** 查看应用日志，确认没有错误信息
+```bash
+# 主进程日志
 pm2 logs elysia-admin
+
+# Worker 进程日志
+pm2 logs elysia-admin-workers
 
 # Docker 部署
 docker logs elysia-admin
@@ -305,14 +332,16 @@ docker logs elysia-admin
 journalctl -u elysia-admin -f
 ```
 
-3. **性能监控：** 使用 PM2 监控应用性能
+4. **性能监控：** 使用 PM2 监控应用性能
 ```bash
 pm2 monit
 ```
 
-4. **数据库连接：** 确认应用能正常连接数据库和 Redis
+5. **数据库连接：** 确认应用能正常连接数据库和 Redis
 
-5. **API 测试：** 测试关键 API 接口是否正常响应
+6. **API 测试：** 测试关键 API 接口是否正常响应
+
+7. **队列面板：** 访问 `http://your-domain/bullmq` 确认队列和 Worker 状态正常
 
 ## 安全建议
 
@@ -338,5 +367,6 @@ pm2 monit
 4. 验证数据库连接：使用数据库客户端测试连接
 5. 检查文件权限：确保应用有读写权限
 6. 查看系统资源：`top` 或 `htop` 检查 CPU 和内存使用情况
+7. Worker 进程异常：检查 `dist/cjs/` 目录是否完整，`dist/processors/` 下的文件是否存在
 
 如果问题仍未解决，请查看 [常见问题](/other/faq.html) 或在 Gitee 提交 Issue。

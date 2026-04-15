@@ -1,14 +1,11 @@
-/**
- * 开发一个可插拔的队列。
- * - worker 打包成单独的.js文件，作为单独的进程文件，防止 worker 崩溃干崩主线程。
- */
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
-import SystemCronQueue from './system-cron/queue';
-import FlowBufferQueue from './flow-buffer/queue';
-import TradeOrderQueue from './trade-order/queue';
+import './runtime/app';
+import { queueManager } from './core';
 
-export const queues = [
-    new BullMQAdapter(SystemCronQueue),
-    new BullMQAdapter(FlowBufferQueue),
-    new BullMQAdapter(TradeOrderQueue),
-];
+export const queues = queueManager.getAllQueues().map((q) => new BullMQAdapter(q));
+
+export { queueManager } from './core';
+export { schedule, removeSchedule } from './core/scheduler';
+export { buildRetry, RetryPresets } from './core/retry';
+export { buildRateLimit, RateLimitPresets } from './core/rate-limit';
+export type { JobData, JobOptions } from './core/types';

@@ -6,7 +6,6 @@ import { RouteList } from '@/modules';
 import { CacheEnum } from '@/constants/enum';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { logger } from '@/shared/logger';
-import { CreateCronJob } from '@/shared/cron';
 import { RegisterAllTasks } from '@/core/task-registry';
 
 /**
@@ -99,23 +98,10 @@ async function initApiData() {
 
 /**
  * 初始化cron任务
+ * 从数据库恢复所有启用的定时任务到 BullMQ repeat 队列
  */
 async function initCronJob() {
     await RegisterAllTasks();
-    const result = await pg.execute(sql`SELECT * FROM "monitor_job" WHERE "status" = true AND del_flag = false`);
-    if (!result.length) return;
-    for (const job of result) {
-        try {
-            CreateCronJob(
-                String(job.job_name),
-                String(job.job_cron),
-                String(job.job_name),
-                job.job_args ? String(job.job_args) : undefined
-            );
-        } catch (error: any) {
-            logger.error(`定时任务 [${job.job_name}] 启动失败:`, error);
-        }
-    }
 };
 
 /**

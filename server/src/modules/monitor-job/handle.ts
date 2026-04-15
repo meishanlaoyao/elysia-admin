@@ -10,27 +10,44 @@ import {
     FindAll,
 } from '@/core/database/repository';
 import { monitorJobSchema } from 'database/schema/monitor_job';
-import { AddCronJob, RemoveCronJob, GetCronJob } from '@/shared/cron';
 import { inArray } from 'drizzle-orm';
+import { queueManager, schedule, removeSchedule } from '@/infrastructure/queue';
+
+/**
+ * 获取 system-cron-queue 实例
+ */
+function getCronQueue() {
+    const queue = queueManager.getQueue('system-cron-queue');
+    if (!queue) throw new Error('system-cron-queue 未注册');
+    return queue;
+}
 
 export async function create(ctx: Context) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferInsert;
-        if (data.status && data.jobName && data.jobCron) AddCronJob(data.jobName, data.jobCron, data.jobName, data.jobArgs || undefined);
+        if (data.status && data.jobName && data.jobCron) {
+            await schedule(getCronQueue(), data.jobName, {
+                cron: data.jobCron,
+                data: {
+                    taskName: data.jobName,
+                    jobArgs: data.jobArgs ?? '',
+                },
+            });
+        }
         await InsertOne(monitorJobSchema, ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
-};
+}
 
 export async function findList(ctx: Context) {
     try {
         const {
             pageNum = 1,
             pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
+            orderByColumn = 'createTime',
+            sortRule = 'desc',
             startTime,
             endTime,
             jobName,
@@ -50,50 +67,63 @@ export async function findList(ctx: Context) {
             pageNum,
             pageSize,
             orderByColumn,
-            sortRule
+            sortRule,
         });
         return BaseResultData.ok(res);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
-};
+}
 
 export async function update(ctx: Context) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferSelect;
         const jobId = data.jobId;
         const oldJob = await FindOneByKey(monitorJobSchema, 'jobId', jobId);
+        const queue = getCronQueue();
+
         if (oldJob && data.jobName) {
             const oldJobName = String(oldJob.jobName);
+            const oldJobCron = String(oldJob.jobCron);
             const newJobName = String(data.jobName);
-            const isRunning = GetCronJob(oldJobName);
-            if (oldJobName !== newJobName && isRunning) RemoveCronJob(oldJobName);
-            if (data.status !== false) {
-                if (data.jobCron) AddCronJob(newJobName, String(data.jobCron), newJobName, data.jobArgs || '');
-            } else {
-                if (isRunning) RemoveCronJob(oldJobName);
-            };
-        };
+
+            // 先移除旧的 repeatable job
+            await removeSchedule(queue, oldJobName, oldJobCron);
+
+            // 如果新状态是启用，重新注册
+            if (data.status !== false && data.jobCron) {
+                await schedule(queue, newJobName, {
+                    cron: String(data.jobCron),
+                    data: {
+                        taskName: newJobName,
+                        jobArgs: data.jobArgs ?? '',
+                    },
+                });
+            }
+        }
+
         await UpdateByKey(monitorJobSchema, 'jobId', ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
-};
+}
 
 export async function remote(ctx: Context) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
         const jobs = await FindAll(monitorJobSchema, inArray(monitorJobSchema.jobId, ids));
+        const queue = getCronQueue();
+
         if (jobs?.length) {
             for (const job of jobs) {
-                const jobName = String(job.jobName);
-                if (GetCronJob(jobName)) RemoveCronJob(jobName);
-            };
-        };
+                await removeSchedule(queue, String(job.jobName), String(job.jobCron));
+            }
+        }
+
         await SoftDeleteByKeys(monitorJobSchema, 'jobId', ctx);
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
-};
+}
