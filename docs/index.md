@@ -33,7 +33,7 @@ hero:
       link: /other/faq
     - theme: alt
       text: "在线演示"
-      link: 'http://elysia-admin.top/admin'
+      link: 'https://demo.elysia-admin.top/admin'
 
 features:
   - icon: "⚡️"
