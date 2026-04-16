@@ -1,3 +1,18 @@
+---
+title: 定时任务 - Elysia Admin 指南
+description: 详细介绍 Elysia Admin 中基于 BullMQ Sandboxed Processors 的定时任务创建、注册、构建及后台管理配置流程，支持多实例高可用部署。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 定时任务, BullMQ, Cron, 任务调度, 沙箱进程, 多实例
+  - - meta
+    - property: og:title
+      content: 定时任务 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 基于 BullMQ 实现定时任务，支持独立子进程执行、多实例高可用，轻松管理周期性业务。
+---
+
 # 定时任务
 
 本章将详细介绍如何在系统中创建、配置并运行一个定时任务（Cron Job）。

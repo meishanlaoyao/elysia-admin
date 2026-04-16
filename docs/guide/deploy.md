@@ -1,3 +1,18 @@
+---
+title: 部署 - Elysia Admin 指南
+description: 介绍 Elysia Admin 的多种生产环境部署方案，包括二进制部署、Docker 容器化部署、PM2 进程管理部署及宝塔面板部署，附安全建议与故障排查指南。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 部署, Docker, PM2, 二进制部署, 宝塔面板, 生产环境, Nginx
+  - - meta
+    - property: og:title
+      content: 部署 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 支持二进制、Docker、PM2 多种部署方式，快速将 Elysia Admin 上线到生产环境。
+---
+
 # 部署
 
 本章将介绍如何将 `Elysia Admin` 部署到生产环境，包括无运维面板部署和有运维面板部署两种方式。

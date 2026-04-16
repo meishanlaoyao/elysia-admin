@@ -1,3 +1,18 @@
+---
+title: 项目结构 - Elysia Admin 架构
+description: 详细说明 Elysia Admin 的整体目录结构，包括前端 Vue3 模块划分和后端 ElysiaJS 分层架构设计，帮助开发者快速了解项目组织方式。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 项目结构, 目录结构, 前端架构, 后端架构, Vue3, ElysiaJS, 模块化
+  - - meta
+    - property: og:title
+      content: 项目结构 - Elysia Admin 架构
+  - - meta
+    - property: og:description
+      content: 全面了解 Elysia Admin 前后端目录结构与模块划分，快速上手项目开发。
+---
+
 # 项目结构
 这里将详细说明 `Elysia Admin` 的整体结构，包括前端和后端的目录组织、文件功能及模块划分，能够帮助开发人员快速了解项目架构。
 

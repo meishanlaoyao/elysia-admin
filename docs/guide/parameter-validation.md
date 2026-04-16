@@ -1,3 +1,18 @@
+---
+title: 参数验证 - Elysia Admin 指南
+description: 介绍 Elysia Admin 中的接口参数校验方案，包括 BaseResultDto、BaseListQueryDto、CrudDto 生成器及常用工具函数的使用方法。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 参数验证, DTO, Zod, TypeBox, 请求校验, 响应校验, CrudDto
+  - - meta
+    - property: og:title
+      content: 参数验证 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 掌握 Elysia Admin 中 DTO 参数校验体系，快速实现标准化的请求与响应验证。
+---
+
 # 参数验证
 本章节将会介绍如何在 `Elysia Admin` 项目中实现接口请求、响应参数校验。
 

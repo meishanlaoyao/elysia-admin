@@ -1,3 +1,18 @@
+---
+title: 第一个接口 - Elysia Admin 指南
+description: 学习如何在 Elysia Admin 中创建第一个 API 接口，包括模块创建、路由定义、DTO 参数校验、处理函数实现及完整代码整合流程。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 接口, API开发, 路由配置, DTO, 参数校验, ElysiaJS, 模块化
+  - - meta
+    - property: og:title
+      content: 第一个接口 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 手把手教你在 Elysia Admin 中创建第一个 API 接口，涵盖路由、DTO、处理函数完整流程。
+---
+
 # 第一个接口
 
 本章将详细介绍如何在 `Elysia Admin` 项目中创建第一个 API 接口，包括接口定义、参数校验、响应处理等完整流程。

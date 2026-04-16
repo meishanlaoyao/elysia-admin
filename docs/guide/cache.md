@@ -1,3 +1,18 @@
+---
+title: 缓存操作 - Elysia Admin 指南
+description: 介绍 Elysia Admin 中封装的 Redis 缓存操作方法，包括基础的 Set/Get/Del，以及防缓存击穿的 WithCache、CacheInsert、CacheUpdate 等组合操作。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 缓存, Redis, WithCache, 缓存击穿, 分布式锁, 缓存操作
+  - - meta
+    - property: og:title
+      content: 缓存操作 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 掌握 Elysia Admin 的 Redis 缓存封装，轻松实现防击穿缓存读写与批量操作。
+---
+
 # 缓存操作
 
 本章介绍 `Elysia Admin` 中封装的常用 Redis 缓存操作方法，包括基础的缓存设置、获取、删除操作，以及高级的组合操作。

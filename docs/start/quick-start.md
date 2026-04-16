@@ -1,3 +1,18 @@
+---
+title: 快速开始 - Elysia Admin
+description: Elysia Admin 快速启动指南，包含前置依赖安装、源码下载、数据库创建、项目配置及运行步骤，帮助你快速搭建开发环境。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 快速开始, 安装教程, Bun, PostgreSQL, Redis, 开发环境搭建
+  - - meta
+    - property: og:title
+      content: 快速开始 - Elysia Admin
+  - - meta
+    - property: og:description
+      content: 快速搭建 Elysia Admin 开发环境，包含依赖安装、数据库配置及项目运行指南。
+---
+
 # 快速开始
 
 本章将提供 `Elysia Admin` 项目的快速启动指南，帮助您快速搭建开发环境并运行项目。

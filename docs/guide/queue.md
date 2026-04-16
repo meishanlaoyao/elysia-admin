@@ -1,3 +1,18 @@
+---
+title: 队列 - Elysia Admin 指南
+description: 详细介绍 Elysia Admin 基于 BullMQ 的队列系统，包括任务投递、延迟任务、优先级、幂等投递、自定义队列、重试策略、限流控制及多实例高可用部署。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 队列, BullMQ, 任务队列, 延迟任务, 重试策略, 限流, 分布式队列
+  - - meta
+    - property: og:title
+      content: 队列 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 基于 BullMQ 的高性能分布式队列，支持延迟、优先级、幂等、重试、限流及可视化监控。
+---
+
 # 队列
 
 本章将详细介绍如何使用系统内置的队列工具，包括任务投递、定时调度、自定义队列、重试策略、限流控制等能力。

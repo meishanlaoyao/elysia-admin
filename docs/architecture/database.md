@@ -1,3 +1,18 @@
+---
+title: 数据库设计 - Elysia Admin 架构
+description: 详细介绍 Elysia Admin 的数据库设计，包括系统管理、监控管理、业务管理各模块的表结构、字段说明、关联关系及索引设计最佳实践。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 数据库设计, PostgreSQL, 表结构, RBAC, 用户表, 角色表, 菜单表, DrizzleORM
+  - - meta
+    - property: og:title
+      content: 数据库设计 - Elysia Admin 架构
+  - - meta
+    - property: og:description
+      content: 全面了解 Elysia Admin 的数据库表结构设计，涵盖系统管理、监控、业务等各模块。
+---
+
 # 数据库设计
 
 本文档详细介绍 Elysia Admin 的数据库设计，包括表结构、字段说明、关系设计和最佳实践。

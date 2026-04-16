@@ -1,3 +1,18 @@
+---
+title: 中间件 - Elysia Admin 指南
+description: 介绍 Elysia Admin 中间件的使用方式，包括请求预处理（IP黑名单、认证、限流、权限）和响应后处理（操作日志、响应时间统计）的实现方法。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 中间件, 请求拦截, IP黑名单, 认证守卫, 限流, 权限校验, 操作日志
+  - - meta
+    - property: og:title
+      content: 中间件 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 掌握 Elysia Admin 中间件体系，实现请求预处理与响应后处理的完整生命周期管理。
+---
+
 # 中间件
 
 本章将介绍在 `Elysia Admin` 中，中间件（Middleware）用于在请求生命周期的不同阶段注入自定义逻辑。所有的中间件通常定义在 `server/src/middleware` 目录下。

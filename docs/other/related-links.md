@@ -1,3 +1,18 @@
+---
+title: 相关链接 - Elysia Admin
+description: Elysia Admin 开发与维护涉及的核心技术栈参考链接，包括 ElysiaJS、Bun、DrizzleORM、BullMQ、PostgreSQL、Redis、Docker 等官方文档。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 相关链接, ElysiaJS文档, Bun文档, DrizzleORM, BullMQ, PostgreSQL, Redis
+  - - meta
+    - property: og:title
+      content: 相关链接 - Elysia Admin
+  - - meta
+    - property: og:description
+      content: 汇总 Elysia Admin 技术栈的官方文档与参考资源，方便快速查阅。
+---
+
 # 相关链接
 
 本章为 `Elysia Admin` 开发与维护过程中涉及的核心技术栈、工具及规范提供权威参考。

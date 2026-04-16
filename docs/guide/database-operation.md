@@ -1,3 +1,18 @@
+---
+title: 数据库操作 - Elysia Admin 指南
+description: 介绍 Elysia Admin 封装的 PostgreSQL 数据库操作方法，包括增删改查、条件构造器、联表查询、分页查询及事务管理的完整使用指南。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 数据库, DrizzleORM, PostgreSQL, CRUD, 事务, 分页查询, 联表查询
+  - - meta
+    - property: og:title
+      content: 数据库操作 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 掌握 Elysia Admin 封装的数据库操作方法，涵盖增删改查、条件构造器、事务管理等完整能力。
+---
+
 # 数据库操作
 
 本章将介绍 `Elysia Admin` 中封装的常用 `PostgreSQL` 数据库操作方法，包括增删改查和事务管理。

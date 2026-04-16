@@ -1,3 +1,18 @@
+---
+title: 更新日志 - Elysia Admin
+description: Elysia Admin 版本更新记录，包含各版本新增功能、问题修复及重要变更说明。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 更新日志, 版本记录, changelog, 新功能, BullMQ, 队列
+  - - meta
+    - property: og:title
+      content: 更新日志 - Elysia Admin
+  - - meta
+    - property: og:description
+      content: 查看 Elysia Admin 各版本的功能更新与问题修复记录。
+---
+
 # 更新日志
 
 ## v1

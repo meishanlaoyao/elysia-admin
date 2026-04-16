@@ -1,3 +1,18 @@
+---
+title: 文件存储 - Elysia Admin 指南
+description: 介绍 Elysia Admin 的文件存储方案，包括 RustFS 安装、S3 对象存储配置、预签名 URL 直传流程，以及 Web 端和 uni-app 小程序端的上传实现。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 文件存储, S3, RustFS, 对象存储, 预签名URL, 文件上传, uni-app
+  - - meta
+    - property: og:title
+      content: 文件存储 - Elysia Admin 指南
+  - - meta
+    - property: og:description
+      content: 使用预签名 URL 实现文件直传，支持 RustFS、阿里云 OSS、腾讯云 COS 等 S3 兼容存储。
+---
+
 # 文件存储
 
 本章详细介绍 `Elysia Admin` 的文件存储管理功能，涵盖对象存储配置、文件上传流程及多端实现示例。

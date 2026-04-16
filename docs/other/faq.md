@@ -1,3 +1,18 @@
+---
+title: 常见问题 - Elysia Admin
+description: 解答 Elysia Admin 使用过程中的常见问题，包括 PM2 集群模式限制、多实例部署方案及 Nginx 负载均衡配置。
+head:
+  - - meta
+    - name: keywords
+      content: Elysia Admin 常见问题, FAQ, PM2集群, 多实例部署, Nginx负载均衡, Bun
+  - - meta
+    - property: og:title
+      content: 常见问题 - Elysia Admin
+  - - meta
+    - property: og:description
+      content: 解答 Elysia Admin 常见疑问，包括 PM2 集群限制与多实例部署方案。
+---
+
 # 常见问题
 
 ## 为什么无法使用PM2的cluster(集群模式)？
