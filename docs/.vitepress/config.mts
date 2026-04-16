@@ -5,6 +5,9 @@ export default defineConfig({
   title: "Elysia Admin",
   description: "一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。",
   lang: 'zh-CN',
+  sitemap: {
+    hostname: "https://elysia-admin.top",
+  },
   head: [
     ['link', { rel: 'icon', href: '/logo.svg' }],
     ['meta', { charset: 'utf-8' }],
@@ -80,7 +83,7 @@ export default defineConfig({
     },
     footer: {
       message: 'MIT Licensed',
-      copyright: 'Copyright © 2026-present Elysia Admin'
+      copyright: 'Copyright © 2026-present Elysia Admin | <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">湘ICP备2026013170号-1</a>'
     },
     docFooter: {
       prev: '上一页',
