@@ -2,16 +2,10 @@
  * SystemCron Worker 注册
  * processor 以沙箱模式运行（独立子进程）
  */
-import path from 'path';
 import { queueManager, buildRateLimit } from '../../core';
+import { getProcessorPath } from '../../config/env';
 
-// 指向编译后的 processor JS 文件
-// 开发时：dist/processors/system-cron.js
-// 生产时：同路径
-const processorFile = path.resolve(
-    process.cwd(),
-    'dist/processors/system-cron.js'
-);
+const processorFile = getProcessorPath('system-cron');
 
 queueManager.registerWorker({
     queueName: 'system-cron-queue',

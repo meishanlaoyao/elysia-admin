@@ -114,24 +114,19 @@ async function refreshAccessToken(): Promise<string> {
     // refreshToken 通过 HTTP-only Cookie 自动携带，无需手动设置
     const response = await axios.post<BaseResponse<Api.Auth.LoginResponse>>(
       `${VITE_API_URL}/api/auth/refresh`,
-      { refreshToken: userStore.refreshToken, },
+      { refreshToken: userStore.refreshToken },
     );
     const { code, data, msg } = response.data
-    if (code === ApiStatus.success && data) {
-      // 后端返回新的 accessToken 和 refreshToken
-      const newAccessToken = data.accessToken
-      const newRefreshToken = data.refreshToken
-      if (newAccessToken) {
-        // 更新 token
-        userStore.setToken(newAccessToken, newRefreshToken)
-        return newAccessToken
-      };
-    };
+    if (code === ApiStatus.success && data?.accessToken) {
+      userStore.setToken(data.accessToken, data.refreshToken)
+      return data.accessToken
+    }
+    // 后端返回非200业务码（如 400 格式错误），视为刷新失败，直接登出
     throw createHttpError(msg || $t('httpMsg.refreshTokenFailed'), code)
   } catch (error) {
-    // 刷新失败，清空 accessToken
+    // 刷新失败：清空 token 并立即登出，不依赖上层处理
     userStore.setToken('')
-    throw error
+    handleUnauthorizedError()
   }
 }
 
@@ -177,9 +172,8 @@ async function handleUnauthorizedResponse(
 
     return response
   } catch (error) {
-    // 刷新失败，清空队列并登出
+    // refreshAccessToken 内部已处理登出，此处只清空队列
     pendingRequests.length = 0
-    handleUnauthorizedError()
     return Promise.reject(error)
   } finally {
     isRefreshing = false
@@ -190,17 +184,14 @@ async function handleUnauthorizedResponse(
 /** 处理401错误（带防抖） */
 function handleUnauthorizedError(message?: string): never {
   const error = createHttpError(message || $t('httpMsg.unauthorized'), ApiStatus.unauthorized)
-
+  console.log('isUnauthorizedErrorShown', isUnauthorizedErrorShown)
   if (!isUnauthorizedErrorShown) {
     isUnauthorizedErrorShown = true
     logOut()
-
     unauthorizedTimer = setTimeout(resetUnauthorizedError, UNAUTHORIZED_DEBOUNCE_TIME)
-
     showError(error, true)
     throw error
   }
-
   throw error
 }
 

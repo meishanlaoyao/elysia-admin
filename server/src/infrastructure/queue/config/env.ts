@@ -2,6 +2,7 @@
  * 从应用配置读取队列所需的环境变量
  * 统一在这里取值，避免各处硬编码
  */
+import { resolve } from 'node:path';
 import appConfig from '@/config';
 
 export interface QueueEnvConfig {
@@ -28,4 +29,15 @@ export function getQueueEnvConfig(): QueueEnvConfig {
             db: appConfig.redis.db,
         },
     };
+};
+
+/**
+ * 获取 processor 文件的绝对路径
+ */
+export function getProcessorPath(name: string): string {
+    const appEnv = process.env.NODE_ENV || 'development';
+    const dir = appEnv === 'production'
+        ? resolve(process.cwd(), 'processors')
+        : resolve(process.cwd(), 'dist', 'processors');
+    return resolve(dir, `${name}.js`);
 };

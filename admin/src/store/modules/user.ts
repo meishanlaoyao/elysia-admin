@@ -142,10 +142,8 @@ export const useUserStore = defineStore(
     const logOut = async () => {
       // 保存当前用户 ID，用于下次登录时判断是否为同一用户
       const currentUserId = info.value.userId
-      if (currentUserId) {
-        localStorage.setItem(StorageConfig.LAST_USER_ID_KEY, String(currentUserId))
-      }
-      await fetchLogout()
+      if (currentUserId) localStorage.setItem(StorageConfig.LAST_USER_ID_KEY, String(currentUserId))
+      if (accessToken.value) await fetchLogout()
       // 清空用户信息
       info.value = {}
       // 重置登录状态
