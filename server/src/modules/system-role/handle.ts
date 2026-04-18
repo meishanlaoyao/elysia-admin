@@ -9,15 +9,16 @@ import {
     CreateQueryBuilder,
     FindPage,
     FindAll,
-    InsertMany,
-    HardDelete
 } from '@/core/database/repository';
-import { CacheEnum } from '@/constants/enum';
+import { logger } from '@/shared/logger';
 import { WithCache } from '@/core/cache';
-import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
+import { CacheEnum } from '@/constants/enum';
+import { RunTransaction } from '@/core/database/transaction';
+import { RefreshRoutes } from '@/modules/system-menu/handle';
+import { Keys, Get, Set as RedisSet } from '@/core/database/redis';
 import { systemUserRoleSchema } from '@database/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
-import { logger } from '@/shared/logger';
+import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
 
 export async function create(ctx: Context) {
     try {
@@ -123,17 +124,22 @@ export async function updatePermission(ctx: Context) {
             roleId: number;
             permissions: Array<{ menuId: number; menuBtnId?: number }>
         };
-        // 删除该角色的所有权限关联（硬删除）
-        await HardDelete(systemRoleMenuSchema, eq(systemRoleMenuSchema.roleId, roleId));
-        // 批量插入新的权限关联
-        if (permissions && permissions.length > 0) {
-            const insertData = permissions.map(perm => ({
-                roleId,
-                menuId: perm.menuId,
-                menuBtnId: perm.menuBtnId || null
-            }));
-            await InsertMany(systemRoleMenuSchema, ctx, insertData);
-        };
+        await RunTransaction(async (tx) => {
+            // 删除该角色的所有权限关联（硬删除）
+            await tx.delete(systemRoleMenuSchema).where(eq(systemRoleMenuSchema.roleId, roleId));
+            // 批量插入新的权限关联
+            if (permissions && permissions.length > 0) {
+                const createBy = (ctx as any)?.user?.userId || null;
+                const insertData = permissions.map(perm => ({
+                    roleId,
+                    menuId: perm.menuId,
+                    menuBtnId: perm.menuBtnId || null,
+                    ...(createBy ? { createBy } : {})
+                }));
+                await tx.insert(systemRoleMenuSchema).values(insertData);
+            }
+        });
+        await updateUserPermission(roleId);
         return BaseResultData.ok();
     }
     catch (error) {
@@ -207,5 +213,28 @@ export async function GetRoleMenuIdsAndBtnIds(userId: number) {
             menuIds: [],
             menuBtnIds: [],
         };
+    }
+};
+
+// 批量更新在线用户的权限
+async function updateUserPermission(roleId: number) {
+    try {
+        const userKeys = await Keys(CacheEnum.ONLINE_USER + '*') || [];
+        if (!userKeys?.length) return;
+        const roleInfo = await FindOneByKey(systemRoleSchema, 'roleId', roleId);
+        if (!roleInfo) return;
+        userKeys.forEach(async (key) => {
+            const userInfo = await Get(key);
+            if (!userInfo) return;
+            if (!userInfo?.roles?.includes(roleInfo?.roleCode)) return;
+            const { roles, permissions } = await GetUserRoleAndPermission(userInfo?.userId);
+            userInfo.roles = roles;
+            userInfo.permissions = permissions;
+            await RedisSet(key, userInfo);
+            await RefreshRoutes(userInfo?.userId);
+        });
+    } catch (error) {
+        logger.error('批量更新在线用户的权限失败:' + error);
+        throw error;
     }
 };

@@ -1,16 +1,16 @@
 ---
 title: 部署 - Elysia Admin 指南
-description: 介绍 Elysia Admin 的多种生产环境部署方案，包括二进制部署、Docker 容器化部署、PM2 进程管理部署及宝塔面板部署，附安全建议与故障排查指南。
+description: 介绍 Elysia Admin 的多种生产环境部署方案，包括 Docker 容器化部署、PM2 进程管理部署及宝塔面板部署，附安全建议与故障排查指南。
 head:
   - - meta
     - name: keywords
-      content: Elysia Admin 部署, Docker, PM2, 二进制部署, 宝塔面板, 生产环境, Nginx
+      content: Elysia Admin 部署, Docker, PM2, 宝塔面板, 生产环境, Nginx
   - - meta
     - property: og:title
       content: 部署 - Elysia Admin 指南
   - - meta
     - property: og:description
-      content: 支持二进制、Docker、PM2 多种部署方式，快速将 Elysia Admin 上线到生产环境。
+      content: 支持 Docker、PM2 多种部署方式，快速将 Elysia Admin 上线到生产环境。
 ---
 
 # 部署
@@ -18,71 +18,6 @@ head:
 本章将介绍如何将 `Elysia Admin` 部署到生产环境，包括无运维面板部署和有运维面板部署两种方式。
 
 ## 无运维面板部署
-
-### 二进制部署
-
-二进制部署是最简单的部署方式，通过 `build:binary` 命令将应用构建为独立的可执行文件，无需安装 `Node.js` 或 `Bun` 运行时。
-
-**注意事项：**
-- `Bun` 不支持跨平台编译，必须在目标平台上进行打包
-- 在 `Windows` 平台打包只能得到 `Windows` 可执行文件
-- 在 `Linux` 平台打包只能得到 `Linux` 可执行文件
-- 二进制模式**不包含 Worker 进程**，队列和定时任务功能需单独部署
-
-**打包步骤：**
-
-1. 进入 `server` 目录并设置生产环境变量：
-```bash
-cd server
-
-# Windows
-$env:NODE_ENV="production"; bun run build:binary
-
-# Linux / macOS
-NODE_ENV="production" bun run build:binary
-```
-
-2. 打包完成后，会在 `dist_binary` 目录下生成可执行文件 `server`（Linux/macOS）或 `server.exe`（Windows）
-
-3. 将可执行文件上传到服务器，并配置生产环境配置文件 `production.yaml`
-
-4. 直接运行：
-```bash
-# Linux / macOS
-./server
-
-# Windows
-server.exe
-```
-
-**使用 systemd 管理服务（Linux）：**
-
-创建服务文件 `/etc/systemd/system/elysia-admin.service`：
-```ini
-[Unit]
-Description=Elysia Admin Service
-After=network.target
-
-[Service]
-Type=simple
-User=www-data
-WorkingDirectory=/path/to/your/app
-ExecStart=/path/to/your/app/server
-Restart=on-failure
-RestartSec=10
-Environment=NODE_ENV=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-启动服务：
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable elysia-admin
-sudo systemctl start elysia-admin
-sudo systemctl status elysia-admin
-```
 
 ### Docker 部署
 
@@ -222,7 +157,7 @@ dist/
 ├── ecosystem.config.cjs # PM2 配置文件
 ├── index.js             # 主进程入口
 ├── workers.js           # Worker 进程入口（队列消费 + 定时任务）
-├── cjs/                 # BullMQ 沙箱 bootstrap（Worker 进程依赖）
+├── dist/cjs/            # BullMQ 沙箱 bootstrap（Worker 进程依赖）
 ├── processors/          # 各队列 Processor 文件
 │   ├── system-cron.js
 │   ├── flow-buffer.js
@@ -230,11 +165,13 @@ dist/
 └── production.yaml      # 生产环境配置文件
 ```
 
-3. 将整个 `dist` 目录上传到服务器。
+3. 将 `dist` 目录内的所有文件上传到服务器目录（例如：`/www/wwwroot/elysia-admin`）。
+
+> 注意：上传的是 `dist` 目录**内的文件**，不是 `dist` 目录本身。服务器目录结构应与上方保持一致。
 
 4. 在服务器上启动应用：
 ```bash
-cd /path/to/app/dist
+cd /www/wwwroot/elysia-admin
 pm2 start ecosystem.config.cjs
 ```
 
@@ -305,7 +242,7 @@ npm i -g bun
 
 3. 上传项目文件
 
-将打包后的 `dist` 目录上传到服务器（例如：`/www/wwwroot/elysia-admin`）
+将打包后 `dist` 目录内的所有文件上传到服务器（例如：`/www/wwwroot/elysia-admin`）
 
 4. 配置 Node 项目
 
@@ -342,9 +279,6 @@ pm2 logs elysia-admin-workers
 
 # Docker 部署
 docker logs elysia-admin
-
-# 二进制部署（systemd）
-journalctl -u elysia-admin -f
 ```
 
 4. **性能监控：** 使用 PM2 监控应用性能
@@ -382,6 +316,6 @@ pm2 monit
 4. 验证数据库连接：使用数据库客户端测试连接
 5. 检查文件权限：确保应用有读写权限
 6. 查看系统资源：`top` 或 `htop` 检查 CPU 和内存使用情况
-7. Worker 进程异常：检查 `dist/cjs/` 目录是否完整，`dist/processors/` 下的文件是否存在
+7. Worker 进程异常：检查 `dist/cjs/` 目录是否完整，`processors/` 下的文件是否存在
 
 如果问题仍未解决，请查看 [常见问题](/other/faq.html) 或在 Gitee 提交 Issue。

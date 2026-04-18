@@ -15,6 +15,7 @@ import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { logger } from '@/shared/logger';
+import { Set as RedisSet } from '@/core/database/redis';
 import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: Context) {
@@ -214,4 +215,23 @@ export function handleMenuListToTree(
         }
     };
     return rootMenus;
+};
+
+// 刷新缓存菜单树
+export async function RefreshRoutes(userId: number) {
+    try {
+        const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
+        const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
+        const menuData = await FindAll(systemMenuSchema, menuWhere, {
+            orderByColumn: 'sort',
+            sortRule: 'desc',
+        });
+        const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
+        const menuBtnData = await FindAll(systemMenuBtnSchema, menuBtnWhere);
+        const data = handleMenuListToTree(menuData, menuBtnData);
+        if (data) await RedisSet(CacheEnum.ADMIN_MENU + userId, data);
+    } catch (error) {
+        logger.error('刷新缓存菜单树失败:' + error);
+        throw error;
+    }
 };

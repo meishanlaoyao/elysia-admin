@@ -17,6 +17,7 @@
 </template>
 
 <script setup lang="ts">
+import { useUserStore } from '@/store/modules/user'
 import { formatMenuTitle } from '@/utils/router'
 import { fetchGetMenuTree } from '@/api/system/menu'
 import { fetchGetRolePermission, fetchUpdateRolePermission } from '@/api/system/role'
@@ -41,6 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const userStore = useUserStore()
 const treeRef = ref()
 const isExpandAll = ref(true)
 const isSelectAll = ref(false)
@@ -69,7 +71,6 @@ const defaultProps = {
 const convertAuthListToChildren = (menuList: MenuListItem[]): MenuListItem[] => {
   return menuList.map(menu => {
     const newMenu = { ...menu }
-
     // 如果有 authList，将其转换为 children
     if (menu.authList && menu.authList.length > 0) {
       const authChildren = menu.authList.map(auth => ({
@@ -80,16 +81,13 @@ const convertAuthListToChildren = (menuList: MenuListItem[]): MenuListItem[] => 
         permission: auth.permission,
         parentMenuId: menu.menuId
       } as MenuListItem))
-
       // 合并原有 children 和 authList 转换的 children
       newMenu.children = menu.children ? [...menu.children, ...authChildren] : authChildren
     }
-
     // 递归处理子菜单
     if (newMenu.children && newMenu.children.length > 0) {
       newMenu.children = convertAuthListToChildren(newMenu.children)
-    }
-
+    };
     return newMenu
   })
 }
@@ -115,10 +113,6 @@ const loadRolePermission = async () => {
 
   try {
     const data = await fetchGetRolePermission(props.roleData.roleId)
-
-    // 根据 menuBtnId 字段构建选中的 keys
-    // menuBtnId 为 null 表示菜单权限，直接使用 menuId
-    // menuBtnId 有值表示按钮权限，使用 btn_${menuBtnId} 格式
     const checkedKeys = data?.map((item: Api.SystemRole.RolePermission) => {
       if (item.menuBtnId) {
         // 按钮权限
@@ -128,7 +122,6 @@ const loadRolePermission = async () => {
         return item.menuId
       }
     }).filter(Boolean) as (number | string)[]
-
     // 设置选中的节点，使用 checkStrictly 模式避免父子关联
     nextTick(() => {
       if (treeRef.value) {
@@ -217,9 +210,14 @@ const savePermission = async () => {
     await fetchUpdateRolePermission({
       roleId: props.roleData.roleId,
       permissions
-    })
+    });
+    // 更新路由信息
     emit('success')
     handleClose()
+    const roles = userStore.getUserInfo?.roles || []
+    if (roles.includes(props.roleData.roleCode || '')) {
+      window.location.reload()
+    };
   } finally {
     loading.value = false
   }

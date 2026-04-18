@@ -2,10 +2,8 @@
 <template>
   <div class="flex w-full h-screen">
     <LoginLeftView />
-
     <div class="relative flex-1">
       <AuthTopBar />
-
       <div class="auth-right-wrap">
         <div class="form">
           <h3 class="title">{{ $t('login.title') }}</h3>
@@ -27,7 +25,6 @@
               <ElInput class="custom-height" :placeholder="$t('login.placeholder.password')"
                 v-model.trim="formData.password" type="password" autocomplete="off" show-password />
             </ElFormItem>
-
             <!-- 推拽验证 -->
             <div class="relative pb-5 mt-6">
               <div class="relative z-[2] overflow-hidden select-none rounded-lg border border-transparent tad-300"
@@ -42,27 +39,24 @@
                 {{ $t('login.placeholder.slider') }}
               </p>
             </div>
-
             <div class="flex-cb mt-2 text-sm">
               <ElCheckbox v-model="formData.rememberPassword">{{
                 $t('login.rememberPwd')
-                }}</ElCheckbox>
+              }}</ElCheckbox>
               <RouterLink class="text-theme" :to="{ name: 'ForgetPassword' }">{{
                 $t('login.forgetPwd')
-                }}</RouterLink>
+              }}</RouterLink>
             </div>
-
             <div style="margin-top: 30px">
               <ElButton class="w-full custom-height" type="primary" @click="handleSubmit" :loading="loading" v-ripple>
                 {{ $t('login.btnText') }}
               </ElButton>
             </div>
-
             <div class="mt-5 text-sm text-gray-600">
               <span>{{ $t('login.noAccount') }}</span>
               <RouterLink class="text-theme" :to="{ name: 'Register' }">{{
                 $t('login.register')
-                }}</RouterLink>
+              }}</RouterLink>
             </div>
           </ElForm>
         </div>
@@ -127,13 +121,11 @@ const accounts = computed<Account[]>(() => [
 ])
 
 const dragVerify = ref()
-
 const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 const isPassing = ref(false)
 const isClickPass = ref(false)
-
 const systemName = AppConfig.systemInfo.name
 const formRef = ref<FormInstance>()
 
@@ -166,43 +158,32 @@ const setupAccount = (key: AccountKey) => {
 // 登录
 const handleSubmit = async () => {
   if (!formRef.value) return
-
   try {
     // 表单验证
     const valid = await formRef.value.validate()
     if (!valid) return
-
     // 拖拽验证
     if (!isPassing.value) {
       isClickPass.value = true
       return
     }
-
     loading.value = true
-
     // 登录请求
     const { username, password } = formData
-
     const response = await fetchLogin({
       username,
       password
     })
-
-    // 后端返回 accessToken, refreshToken, accessExpiresIn, refreshExpiresIn
     const { accessToken, refreshToken, accessExpiresIn, refreshExpiresIn } = response
-
     // 验证token
     if (!accessToken) {
       throw new Error('Login failed - no token received')
     }
-
     // 存储 accessToken 和 refreshToken
     userStore.setToken(accessToken, refreshToken)
     userStore.setLoginStatus(true)
-
     // 登录成功处理
     showLoginSuccessNotice()
-
     // 获取 redirect 参数，如果存在则跳转到指定页面，否则跳转到首页
     const redirect = route.query.redirect as string
     router.push(redirect || '/')

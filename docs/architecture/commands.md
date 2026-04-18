@@ -1,6 +1,6 @@
 ---
 title: 内置命令 - Elysia Admin 架构
-description: 详细说明 Elysia Admin 项目内置的所有命令，包括开发启动、生产构建、二进制打包、数据库操作及 Docker 管理命令的使用方法。
+description: 详细说明 Elysia Admin 项目内置的所有命令，包括开发启动、生产构建、数据库操作及 Docker 管理命令的使用方法。
 head:
   - - meta
     - name: keywords
@@ -88,25 +88,6 @@ dist/
 **使用方式：**
 ```bash
 bun build:processors
-```
-
-### build:binary
-将后端服务构建为二进制可执行文件，适用于无需依赖运行时的部署场景。
-
-> 注意：二进制模式不包含 Worker 进程，队列功能需单独部署。
-
-**使用方式：**
-```bash
-bun build:binary
-```
-
-**推荐使用方式（设置生产环境变量）：**
-```bash
-# Windows
-$env:NODE_ENV="production"; bun run build:binary
-
-# Linux / macOS
-NODE_ENV="production" bun run build:binary
 ```
 
 ## 数据库命令

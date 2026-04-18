@@ -9,7 +9,7 @@ export default defineConfig({
     hostname: "https://elysia-admin.top",
   },
   head: [
-    ['link', { rel: 'icon', href: '/logo.svg' }],
+    ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { charset: 'utf-8' }],
     ['meta', { name: 'description', content: '一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。' }],
   ],

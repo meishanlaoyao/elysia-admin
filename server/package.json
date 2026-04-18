@@ -5,7 +5,9 @@
   "author": {
     "name": "梅山老妖",
     "email": "1360658549@qq.com",
-    "gitee": "https://gitee.com/nian-qian/elysia-admin"
+    "gitee": "https://gitee.com/nian-qian/elysia-admin",
+    "github": "https://github.com/meishanlaoyao/elysia-admin",
+    "url": "https://elysia-admin.top"
   },
   "license": "MIT",
   "scripts": {
@@ -14,7 +16,6 @@
     "dev:all": "concurrently -n server,workers -c cyan,yellow \"bun run dev\" \"bun run dev:workers\"",
     "build": "bun run script/build.ts",
     "build:processors": "bun run script/build-processors.ts",
-    "build:binary": "bun build --compile --minify-whitespace --minify-syntax --minify-identifiers --target bun --outfile ./dist_binary/server ./src/index.ts",
     "db:push": "bun ./script/generate-dbconfig.ts push",
     "db:pull": "bun ./script/generate-dbconfig.ts pull",
     "docker:build": "docker build -t hnq1/elysia-admin:latest .",

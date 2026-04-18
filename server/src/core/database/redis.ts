@@ -159,7 +159,6 @@ export async function Keys(pattern: string): Promise<string[]> {
             cursor = nextCursor;
             keys.push(...matchedKeys);
         } while (cursor !== '0');
-
         return keys;
     } catch (error) {
         logger.error("Redis keys error:" + error);

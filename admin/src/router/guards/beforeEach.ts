@@ -254,11 +254,9 @@ async function handleDynamicRoutes(
 ): Promise<void> {
   // 标记初始化进行中
   routeInitInProgress = true
-
   // 显示 loading
   pendingLoading = true
   loadingService.showLoading()
-
   try {
     // 1. 获取用户信息
     await fetchUserInfo()
@@ -364,11 +362,9 @@ export function resetRouterState(delay: number): void {
   setTimeout(() => {
     routeRegistry?.unregister()
     IframeRouteManager.getInstance().clear()
-
     const menuStore = useMenuStore()
     menuStore.removeAllDynamicRoutes()
     menuStore.setMenuList([])
-
     // 重置路由初始化状态，允许重新登录后再次初始化
     resetRouteInitState()
   }, delay)
@@ -382,13 +378,11 @@ function handleRootPathRedirect(to: RouteLocationNormalized, next: NavigationGua
   if (to.path !== '/') {
     return false
   }
-
   const { homePath } = useCommon()
   if (homePath.value && homePath.value !== '/') {
     next({ path: homePath.value, replace: true })
     return true
   }
-
   return false
 }
 
