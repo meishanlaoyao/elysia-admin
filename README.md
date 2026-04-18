@@ -143,13 +143,6 @@ $env:NODE_ENV="production"; bun run build
 pm2 start dist/ecosystem.config.cjs
 ```
 
-### 二进制部署
-
-```bash
-NODE_ENV=production bun run build:binary
-./dist_binary/server
-```
-
 ### Docker 部署
 
 ```bash

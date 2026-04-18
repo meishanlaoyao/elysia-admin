@@ -42,18 +42,6 @@ bun dist/index.js
 pm2 start dist/ecosystem.config.cjs
 ```
 
-### 二进制部署
-1. 构建项目
-```bash
-# 注意：无法进行跨平台编译成对应的二进制文件
-$env:NODE_ENV="production"; bun run build:binary
-```
-2. 启动项目
-```bash
-# windows mac 都可双击启动
- ./dist_binary/server
-```
-
 ### docker 部署
 
 ## 查看监控
