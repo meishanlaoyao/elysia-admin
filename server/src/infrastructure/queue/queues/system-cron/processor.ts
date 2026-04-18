@@ -2,7 +2,7 @@
  * SystemCron Processor（沙箱模式）
  */
 import type { SandboxedJob } from 'bullmq';
-import { createTaskRegistry, parseArgs } from '../../core/processor-utils';
+import { createTaskRegistry, parseArgs } from '@/infrastructure/queue/core/processor-utils';
 
 const { register, get } = createTaskRegistry();
 

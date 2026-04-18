@@ -1,7 +1,7 @@
 /*
 PostgreSQL Backup
 Database: elysia-admin/public
-Backup Time: 2026-04-18 11:23:31
+Backup Time: 2026-04-18 16:27:28
 */
 
 DROP SEQUENCE IF EXISTS "public"."business_merchant_id_seq";
@@ -19,8 +19,6 @@ DROP SEQUENCE IF EXISTS "public"."system_login_log_log_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_menu_btn_btn_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_menu_menu_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_oper_log_oper_id_seq";
-DROP SEQUENCE IF EXISTS "public"."system_queue_queue_id_seq";
-DROP SEQUENCE IF EXISTS "public"."system_redis_config_redis_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_role_role_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_storage_storage_id_seq";
 DROP SEQUENCE IF EXISTS "public"."system_user_user_id_seq";
@@ -39,8 +37,6 @@ DROP TABLE IF EXISTS "public"."system_login_log";
 DROP TABLE IF EXISTS "public"."system_menu";
 DROP TABLE IF EXISTS "public"."system_menu_btn";
 DROP TABLE IF EXISTS "public"."system_oper_log";
-DROP TABLE IF EXISTS "public"."system_queue";
-DROP TABLE IF EXISTS "public"."system_redis_config";
 DROP TABLE IF EXISTS "public"."system_role";
 DROP TABLE IF EXISTS "public"."system_role_menu";
 DROP TABLE IF EXISTS "public"."system_storage";
@@ -136,18 +132,6 @@ MINVALUE  1
 MAXVALUE 9223372036854775807
 START 1
 CACHE 1;
-CREATE SEQUENCE "system_queue_queue_id_seq" 
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
-CREATE SEQUENCE "system_redis_config_redis_id_seq" 
-INCREMENT 1
-MINVALUE  1
-MAXVALUE 9223372036854775807
-START 1
-CACHE 1;
 CREATE SEQUENCE "system_role_role_id_seq" 
 INCREMENT 1
 MINVALUE  1
@@ -209,7 +193,7 @@ CREATE TABLE "business_orders" (
   "currency" varchar(10) COLLATE "pg_catalog"."default" DEFAULT 'CNY'::character varying,
   "status" varchar(20) COLLATE "pg_catalog"."default" DEFAULT '0'::character varying,
   "expire_time" timestamp(6),
-  "payment_method" varchar(20) COLLATE "pg_catalog"."default" NOT NULL,
+  "payment_method" varchar(20) COLLATE "pg_catalog"."default",
   "extra" jsonb DEFAULT '{}'::jsonb,
   "create_time" timestamptz(6) DEFAULT now(),
   "create_by" int8,
@@ -438,40 +422,6 @@ CREATE TABLE "system_oper_log" (
 )
 ;
 ALTER TABLE "system_oper_log" OWNER TO "postgres";
-CREATE TABLE "system_queue" (
-  "queue_id" int8 NOT NULL DEFAULT nextval('system_queue_queue_id_seq'::regclass),
-  "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "key" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "redis_id" int8 NOT NULL,
-  "concurrency" int4 NOT NULL DEFAULT 1,
-  "status" bool DEFAULT true,
-  "create_time" timestamptz(6) DEFAULT now(),
-  "create_by" int8,
-  "update_time" timestamptz(6),
-  "update_by" int8,
-  "del_flag" bool DEFAULT false,
-  "remark" varchar(255) COLLATE "pg_catalog"."default"
-)
-;
-ALTER TABLE "system_queue" OWNER TO "postgres";
-CREATE TABLE "system_redis_config" (
-  "redis_id" int8 NOT NULL DEFAULT nextval('system_redis_config_redis_id_seq'::regclass),
-  "name" varchar(100) COLLATE "pg_catalog"."default" NOT NULL,
-  "host" varchar(255) COLLATE "pg_catalog"."default" NOT NULL,
-  "port" int4 NOT NULL DEFAULT 6379,
-  "username" varchar(100) COLLATE "pg_catalog"."default",
-  "password" varchar(255) COLLATE "pg_catalog"."default",
-  "db" int4 NOT NULL DEFAULT 0,
-  "status" bool DEFAULT true,
-  "create_time" timestamptz(6) DEFAULT now(),
-  "create_by" int8,
-  "update_time" timestamptz(6),
-  "update_by" int8,
-  "del_flag" bool DEFAULT false,
-  "remark" varchar(255) COLLATE "pg_catalog"."default"
-)
-;
-ALTER TABLE "system_redis_config" OWNER TO "postgres";
 CREATE TABLE "system_role" (
   "role_id" int8 NOT NULL DEFAULT nextval('system_role_role_id_seq'::regclass),
   "role_name" varchar(64) COLLATE "pg_catalog"."default" NOT NULL,
@@ -625,14 +575,6 @@ INSERT INTO "public"."system_oper_log" ("oper_id","title","request_method","oper
 ;
 COMMIT;
 BEGIN;
-LOCK TABLE "public"."system_queue" IN SHARE MODE;
-DELETE FROM "public"."system_queue";
-COMMIT;
-BEGIN;
-LOCK TABLE "public"."system_redis_config" IN SHARE MODE;
-DELETE FROM "public"."system_redis_config";
-COMMIT;
-BEGIN;
 LOCK TABLE "public"."system_role" IN SHARE MODE;
 DELETE FROM "public"."system_role";
 INSERT INTO "public"."system_role" ("role_id","role_name","role_code","sort","status","create_time","create_by","update_time","update_by","del_flag","remark") VALUES (1, '超级管理员', 'SYS_ADMIN', 0, 't', '2026-01-06 09:26:09.913+00', NULL, '2026-01-26 07:47:22.124+00', NULL, 'f', '拥有所有权限'),(2, '普通用户', 'SYS_USER', 1, 't', '2026-01-26 07:49:34.217+00', NULL, '2026-01-26 07:51:24.879+00', NULL, 'f', '拥有普通用户权限'),(3, '财务', 'SYS_FINANCE', 2, 't', '2026-01-26 07:58:12.195+00', NULL, '2026-01-26 07:58:22.786+00', NULL, 'f', '拥有财务权限')
@@ -677,8 +619,6 @@ ALTER TABLE "system_login_log" ADD CONSTRAINT "system_login_log_pkey" PRIMARY KE
 ALTER TABLE "system_menu" ADD CONSTRAINT "system_menu_pkey" PRIMARY KEY ("menu_id");
 ALTER TABLE "system_menu_btn" ADD CONSTRAINT "system_menu_btn_pkey" PRIMARY KEY ("btn_id");
 ALTER TABLE "system_oper_log" ADD CONSTRAINT "system_oper_log_pkey" PRIMARY KEY ("oper_id");
-ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_pkey" PRIMARY KEY ("queue_id");
-ALTER TABLE "system_redis_config" ADD CONSTRAINT "system_redis_config_pkey" PRIMARY KEY ("redis_id");
 ALTER TABLE "system_role" ADD CONSTRAINT "system_role_pkey" PRIMARY KEY ("role_id");
 ALTER TABLE "system_storage" ADD CONSTRAINT "system_storage_pkey" PRIMARY KEY ("storage_id");
 ALTER TABLE "system_user" ADD CONSTRAINT "system_user_pkey" PRIMARY KEY ("user_id");
@@ -696,8 +636,6 @@ ALTER TABLE "system_dict_type" ADD CONSTRAINT "system_dict_type_dict_name_unique
 ALTER TABLE "system_dict_type" ADD CONSTRAINT "system_dict_type_dict_type_unique" UNIQUE ("dict_type");
 ALTER TABLE "system_ip_black" ADD CONSTRAINT "system_ip_black_ip_address_unique" UNIQUE ("ip_address");
 ALTER TABLE "system_menu_btn" ADD CONSTRAINT "system_menu_btn_menu_id_system_menu_menu_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."system_menu" ("menu_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
-ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_key_unique" UNIQUE ("key");
-ALTER TABLE "system_queue" ADD CONSTRAINT "system_queue_redis_id_system_redis_config_redis_id_fk" FOREIGN KEY ("redis_id") REFERENCES "public"."system_redis_config" ("redis_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_menu_btn_id_system_menu_btn_btn_id_fk" FOREIGN KEY ("menu_btn_id") REFERENCES "public"."system_menu_btn" ("btn_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_menu_id_system_menu_menu_id_fk" FOREIGN KEY ("menu_id") REFERENCES "public"."system_menu" ("menu_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE "system_role_menu" ADD CONSTRAINT "system_role_menu_role_id_system_role_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."system_role" ("role_id") ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -712,7 +650,7 @@ SELECT setval('"business_merchant_id_seq"', 8, true);
 ALTER SEQUENCE "business_merchant_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "business_orders_id_seq"
 OWNED BY "business_orders"."id";
-SELECT setval('"business_orders_id_seq"', 13, true);
+SELECT setval('"business_orders_id_seq"', 20, true);
 ALTER SEQUENCE "business_orders_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "business_payments_id_seq"
 OWNED BY "business_payments"."id";
@@ -766,14 +704,6 @@ ALTER SEQUENCE "system_oper_log_oper_id_seq"
 OWNED BY "system_oper_log"."oper_id";
 SELECT setval('"system_oper_log_oper_id_seq"', 332, true);
 ALTER SEQUENCE "system_oper_log_oper_id_seq" OWNER TO "postgres";
-ALTER SEQUENCE "system_queue_queue_id_seq"
-OWNED BY "system_queue"."queue_id";
-SELECT setval('"system_queue_queue_id_seq"', 1, false);
-ALTER SEQUENCE "system_queue_queue_id_seq" OWNER TO "postgres";
-ALTER SEQUENCE "system_redis_config_redis_id_seq"
-OWNED BY "system_redis_config"."redis_id";
-SELECT setval('"system_redis_config_redis_id_seq"', 1, false);
-ALTER SEQUENCE "system_redis_config_redis_id_seq" OWNER TO "postgres";
 ALTER SEQUENCE "system_role_role_id_seq"
 OWNED BY "system_role"."role_id";
 SELECT setval('"system_role_role_id_seq"', 6, true);

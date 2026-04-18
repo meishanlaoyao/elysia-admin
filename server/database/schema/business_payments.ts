@@ -11,8 +11,8 @@ export const businessPaymentsSchema = pgTable(
         orderId: bigint('order_id', { mode: 'number' }).notNull().references(() => businessOrdersSchema.id), // 关联订单ID
         merchantConfigId: bigint('merchant_config_id', { mode: 'number' }).notNull().references(() => businessMerchantConfigsSchema.id), // 关联商户配置ID
         paymentNo: varchar('payment_no', { length: 64 }).unique(), // 支付订单号
-        channel: varchar('channel', { length: 20 }).notNull(), // 支付渠道
-        platform: varchar('platform', { length: 20 }), // 支付平台 (字典：system_pay_platform)
+        channel: varchar('channel', { length: 20 }).notNull(), // 支付渠道 （字典：system_pay_method）
+        platform: varchar('platform', { length: 20 }).notNull(), // 支付平台 (字典：system_pay_platform)
         amount: decimal('amount', { precision: 10, scale: 2 }).notNull(), // 支付金额
         status: varchar('status', { length: 20 }).default('0'), // 支付状态 （字典：system_pay_status）
         thirdTradeNo: varchar('third_trade_no', { length: 100 }), // 第三方交易号
