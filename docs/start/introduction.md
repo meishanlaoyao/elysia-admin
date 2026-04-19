@@ -26,7 +26,7 @@ head:
 
 一个基于 [ElysiaJS](https://elysiajs.com/) + [Art Design Pro](https://www.artd.pro/docs/zh/) 的现代化全栈后台管理系统。
 
-<div style="display: flex; justify-content: center; align-items: center;">
+<div style="display: flex;flex-wrap: wrap;justify-content: center;align-items: center;">
   <img style="margin: 0 8px;" src="https://img.shields.io/static/v1?label=Node.js&message=>=22.0.0&color=blue" alt="Node.js Version">
   <img style="margin: 0 8px;" src="https://img.shields.io/static/v1?label=Bun&message=>=1.2.21&color=orange" alt="Bun Version">
   <img style="margin: 0 8px;" src="https://img.shields.io/static/v1?label=PostgreSQL&message=>=16&color=blue" alt="PostgreSQL">

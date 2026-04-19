@@ -6,13 +6,15 @@ import {
     UpdateByKey,
     CreateQueryBuilder,
     FindPage,
+    FindAll,
     FindOneByKey,
 } from '@/core/database/repository';
-import { BaseResultData } from '@/core/result';
 import { GenerateUUID } from '@/shared/uuid';
+import { BaseResultData } from '@/core/result';
+import { queueManager, } from '@/infrastructure/queue';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
-import { queueManager, } from '@/infrastructure/queue';
+import { businessMerchantSchema, businessMerchantConfigsSchema } from '@database/schema/business_merchant';
 
 /**
  * 获取 flow-buffer-queue 实例
@@ -94,7 +96,7 @@ export async function payOrder(ctx: Context) {
          *  - 时效性检查：检查当前时间是否超过订单过期时间（expireTime），过期订单禁止支付。
          * 
          * 2. 金额与数据一致性
-         *  - 金额防篡改：支付金额必须以数据库中订单的 `amount` 为准，**严禁**直接使用前端传来的金额参数。
+         *  - 金额防篡改：支付金额必须以数据库中订单的 `amount` 为准，严禁直接使用前端传来的金额参数。
          *  - 商户配置：根据订单关联的 `merchantId` 获取正确的商户配置（如 AppID、Secret），确保资金进入正确账户。
          * 
          * 3. 支付流水与幂等性
@@ -111,6 +113,7 @@ export async function payOrder(ctx: Context) {
          */
         const userId = (ctx as any)?.user?.userId;
         const { orderNo, paymentMethod, platform } = ctx.body as any;
+        // 订单信息
         const orderInfo = await FindOneByKey(businessOrdersSchema, 'orderNo', orderNo);
         if (!orderInfo) return BaseResultData.fail(404, '订单不存在');
         if (orderInfo.delFlag) return BaseResultData.fail(404, '订单不存在');
@@ -132,6 +135,29 @@ export async function payOrder(ctx: Context) {
                 // 已退款
                 return BaseResultData.fail(400, '订单已退款');
         };
+        // 商家信息
+        const merchantInfo = await FindOneByKey(businessMerchantSchema, 'id', orderInfo.merchantId);
+        if (!merchantInfo) return BaseResultData.fail(404, '商家不存在');
+        if (merchantInfo.delFlag) return BaseResultData.fail(404, '商家不存在');
+        if (!merchantInfo.status) return BaseResultData.fail(400, '商家已禁用');
+        // 商家配置
+        const where = CreateQueryBuilder(businessMerchantConfigsSchema)
+            .eq('delFlag', false)
+            .eq('status', true)
+            .eq('channel', paymentMethod)
+            .eq('merchantId', orderInfo.merchantId)
+            .build();
+        const merchantConfigArr = await FindAll(businessMerchantConfigsSchema, where);
+        const merchantConfig = merchantConfigArr[0] || null;
+        if (!merchantConfig) return BaseResultData.fail(404, '商家配置不存在');
+        if (merchantConfig.delFlag) return BaseResultData.fail(404, '商家配置不存在');
+        if (!merchantConfig.status) return BaseResultData.fail(400, '商家配置已禁用');
+        /**
+         * 判断逻辑：
+         * 判断属于哪种支付，再调用对应的请求接口
+         */
+
+
         await InsertOne(
             businessPaymentsSchema,
             null,
