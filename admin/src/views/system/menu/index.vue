@@ -67,14 +67,21 @@ const searchForm = ref({
 })
 
 /**
+ * 判断是否为目录（有真实子菜单，而非仅有权限按钮）
+ */
+const hasRealChildren = (row: MenuListItem): boolean => {
+  return !!row.children?.some((child) => !child.isAuthButton)
+}
+
+/**
  * 获取菜单类型标签颜色
  */
 const getMenuTypeTag = (row: MenuListItem): 'primary' | 'success' | 'warning' | 'info' | 'danger' => {
   if (row.isAuthButton) return 'danger'
-  if (row.children?.length) return 'info'
+  if (hasRealChildren(row)) return 'info'
   if (row.link && row.isIframe) return 'success'
-  if (row.path) return 'primary'
   if (row.link) return 'warning'
+  if (row.path) return 'primary'
   return 'info'
 }
 
@@ -83,10 +90,10 @@ const getMenuTypeTag = (row: MenuListItem): 'primary' | 'success' | 'warning' | 
  */
 const getMenuTypeText = (row: MenuListItem): string => {
   if (row.isAuthButton) return '按钮'
-  if (row.children?.length) return '目录'
+  if (hasRealChildren(row)) return '目录'
   if (row.link && row.isIframe) return '内嵌'
-  if (row.path) return '菜单'
   if (row.link) return '外链'
+  if (row.path) return '菜单'
   return '未知'
 }
 
@@ -270,7 +277,6 @@ const convertAuthListToChildren = (items: MenuListItem[]): MenuListItem[] => {
  */
 const processedTableData = computed(() => {
   const data = convertAuthListToChildren(tableData.value)
-
   // 最后清理：确保权限按钮没有 children
   const cleanChildren = (items: MenuListItem[]) => {
     items.forEach(item => {
@@ -282,7 +288,6 @@ const processedTableData = computed(() => {
       }
     })
   }
-
   cleanChildren(data)
   return data
 })

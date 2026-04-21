@@ -124,7 +124,8 @@ const appConfig: SystemConfig = {
     '#60C041',
     '#38C0FC',
     '#F9901F',
-    '#FF80C8'
+    '#FF80C8',
+    '#FF4D4F'
   ] as const,
   // 快速入口配置
   fastEnter: fastEnterConfig,

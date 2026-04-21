@@ -47,40 +47,31 @@ const fastEnterConfig: FastEnterConfig = {
       routeName: 'Chat'
     },
     {
-      name: '官方文档',
-      description: '使用指南与开发文档',
-      icon: 'ri:bill-line',
-      iconColor: '#ffb100',
-      enabled: false,
+      name: 'Elysia Admin',
+      description: 'Elysia Admin 官方文档',
+      icon: 'ri:book-line',
+      iconColor: '#8b5cf6',
+      enabled: true,
       order: 5,
       link: WEB_LINKS.DOCS
     },
     {
-      name: '技术支持',
-      description: '技术支持与问题反馈',
-      icon: 'ri:user-location-line',
-      iconColor: '#ff6b6b',
-      enabled: false,
+      name: '后台模板',
+      description: 'Art Design Pro 官方文档',
+      icon: 'ri:bill-line',
+      iconColor: '#5D87FF',
+      enabled: true,
       order: 6,
-      link: WEB_LINKS.COMMUNITY
+      link: WEB_LINKS.ART_DESIGN_PRO
     },
     {
-      name: '更新日志',
-      description: '版本更新与变更记录',
+      name: '后端框架',
+      description: 'Elysia 框架官方文档',
       icon: 'ri:gamepad-line',
-      iconColor: '#38C0FC',
-      enabled: false,
+      iconColor: '#fb64b6',
+      enabled: true,
       order: 7,
-      routeName: 'ChangeLog'
-    },
-    {
-      name: '哔哩哔哩',
-      description: '技术分享与交流',
-      icon: 'ri:bilibili-line',
-      iconColor: '#FB7299',
-      enabled: false,
-      order: 8,
-      link: WEB_LINKS.BILIBILI
+      link: WEB_LINKS.ELYSIA_FRAMEWORK
     }
   ],
   // 快速链接

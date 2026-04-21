@@ -10,26 +10,32 @@ export const WEB_LINKS = {
   GITHUB_HOME: 'https://github.com/Daymychen/art-design-pro',
 
   // 项目 Github 主页
-  GITHUB: 'https://github.com/Daymychen/art-design-pro',
+  GITHUB: 'https://github.com/meishanlaoyao/elysia-admin',
 
   // 个人博客
-  BLOG: 'https://www.artd.pro',
+  BLOG: '',
 
   // 项目文档
-  DOCS: 'https://www.artd.pro/docs/zh/',
+  DOCS: 'https://elysia-admin.top',
 
   // 精简版本
-  LiteVersion: 'https://www.artd.pro/docs/zh/guide/lite-version.html',
+  LiteVersion: '',
 
   // v2.6.1版本
-  OldVersion: 'https://www.artd.pro/v2/',
+  OldVersion: '',
 
   // 项目社区
-  COMMUNITY: 'https://www.artd.pro/docs/zh/community/communicate.html',
+  COMMUNITY: '',
 
   // 个人 Bilibili 主页
-  BILIBILI: 'https://space.bilibili.com/425500936?spm_id_from=333.1007.0.0',
+  BILIBILI: '',
 
   // 项目介绍
-  INTRODUCE: 'https://www.artd.pro/docs/zh/guide/introduce.html'
+  INTRODUCE: 'https://elysia-admin.top/start/introduction.html',
+
+  // art-design-pro 项目主页
+  ART_DESIGN_PRO: 'https://www.artd.pro/docs/zh/',
+
+  // Elysia 框架
+  ELYSIA_FRAMEWORK: 'https://elysiajs.com/',
 }
