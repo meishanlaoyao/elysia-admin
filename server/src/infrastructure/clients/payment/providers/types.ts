@@ -17,7 +17,7 @@ export interface MerchantConfig {
     privateKey?: string;
     publicKey?: string;
     config?: Record<string, any>;
-}
+};
 
 /**
  * 发起支付入参
@@ -31,7 +31,7 @@ export interface PaymentCreateParams {
     notifyUrl: string;
     returnUrl?: string;
     extra?: Record<string, any>;
-}
+};
 
 /**
  * 发起支付结果
@@ -40,7 +40,7 @@ export interface PaymentCreateResult {
     paymentNo: string;    // 本地支付单号
     thirdTradeNo?: string;
     payload: any;         // 返回给前端的支付参数（二维码/签名/跳转链接等）
-}
+};
 
 /**
  * 退款入参
@@ -54,7 +54,7 @@ export interface RefundParams {
     totalAmount: string;
     reason?: string;
     extra?: Record<string, any>;
-}
+};
 
 /**
  * 退款结果
@@ -63,7 +63,7 @@ export interface RefundResult {
     refundNo: string;
     thirdRefundNo?: string;
     status: string;
-}
+};
 
 /**
  * 查询支付状态入参
@@ -71,7 +71,7 @@ export interface RefundResult {
 export interface QueryParams {
     paymentNo: string;
     thirdTradeNo?: string;
-}
+};
 
 /**
  * 查询支付状态结果
@@ -81,7 +81,7 @@ export interface QueryResult {
     thirdTradeNo?: string;
     paidAt?: Date;
     extra?: Record<string, any>;
-}
+};
 
 /**
  * 回调验签入参
@@ -89,7 +89,7 @@ export interface QueryResult {
 export interface NotifyParams {
     rawBody: string | Buffer;
     headers: Record<string, string>;
-}
+};
 
 /**
  * 回调解析结果
@@ -101,7 +101,7 @@ export interface NotifyResult {
     amount: string;
     status: 'success' | 'failed';
     extra?: Record<string, any>;
-}
+};
 
 /**
  * 每个支付平台实现必须遵循的接口
@@ -117,4 +117,4 @@ export interface IPaymentProvider {
     notify(config: MerchantConfig, params: NotifyParams): Promise<NotifyResult>;
     /** 生成回调成功响应体（各平台格式不同） */
     notifySuccess(): string;
-}
+};

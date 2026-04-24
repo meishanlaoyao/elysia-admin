@@ -19,7 +19,6 @@ export class AlipayH5Provider implements IPaymentProvider {
             return_url: params.returnUrl,
             quit_url: params.returnUrl,
         });
-
         return { paymentNo, payload: { payUrl: data.trade_no } };
     }
 
@@ -38,4 +37,4 @@ export class AlipayH5Provider implements IPaymentProvider {
     notifySuccess(): string {
         return 'success';
     }
-}
+};

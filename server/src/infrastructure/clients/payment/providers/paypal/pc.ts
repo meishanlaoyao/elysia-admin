@@ -22,7 +22,6 @@ export class PaypalPcProvider implements IPaymentProvider {
                 },
             }],
         });
-
         return { paymentNo, thirdTradeNo: data.id, payload: { orderId: data.id } };
     }
 
@@ -41,4 +40,4 @@ export class PaypalPcProvider implements IPaymentProvider {
     notifySuccess(): string {
         return 'OK';
     }
-}
+};

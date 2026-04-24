@@ -27,7 +27,6 @@ export class PaypalH5Provider implements IPaymentProvider {
                 user_action: 'PAY_NOW',
             },
         });
-
         const approveLink = data.links?.find((l: any) => l.rel === 'approve')?.href;
         return { paymentNo, thirdTradeNo: data.id, payload: { approveUrl: approveLink, orderId: data.id } };
     }
@@ -47,4 +46,4 @@ export class PaypalH5Provider implements IPaymentProvider {
     notifySuccess(): string {
         return 'OK';
     }
-}
+};

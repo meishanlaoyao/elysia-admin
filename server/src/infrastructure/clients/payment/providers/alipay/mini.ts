@@ -41,4 +41,4 @@ export class AlipayMiniProvider implements IPaymentProvider {
     notifySuccess(): string {
         return 'success';
     }
-}
+};

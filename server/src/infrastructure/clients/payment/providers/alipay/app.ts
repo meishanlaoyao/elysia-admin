@@ -37,4 +37,4 @@ export class AlipayAppProvider implements IPaymentProvider {
     notifySuccess(): string {
         return 'success';
     }
-}
+};

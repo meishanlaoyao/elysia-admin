@@ -18,7 +18,6 @@ export class WechatH5Provider implements IPaymentProvider {
             },
         };
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/h5', body);
-
         return { paymentNo, payload: { h5Url: data.h5_url } };
     }
 
@@ -37,4 +36,4 @@ export class WechatH5Provider implements IPaymentProvider {
     notifySuccess(): string {
         return JSON.stringify({ code: 'SUCCESS', message: '成功' });
     }
-}
+};

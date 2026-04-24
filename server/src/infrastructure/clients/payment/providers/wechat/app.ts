@@ -14,12 +14,10 @@ export class WechatAppProvider implements IPaymentProvider {
         const paymentNo = GenerateUUID();
         const body = buildWechatOrderBody(config, 'app', paymentNo, params);
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/app', body);
-
         const timestamp = Math.floor(Date.now() / 1000).toString();
         const nonce = crypto.randomBytes(16).toString('hex');
         const message = `${config.appId}\n${timestamp}\n${nonce}\n${data.prepay_id}\n`;
         const sign = sha256WithRsa(message, config.privateKey!);
-
         return {
             paymentNo,
             payload: {
@@ -49,4 +47,4 @@ export class WechatAppProvider implements IPaymentProvider {
     notifySuccess(): string {
         return JSON.stringify({ code: 'SUCCESS', message: '成功' });
     }
-}
+};

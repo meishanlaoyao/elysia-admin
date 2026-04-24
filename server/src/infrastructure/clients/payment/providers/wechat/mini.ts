@@ -16,7 +16,6 @@ export class WechatMiniProvider implements IPaymentProvider {
         };
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/jsapi', body);
         const payload = buildWechatJsapiPayload(config, data.prepay_id);
-
         return { paymentNo, payload };
     }
 
@@ -35,4 +34,4 @@ export class WechatMiniProvider implements IPaymentProvider {
     notifySuccess(): string {
         return JSON.stringify({ code: 'SUCCESS', message: '成功' });
     }
-}
+};

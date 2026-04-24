@@ -17,11 +17,10 @@ async function getAccessToken(config: MerchantConfig): Promise<string> {
         },
         body: 'grant_type=client_credentials',
     });
-
     const json = await res.json() as any;
     if (!res.ok) throw new Error(`PayPal 获取 token 失败: ${json.error_description}`);
     return json.access_token;
-}
+};
 
 /**
  * 发送 PayPal REST API 请求
@@ -42,18 +41,16 @@ export async function callPaypal<T = any>(
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
     });
-
     const json = await res.json() as any;
     if (!res.ok) throw new Error(`PayPal 请求失败: [${json.name}] ${json.message}`);
     return json as T;
-}
+};
 
 /**
  * 通用查询
  */
 export async function paypalQuery(config: MerchantConfig, params: QueryParams): Promise<QueryResult> {
     const data = await callPaypal(config, 'GET', `/v2/checkout/orders/${params.thirdTradeNo}`);
-
     const statusMap: Record<string, QueryResult['status']> = {
         CREATED: 'pending',
         SAVED: 'pending',
@@ -62,13 +59,12 @@ export async function paypalQuery(config: MerchantConfig, params: QueryParams): 
         COMPLETED: 'success',
         PAYER_ACTION_REQUIRED: 'pending',
     };
-
     return {
         status: statusMap[data.status] ?? 'pending',
         thirdTradeNo: data.id,
         extra: data,
     };
-}
+};
 
 /**
  * 通用退款（需要先拿到 capture_id）
@@ -77,19 +73,17 @@ export async function paypalRefund(config: MerchantConfig, params: RefundParams)
     // captureId 存在 extra.captureId 里
     const captureId = params.extra?.captureId;
     if (!captureId) throw new Error('PayPal 退款需要提供 captureId');
-
     const data = await callPaypal(config, 'POST', `/v2/payments/captures/${captureId}/refund`, {
         amount: { value: params.amount, currency_code: 'USD' },
         note_to_payer: params.reason,
         invoice_id: params.refundNo,
     });
-
     return {
         refundNo: params.refundNo,
         thirdRefundNo: data.id,
         status: data.status === 'COMPLETED' ? 'success' : 'pending',
     };
-}
+};
 
 /**
  * 验证 PayPal Webhook 签名并解析
@@ -98,7 +92,6 @@ export async function paypalRefund(config: MerchantConfig, params: RefundParams)
 export async function parsePaypalNotify(config: MerchantConfig, params: NotifyParams): Promise<NotifyResult> {
     const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
     const body = JSON.parse(raw);
-
     // 调用 PayPal 验签接口
     const token = await getAccessToken(config);
     const verifyRes = await fetch(`${BASE_URL}/v1/notifications/verify-webhook-signature`, {
@@ -114,15 +107,12 @@ export async function parsePaypalNotify(config: MerchantConfig, params: NotifyPa
             webhook_event: body,
         }),
     });
-
     const verifyJson = await verifyRes.json() as any;
     if (verifyJson.verification_status !== 'SUCCESS') {
         throw new Error('PayPal 回调验签失败');
-    }
-
+    };
     const resource = body.resource;
     const isSuccess = body.event_type === 'PAYMENT.CAPTURE.COMPLETED';
-
     return {
         orderNo: resource.invoice_id ?? resource.custom_id,
         thirdTradeNo: resource.id,
@@ -130,4 +120,4 @@ export async function parsePaypalNotify(config: MerchantConfig, params: NotifyPa
         status: isSuccess ? 'success' : 'failed',
         extra: resource,
     };
-}
+};

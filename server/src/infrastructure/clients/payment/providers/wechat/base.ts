@@ -14,9 +14,8 @@ function buildWechatAuth(config: MerchantConfig, method: string, url: string, bo
     const message = `${method}\n${urlPath}\n${timestamp}\n${nonce}\n${body}\n`;
     const signature = sha256WithRsa(message, config.privateKey!);
     const serialNo = config.config?.serialNo ?? '';
-
     return `WECHATPAY2-SHA256-RSA2048 mchid="${config.mchId}",nonce_str="${nonce}",timestamp="${timestamp}",serial_no="${serialNo}",signature="${signature}"`;
-}
+};
 
 /**
  * 发送微信 v3 请求
@@ -30,7 +29,6 @@ export async function callWechat<T = any>(
     const url = `${BASE_URL}${path}`;
     const bodyStr = body ? JSON.stringify(body) : '';
     const auth = buildWechatAuth(config, method, url, bodyStr);
-
     const res = await fetch(url, {
         method,
         headers: {
@@ -41,13 +39,12 @@ export async function callWechat<T = any>(
         },
         ...(bodyStr ? { body: bodyStr } : {}),
     });
-
     const json = await res.json() as any;
     if (!res.ok) {
         throw new Error(`微信支付请求失败: [${json.code}] ${json.message}`);
-    }
+    };
     return json as T;
-}
+};
 
 /**
  * 构造微信支付通用下单 body
@@ -70,7 +67,7 @@ export function buildWechatOrderBody(
         },
         ...params.extra,
     };
-}
+};
 
 /**
  * 生成微信 JSAPI / 小程序 前端调起签名
@@ -80,7 +77,6 @@ export function buildWechatJsapiPayload(config: MerchantConfig, prepayId: string
     const nonce = crypto.randomBytes(16).toString('hex');
     const message = `${config.appId}\n${timestamp}\n${nonce}\nprepay_id=${prepayId}\n`;
     const paySign = sha256WithRsa(message, config.privateKey!);
-
     return {
         appId: config.appId!,
         timeStamp: timestamp,
@@ -89,7 +85,7 @@ export function buildWechatJsapiPayload(config: MerchantConfig, prepayId: string
         signType: 'RSA',
         paySign,
     };
-}
+};
 
 /**
  * 验证微信回调签名并解密 resource
@@ -97,25 +93,21 @@ export function buildWechatJsapiPayload(config: MerchantConfig, prepayId: string
 export function parseWechatNotify(config: MerchantConfig, params: NotifyParams): NotifyResult {
     const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
     const body = JSON.parse(raw);
-
     // 验签
     const timestamp = params.headers['wechatpay-timestamp'];
     const nonce = params.headers['wechatpay-nonce'];
     const signature = params.headers['wechatpay-signature'];
     const message = `${timestamp}\n${nonce}\n${raw}\n`;
-
     const verify = crypto.createVerify('SHA256withRSA');
     verify.update(message);
     if (!verify.verify(config.publicKey!, signature, 'base64')) {
         throw new Error('微信回调验签失败');
-    }
-
+    };
     // 解密 resource
     const { ciphertext, nonce: resNonce, associated_data } = body.resource;
     const apiV3Key = config.config?.apiV3Key as string;
     const plaintext = aesGcmDecrypt(ciphertext, apiV3Key, resNonce, associated_data ?? '');
     const trade = JSON.parse(plaintext);
-
     return {
         orderNo: trade.out_trade_no,
         thirdTradeNo: trade.transaction_id,
@@ -123,16 +115,13 @@ export function parseWechatNotify(config: MerchantConfig, params: NotifyParams):
         status: trade.trade_state === 'SUCCESS' ? 'success' : 'failed',
         extra: trade,
     };
-}
+};
 
 /**
  * 通用查询
  */
 export async function wechatQuery(config: MerchantConfig, params: QueryParams): Promise<QueryResult> {
-    const data = await callWechat(config, 'GET',
-        `/v3/pay/transactions/out-trade-no/${params.paymentNo}?mchid=${config.mchId}`
-    );
-
+    const data = await callWechat(config, 'GET', `/v3/pay/transactions/out-trade-no/${params.paymentNo}?mchid=${config.mchId}`);
     const statusMap: Record<string, QueryResult['status']> = {
         SUCCESS: 'success',
         REFUND: 'success',
@@ -142,14 +131,13 @@ export async function wechatQuery(config: MerchantConfig, params: QueryParams): 
         USERPAYING: 'pending',
         PAYERROR: 'failed',
     };
-
     return {
         status: statusMap[data.trade_state] ?? 'pending',
         thirdTradeNo: data.transaction_id,
         paidAt: data.success_time ? new Date(data.success_time) : undefined,
         extra: data,
     };
-}
+};
 
 /**
  * 通用退款
@@ -166,10 +154,9 @@ export async function wechatRefund(config: MerchantConfig, params: RefundParams)
             currency: 'CNY',
         },
     });
-
     return {
         refundNo: params.refundNo,
         thirdRefundNo: data.refund_id,
         status: data.status === 'SUCCESS' ? 'success' : 'pending',
     };
-}
+};

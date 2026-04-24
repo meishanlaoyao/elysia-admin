@@ -42,4 +42,4 @@ export class AlipayPcProvider implements IPaymentProvider {
     notifySuccess(): string {
         return 'success';
     }
-}
+};

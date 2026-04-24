@@ -34,9 +34,9 @@ function resolve(channel: PaymentChannel, platform: PaymentPlatform): IPaymentPr
     const provider = registry[channel]?.[platform];
     if (!provider) {
         throw new Error(`不支持的支付组合: channel=${channel}, platform=${platform}`);
-    }
+    };
     return provider;
-}
+};
 
 /**
  * 发起支付
@@ -60,4 +60,4 @@ export function pay(channel: PaymentChannel, platform: PaymentPlatform) {
         notifySuccess: (): string =>
             provider.notifySuccess(),
     };
-}
+};

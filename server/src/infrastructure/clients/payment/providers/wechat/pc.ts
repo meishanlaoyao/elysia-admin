@@ -12,7 +12,6 @@ export class WechatPcProvider implements IPaymentProvider {
         const paymentNo = GenerateUUID();
         const body = buildWechatOrderBody(config, 'native', paymentNo, params);
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/native', body);
-
         return { paymentNo, payload: { codeUrl: data.code_url } };
     }
 
@@ -31,4 +30,4 @@ export class WechatPcProvider implements IPaymentProvider {
     notifySuccess(): string {
         return JSON.stringify({ code: 'SUCCESS', message: '成功' });
     }
-}
+};
