@@ -57,6 +57,7 @@ export default defineConfig({
       {
         text: '其他',
         items: [
+          { text: '社交', link: '/other/social' },
           { text: '常见问题', link: '/other/faq' },
           { text: '相关链接', link: '/other/related-links' },
         ]
