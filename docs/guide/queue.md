@@ -21,13 +21,48 @@ head:
 
 ## 一、架构概览
 
-```
-主进程 (index.js)
-  └── 注册队列 + 投递任务 ──Redis──▶ Worker 进程 (workers.js)
-                                          └── 注册 Worker
-                                               └── spawn ──▶ Processor 子进程
-                                                               └── 执行业务逻辑
-                                                               └── 直连数据库/Redis
+```mermaid
+graph LR
+    %% 定义样式
+    classDef main fill:#f9f,stroke:#333,stroke-width:2px,color:#fff;
+    classDef worker fill:#bbf,stroke:#333,stroke-width:2px,color:#fff;
+    classDef processor fill:#bfb,stroke:#333,stroke-width:2px,color:#fff;
+    classDef storage fill:#ffcc00,stroke:#333,stroke-width:2px,color:#000;
+
+    %% 主进程
+    subgraph MainProcess [主进程 index.js]
+        direction TB
+        RegisterQueue[注册队列 + 投递任务]:::main
+    end
+
+    %% Redis 中间件
+    Redis[(Redis)]:::storage
+
+    %% Worker 进程
+    subgraph WorkerProcess [Worker 进程 workers.js]
+        direction TB
+        RegisterWorker[注册 Worker]:::worker
+        Spawn[spawn]:::worker
+    end
+
+    %% Processor 子进程
+    subgraph ProcessorProcess [Processor 子进程]
+        direction TB
+        ExecLogic[执行业务逻辑]:::processor
+    end
+
+    %% 底层资源
+    subgraph Resources [底层资源]
+        direction TB
+        DB[(数据库/Redis)]:::storage
+    end
+
+    %% 连接关系
+    RegisterQueue --> Redis
+    Redis --> RegisterWorker
+    RegisterWorker --> Spawn
+    Spawn --> ExecLogic
+    ExecLogic --> DB
 ```
 
 系统采用三层隔离：
@@ -38,7 +73,7 @@ head:
 
 ## 二、启动服务
 
-```bash
+```bash [bun]
 # 同时启动主进程和 Worker 进程
 bun dev:all
 
@@ -53,7 +88,7 @@ bun dev:workers  # 仅 Worker 进程
 
 ### 1. 基本投递
 
-```typescript
+```ts [ts]
 import { queueManager } from '@/infrastructure/queue';
 
 await queueManager.addJob('trade-order-queue', {
@@ -65,7 +100,7 @@ await queueManager.addJob('trade-order-queue', {
 
 ### 2. 延迟任务
 
-```typescript
+```ts [ts]
 // 30 分钟后执行
 await queueManager.addJob('trade-order-queue', {
     orderId: 'ORD-001',
@@ -79,7 +114,7 @@ await queueManager.addJob('trade-order-queue', {
 
 数字越小优先级越高，`1` 为最高优先级。
 
-```typescript
+```ts [ts]
 await queueManager.addJob('flow-buffer-queue', data, {
     priority: 1,
 });
@@ -89,7 +124,7 @@ await queueManager.addJob('flow-buffer-queue', data, {
 
 指定 `jobId` 后，相同 ID 的任务不会重复入队，适合防止重复提交。
 
-```typescript
+```ts [ts]
 await queueManager.addJob('trade-order-queue', data, {
     jobId: `pay-${orderId}`,
 });
@@ -97,7 +132,7 @@ await queueManager.addJob('trade-order-queue', data, {
 
 ### 5. 批量投递
 
-```typescript
+```ts [ts]
 await queueManager.addBulkJobs('flow-buffer-queue', [
     { data: { action: 'write', payload: { userId: 1 } } },
     { data: { action: 'write', payload: { userId: 2 } } },
@@ -107,7 +142,7 @@ await queueManager.addBulkJobs('flow-buffer-queue', [
 
 ### 6. 控制任务保留数量
 
-```typescript
+```ts [ts]
 await queueManager.addJob('system-cron-queue', data, {
     removeOnComplete: 100,  // 完成后只保留最近 100 条
     removeOnFail: 200,      // 失败后只保留最近 200 条
@@ -120,7 +155,7 @@ await queueManager.addJob('system-cron-queue', data, {
 
 ### 1. 注册定时任务
 
-```typescript
+```ts [ts]
 import { queueManager, schedule } from '@/infrastructure/queue';
 
 const queue = queueManager.getQueue('system-cron-queue')!;
@@ -137,7 +172,7 @@ await schedule(queue, 'daily-cleanup', {
 
 ### 2. 移除定时任务
 
-```typescript
+```ts [ts]
 import { removeSchedule } from '@/infrastructure/queue';
 
 await removeSchedule(queue, 'daily-cleanup', '0 2 * * *');
@@ -162,7 +197,7 @@ await removeSchedule(queue, 'daily-cleanup', '0 2 * * *');
 
 ### 1. 创建队列文件
 
-```typescript
+```ts [ts]
 // src/infrastructure/queue/queues/email-notify/queue.ts
 import { queueManager } from '../../core';
 
@@ -174,7 +209,7 @@ export default queueManager.registerQueue({
 
 ### 2. 创建 Processor 文件
 
-```typescript
+```ts [ts]
 // src/infrastructure/queue/queues/email-notify/processor.ts
 import type { SandboxedJob } from 'bullmq';
 import { createTaskRegistry, parseArgs } from '../../core/processor-utils';
@@ -199,7 +234,7 @@ export default async function processor(job: SandboxedJob) {
 
 ### 3. 创建 Worker 注册文件
 
-```typescript
+```ts [ts]
 // src/infrastructure/queue/queues/email-notify/worker.ts
 import path from 'path';
 import { queueManager, RateLimitPresets } from '../../core';
@@ -218,7 +253,7 @@ queueManager.registerWorker({
 
 ### 4. 注册到 runtime
 
-```typescript
+```ts [ts]
 // src/infrastructure/queue/runtime/app.ts
 import '../queues/email-notify/queue';  // 加这一行
 
@@ -230,17 +265,17 @@ import '../queues/email-notify/worker'; // 加这一行
 
 在 `script/build-processors.ts` 和 `script/build.ts` 的 `processors` 数组中加入：
 
-```typescript
+```ts [ts]
 { name: 'email-notify', entry: './src/infrastructure/queue/queues/email-notify/processor.ts' },
 ```
 
 ### 6. 构建并使用
 
-```bash
+```bash [bun]
 bun build:processors
 ```
 
-```typescript
+```ts [ts]
 await queueManager.addJob('email-notify-queue', {
     taskName: 'sendEmail',
     jobArgs: JSON.stringify(['user@example.com', '验证码', '您的验证码是 123456']),
@@ -251,7 +286,7 @@ await queueManager.addJob('email-notify-queue', {
 
 ### 1. 使用预设
 
-```typescript
+```ts [ts]
 import { RetryPresets } from '@/infrastructure/queue';
 
 await queueManager.addJob('trade-order-queue', data, {
@@ -267,7 +302,7 @@ await queueManager.addJob('trade-order-queue', data, {
 
 ### 2. 自定义重试
 
-```typescript
+```ts [ts]
 import { buildRetry } from '@/infrastructure/queue';
 
 // 固定间隔：失败后等 5 秒重试，最多 3 次
@@ -287,7 +322,7 @@ await queueManager.addJob('trade-order-queue', data, {
 
 ### 1. 使用预设
 
-```typescript
+```ts [ts]
 import { RateLimitPresets } from '@/infrastructure/queue';
 
 queueManager.registerWorker({
@@ -308,7 +343,7 @@ queueManager.registerWorker({
 
 ### 2. 自定义限流
 
-```typescript
+```ts [ts]
 import { buildRateLimit } from '@/infrastructure/queue';
 
 options: {
@@ -323,7 +358,7 @@ options: {
 
 ### 1. 记录任务日志和进度
 
-```typescript
+```ts [ts]
 export default async function processor(job: SandboxedJob) {
     await job.log('开始处理...');
     await job.updateProgress(50);
@@ -336,7 +371,7 @@ export default async function processor(job: SandboxedJob) {
 
 Processor 子进程无法使用主进程的 `queueManager` 单例，需要自行创建 Queue 实例。
 
-```typescript
+```ts [ts]
 import { Queue } from 'bullmq';
 import { getQueueEnvConfig } from '../../config/env';
 import Redis from 'ioredis';
@@ -352,7 +387,7 @@ await notifyQueue.add('sendEmail', { to: 'user@example.com' });
 
 每次修改 `processor.ts` 后必须重新构建，否则子进程运行的仍是旧代码。
 
-```bash
+```bash [bun]
 bun build:processors
 ```
 
@@ -360,7 +395,7 @@ bun build:processors
 
 启动主进程后访问 Bull Board 可视化面板：
 
-```
+```bash [terminal]
 http://localhost:{port}{prefix}/bullmq
 ```
 

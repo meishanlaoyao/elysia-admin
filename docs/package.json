@@ -1,6 +1,16 @@
 {
   "devDependencies": {
+    "@braintree/sanitize-url": "^7.1.2",
+    "busuanzi.pure.js": "^1.0.3",
+    "cytoscape": "^3.33.2",
+    "cytoscape-cose-bilkent": "^4.1.0",
+    "dayjs": "^1.11.20",
+    "debug": "^4.4.3",
+    "nprogress-v2": "^1.1.10",
     "vitepress": "^1.6.4",
+    "vitepress-plugin-group-icons": "^1.7.5",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "vitepress-protect-plugin": "^1.0.6",
     "vue": "^3.5.32"
   },
   "scripts": {

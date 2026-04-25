@@ -23,7 +23,7 @@ head:
 
 ### 插入数据（不返回记录）
 
-```ts
+```ts [ts]
 InsertOne(schema, ctx, customData);
 ```
 
@@ -34,7 +34,7 @@ InsertOne(schema, ctx, customData);
 
 示例：
 
-```ts
+```ts [ts]
 import { InsertOne } from '@/core/database/repository';
 
 export async function create(ctx: Context) {
@@ -49,7 +49,7 @@ export async function create(ctx: Context) {
 
 ### 插入数据（返回记录）
 
-```ts
+```ts [ts]
 InsertOneAndRes(schema, ctx, customData);
 ```
 
@@ -60,7 +60,7 @@ InsertOneAndRes(schema, ctx, customData);
 
 示例：
 
-```ts
+```ts [ts]
 import { InsertOneAndRes } from '@/core/database/repository';
 
 export async function create(ctx: Context) {
@@ -113,7 +113,7 @@ export async function create(ctx: Context) {
 
 示例：
 
-```ts
+```ts [ts]
 CreateQueryBuilder(businessMerchantSchema)
     .eq('delFlag', false)
     .eq('status', true)
@@ -123,7 +123,7 @@ CreateQueryBuilder(businessMerchantSchema)
 
 等价于以下 SQL：
 
-```sql
+```sql [sql]
 SELECT * 
 FROM business_merchant
 WHERE del_flag = false 
@@ -133,7 +133,7 @@ WHERE del_flag = false
 
 ### 单条查询
 
-```ts
+```ts [ts]
 FindOneByKey(schema, keyColumnName, value);
 ```
 
@@ -144,7 +144,7 @@ FindOneByKey(schema, keyColumnName, value);
 
 示例：
 
-```ts
+```ts [ts]
 import { FindOneByKey } from '@/core/database/repository';
 
 export async function findOne(ctx: Context) {
@@ -162,7 +162,7 @@ export async function findOne(ctx: Context) {
 
 示例：
 
-```ts
+```ts [ts]
 import { CreateQueryBuilder, FindAll } from '@/core/database/repository';
 
 export async function findAll(ctx: Context) {
@@ -181,7 +181,7 @@ export async function findAll(ctx: Context) {
 
 示例：
 
-```ts
+```ts [ts]
 import { eq } from 'drizzle-orm';
 import { CreateQueryBuilder, FindAllWithJoin } from '@/core/database/repository';
 
@@ -217,7 +217,7 @@ export async function findTree(ctx: Context) {
 
 示例：
 
-```ts
+```ts [ts]
 import { CreateQueryBuilder, FindPage } from '@/core/database/repository';
 
 export async function findList(ctx: Context) {
@@ -257,7 +257,7 @@ export async function findList(ctx: Context) {
 
 示例：
 
-```ts
+```ts [ts]
 import { eq } from 'drizzle-orm';
 import { CreateQueryBuilder, FindPageWithJoin } from '@/core/database/repository';
 
@@ -308,7 +308,7 @@ export async function findList(ctx: Context) {
 
 ### 更新数据（不返回记录）
 
-```ts
+```ts [ts]
 UpdateByKey(schema, keyColumnName, ctx, customData);
 ```
 
@@ -320,7 +320,7 @@ UpdateByKey(schema, keyColumnName, ctx, customData);
 
 示例：
 
-```ts
+```ts [ts]
 import { UpdateByKey } from '@/core/database/repository';
 
 export async function update(ctx: Context) {
@@ -335,7 +335,7 @@ export async function update(ctx: Context) {
 
 ### 更新数据（返回记录）
 
-```ts
+```ts [ts]
 UpdateByKeyAndRes(schema, keyColumnName, ctx, customData);
 ```
 
@@ -347,7 +347,7 @@ UpdateByKeyAndRes(schema, keyColumnName, ctx, customData);
 
 示例：
 
-```ts
+```ts [ts]
 import { UpdateByKeyAndRes } from '@/core/database/repository';
 
 export async function update(ctx: Context) {
@@ -366,7 +366,7 @@ export async function update(ctx: Context) {
 
 ### 批量软删除
 
-```ts
+```ts [ts]
 SoftDeleteByKeys(schema, keyColumnName, ctx, customData);
 ```
 
@@ -378,7 +378,7 @@ SoftDeleteByKeys(schema, keyColumnName, ctx, customData);
 
 示例：
 
-```ts
+```ts [ts]
 import { SoftDeleteByKeys } from '@/core/database/repository';
 
 export async function remove(ctx: Context) {
@@ -393,7 +393,7 @@ export async function remove(ctx: Context) {
 
 ### 批量条件硬删除
 
-```ts
+```ts [ts]
 HardDelete(schema, where);
 ```
 
@@ -403,7 +403,7 @@ HardDelete(schema, where);
 
 示例：
 
-```ts
+```ts [ts]
 import { eq } from 'drizzle-orm';
 import { HardDelete } from '@/core/database/repository';
 
@@ -412,7 +412,7 @@ await HardDelete(systemRoleMenuSchema, eq(systemRoleMenuSchema.roleId, roleId));
 
 ### 批量多主键硬删除
 
-```ts
+```ts [ts]
 HardDeleteByKeys(schema, keyColumnName, values);
 ```
 
@@ -423,7 +423,7 @@ HardDeleteByKeys(schema, keyColumnName, values);
 
 示例：
 
-```ts
+```ts [ts]
 import { HardDeleteByKeys } from '@/core/database/repository';
 
 await HardDeleteByKeys(systemRoleMenuSchema, 'roleId', [1, 2, 3, 4]);
@@ -437,7 +437,7 @@ await HardDeleteByKeys(systemRoleMenuSchema, 'roleId', [1, 2, 3, 4]);
 
 使用 `RunTransaction` 函数执行基本的事务操作：
 
-```typescript
+```ts [ts]
 import { RunTransaction } from '@/core/database/transaction';
 import { systemUserSchema } from '@/database/schema/system_user';
 
@@ -459,7 +459,7 @@ console.log('创建的用户:', result);
 
 在一个事务中操作多个表：
 
-```typescript
+```ts [ts]
 import { RunTransaction } from '@/core/database/transaction';
 import { systemUserSchema } from '@/database/schema/system_user';
 import { systemRoleSchema } from '@/database/schema/system_role';
@@ -486,7 +486,7 @@ const result = await RunTransaction(async (tx) => {
 
 事务中抛出错误会自动回滚：
 
-```typescript
+```ts [ts]
 try {
     await RunTransaction(async (tx) => {
         await tx.insert(systemUserSchema).values({
@@ -511,7 +511,7 @@ try {
 
 使用 `CreateTransaction` 创建更复杂的事务配置：
 
-```typescript
+```ts [ts]
 import { CreateTransaction } from '@/core/database/transaction';
 
 const result = await CreateTransaction<{ userId: number }>()
@@ -539,7 +539,7 @@ const result = await CreateTransaction<{ userId: number }>()
 
 PostgreSQL 支持四种隔离级别：
 
-```typescript
+```ts [ts]
 // 读未提交（最低隔离级别）
 await RunTransaction(async (tx) => {
     // 事务逻辑
@@ -573,7 +573,7 @@ await RunTransaction(async (tx) => {
 
 对于只读操作，可以使用只读事务提高性能：
 
-```typescript
+```ts [ts]
 // 使用构建器
 const users = await CreateTransaction()
     .readOnly()
@@ -594,7 +594,7 @@ const users = await RunTransaction(async (tx) => {
 
 监听事务的各个阶段：
 
-```typescript
+```ts [ts]
 await RunTransaction(async (tx) => {
     // 事务逻辑
     await tx.insert(systemUserSchema).values({ userName: 'hook' });
@@ -624,7 +624,7 @@ await RunTransaction(async (tx) => {
 
 顺序执行（串行）：
 
-```typescript
+```ts [ts]
 import { CreateBatchTransaction } from '@/core/database/transaction';
 
 const results = await CreateBatchTransaction()
@@ -657,7 +657,7 @@ results.forEach(({ name, success, result, error }) => {
 
 并行执行：
 
-```typescript
+```ts [ts]
 const results = await CreateBatchTransaction()
     .add('事务1', async (tx) => {
         // 独立的事务逻辑
@@ -677,7 +677,7 @@ const results = await CreateBatchTransaction()
 
 使用 `WithTransaction` 创建可复用的函数，自动检测是否在事务中：
 
-```typescript
+```ts [ts]
 import { WithTransaction, TransactionContext } from '@/core/database/transaction';
 import { db } from '@/core/database/pg';
 

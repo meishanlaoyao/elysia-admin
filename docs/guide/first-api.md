@@ -29,7 +29,7 @@ head:
 
 在 `/server/src/modules/business-goods/` 目录下创建 `route.ts` 文件，用于定义接口路由配置。
 
-```ts
+```ts [route.ts]
 import type { IRouteModule } from "@/types/route";
 
 const BusinessGoodsModule: IRouteModule = {
@@ -64,7 +64,7 @@ export default BusinessGoodsModule;
 
 在 `/server/src/modules/business-goods/` 目录下创建 `dto.ts` 文件：
 
-```ts
+```ts [dto.ts]
 import { t } from 'elysia';
 import { BaseResultDto } from '@/types/dto';
 
@@ -85,7 +85,7 @@ export const CreateDto = {
 
 在 `/server/src/modules/business-goods/` 目录下创建 `handle.ts` 文件，用于实现接口的业务逻辑：
 
-```ts
+```ts [handle.ts]
 import { Context } from 'elysia';
 import { BaseResultData } from '@/core/result';
 
@@ -111,8 +111,8 @@ export async function create(ctx: Context) {
 
 将创建的文件进行整合，更新 `route.ts` 文件以引用 DTO 和处理函数：
 
-```ts
-// route.ts
+::: code-group
+```ts [route.ts]
 import type { IRouteModule } from "@/types/route";
 import { CreateDto } from "./dto";
 import { create } from "./handle";
@@ -142,8 +142,7 @@ const BusinessGoodsModule: IRouteModule = {
 export default BusinessGoodsModule;
 ```
 
-```ts
-// dto.ts
+```ts [dto.ts]
 import { t } from 'elysia';
 import { BaseResultDto } from '@/types/dto';
 
@@ -157,8 +156,7 @@ export const CreateDto = {
 };
 ```
 
-```ts
-// handle.ts
+```ts [handle.ts]
 import { Context } from 'elysia';
 import { BaseResultData } from '@/core/result';
 
@@ -172,6 +170,7 @@ export async function create(ctx: Context) {
     }
 }
 ```
+:::
 
 通过以上步骤，我们成功创建了一个具备以下特性的商品创建接口：
 

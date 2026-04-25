@@ -27,13 +27,15 @@ head:
 
 ## 下载源码
 
-```bash
-# gitee
+::: code-group
+```bash [gitee]
 git clone https://gitee.com/nian-qian/elysia-admin.git
+```
 
-# github
+```bash [github]
 git clone https://github.com/meishanlaoyao/elysia-admin.git
 ```
+:::
 
 ## 启动项目
 
@@ -41,13 +43,17 @@ git clone https://github.com/meishanlaoyao/elysia-admin.git
 
 ### 安装依赖
 
-```bash
+::: code-group
+```bash [bun]
 # 安装后端依赖
 bun install
+```
 
+```bash [pnpm]
 # 安装前端依赖
 pnpm install
 ```
+:::
 
 ### 创建数据库
 
@@ -75,17 +81,21 @@ pnpm install
 
 ### 运行项目
 
-```bash
+::: code-group
+```bash [bun]
 # 运行后端项目
 bun dev
+```
 
+```bash [pnpm]
 # 运行前端项目
 pnpm dev
 ```
+:::
 
 后端启动成功后，控制台会输出以下信息：
 
-```
+```bash [terminal]
 ============================================================
 🚀 Elysia-Admin 启动成功
 ============================================================
@@ -101,13 +111,19 @@ Bun版本:      1.3.8
 
 > **注意：** 若使用 `bun dev` 命令启动的后端服务运行环境不是 `development`，则需要在启动前端项目时明确指定运行环境：
 
-```bash
-# Windows
+::: code-group
+```bash [windows]
 $env:NODE_ENV="development"; bun dev
+```
 
-# Linux / macOS
+```bash [linux]
 NODE_ENV="development"; bun dev
 ```
+
+```bash [macos]
+NODE_ENV="development"; bun dev
+```
+:::
 
 前端项目启动后会自动打开浏览器，默认访问地址为：<http://localhost:3006>。
 

@@ -21,7 +21,7 @@ head:
 
 ### 设置缓存
 
-```ts
+```ts [ts]
 Set(key, value, expire);
 ```
 
@@ -34,7 +34,7 @@ Set(key, value, expire);
 
 示例：
 
-```ts
+```ts [ts]
 import { Set } from '@/core/database/redis';
 
 // 设置缓存，60 秒后过期
@@ -46,7 +46,7 @@ await Set('config:app', { theme: 'dark' });
 
 ### 批量设置缓存
 
-```ts
+```ts [ts]
 SetMulti(items);
 ```
 
@@ -58,7 +58,7 @@ SetMulti(items);
 
 示例：
 
-```ts
+```ts [ts]
 import { SetMulti } from '@/core/database/redis';
 
 await SetMulti([
@@ -69,7 +69,7 @@ await SetMulti([
 
 ### 获取缓存
 
-```ts
+```ts [ts]
 Get(key);
 ```
 
@@ -82,7 +82,7 @@ Get(key);
 
 示例：
 
-```ts
+```ts [ts]
 import { Get } from '@/core/database/redis';
 
 const user = await Get('user:1');
@@ -91,7 +91,7 @@ console.log(user); // { name: 'John', age: 30 }
 
 ### 删除缓存
 
-```ts
+```ts [ts]
 Del(key);
 ```
 
@@ -100,7 +100,7 @@ Del(key);
 
 示例：
 
-```ts
+```ts [ts]
 import { Del } from '@/core/database/redis';
 
 // 删除单个缓存
@@ -112,7 +112,7 @@ await Del(['user:1', 'user:2', 'user:3']);
 
 ### 获取匹配的缓存键
 
-```ts
+```ts [ts]
 Keys(pattern);
 ```
 
@@ -124,7 +124,7 @@ Keys(pattern);
 
 示例：
 
-```ts
+```ts [ts]
 import { Keys } from '@/core/database/redis';
 
 // 获取所有以 user: 开头的缓存键
@@ -136,7 +136,7 @@ console.log(userKeys); // ['user:1', 'user:2', 'user:3']
 
 ### 获取或设置缓存（防缓存击穿）
 
-```ts
+```ts [ts]
 WithCache<T>(cacheKey, dbQueryFn, expire?, lockTtl?, retryTimes?, retryDelay?);
 ```
 
@@ -160,7 +160,7 @@ WithCache<T>(cacheKey, dbQueryFn, expire?, lockTtl?, retryTimes?, retryDelay?);
 
 示例：
 
-```ts
+```ts [ts]
 import { WithCache } from '@/core/cache';
 import { CreateQueryBuilder, FindAll } from '@/core/database/repository';
 import { systemDictTypeSchema } from '@/database/schema/system_dict';
@@ -179,7 +179,7 @@ const data = await WithCache(
 
 ### 更新缓存 - 插入新数据
 
-```ts
+```ts [ts]
 CacheInsert(cacheKey, data);
 ```
 
@@ -196,7 +196,7 @@ CacheInsert(cacheKey, data);
 
 示例：
 
-```ts
+```ts [ts]
 import { CacheInsert } from '@/core/cache';
 
 // 向缓存中插入新用户
@@ -205,7 +205,7 @@ await CacheInsert('users:list', { id: 3, name: 'New User' });
 
 ### 更新缓存 - 删除指定数据
 
-```ts
+```ts [ts]
 CacheDelete(cacheKey, key, values);
 ```
 
@@ -223,7 +223,7 @@ CacheDelete(cacheKey, key, values);
 
 示例：
 
-```ts
+```ts [ts]
 import { CacheDelete } from '@/core/cache';
 
 // 从缓存中删除 id 为 1 和 2 的用户
@@ -232,7 +232,7 @@ await CacheDelete('users:list', 'id', [1, 2]);
 
 ### 更新缓存 - 更新指定数据
 
-```ts
+```ts [ts]
 CacheUpdate(cacheKey, key, data);
 ```
 
@@ -250,7 +250,7 @@ CacheUpdate(cacheKey, key, data);
 
 示例：
 
-```ts
+```ts [ts]
 import { CacheUpdate } from '@/core/cache';
 
 // 更新缓存中 id 为 1 的用户信息

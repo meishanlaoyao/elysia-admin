@@ -29,8 +29,7 @@ head:
 但是我们的 `Elysia Admin` 项目完全依赖 `Bun` 。 `Bun` 虽然兼容了很多 `Node.js` API，但它并没有完全实现 cluster 模块（或者说实现方式与 Node 不同）。
 
 因此你需要手动多实例：
-```js
-// ecosystem.config.cjs
+```js [ecosystem.config.cjs]
 module.exports = {
   apps: [
     {
@@ -59,8 +58,7 @@ module.exports = {
   ]
 };
 ```
-```txt
-# nginx
+```txt [nginx]
 http {
     upstream elysia_app {
         server 127.0.0.1:3001;

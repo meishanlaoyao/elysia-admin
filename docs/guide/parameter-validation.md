@@ -29,7 +29,7 @@ head:
 
 用于定义标准的单个数据返回格式，包含成功和失败两种响应。
 
-```typescript
+```typescript [dto.ts]
 import { BaseResultDto } from '@/types/dto';
 
 // 使用示例
@@ -59,7 +59,7 @@ app.get('/user/:id', async ({ params }) => {
 
 用于定义标准的列表数据返回格式，包含分页信息。
 
-```typescript
+```typescript [route.ts]
 import { BaseResultListDto } from '@/types/dto';
 
 // 使用示例
@@ -90,7 +90,7 @@ app.get('/users', async ({ query }) => {
 
 用于定义标准的列表查询参数，包含分页、排序、时间范围等常用字段。
 
-```typescript
+```ts [route.ts]
 import { BaseListQueryDto } from '@/types/dto';
 
 // 使用示例
@@ -120,7 +120,7 @@ app.get('/users', async ({ query }) => {
 
 创建新增接口的 DTO，可以指定必填字段。
 
-```typescript
+```ts [route.ts]
 import { CrudDto } from '@/types/dto';
 import { insertUserSchema, selectUserSchema } from '@/database/schema/user';
 
@@ -137,7 +137,7 @@ app.post('/user', async ({ body }) => {
 
 创建更新接口的 DTO，主键必填，其他字段可选。
 
-```typescript
+```ts [route.ts]
 import { CrudDto } from '@/types/dto';
 import { selectUserSchema } from '@/database/schema/user';
 
@@ -154,7 +154,7 @@ app.put('/user', async ({ body }) => {
 
 创建列表查询接口的 DTO，支持分页和自定义查询字段。
 
-```typescript
+```ts [route.ts]
 import { CrudDto } from '@/types/dto';
 import { selectUserSchema } from '@/database/schema/user';
 
@@ -173,7 +173,7 @@ app.get('/users', async ({ query }) => {
 
 创建查询所有数据接口的 DTO（不分页）。
 
-```typescript
+```ts [route.ts]
 import { CrudDto } from '@/types/dto';
 import { selectUserSchema } from '@/database/schema/user';
 
@@ -191,7 +191,7 @@ app.get('/users/all', async ({ query }) => {
 
 创建查询单条数据接口的 DTO。
 
-```typescript
+```ts [route.ts]
 import { CrudDto } from '@/types/dto';
 import { selectUserSchema } from '@/database/schema/user';
 
@@ -206,7 +206,7 @@ app.get('/user/:id', async ({ params }) => {
 
 手动创建更新 DTO，主键必填，其他字段可选，自动处理日期字段。
 
-```typescript
+```ts [dto.ts]
 import { CreateUpdateDto } from '@/types/dto';
 import { selectUserSchema } from '@/database/schema/user';
 
@@ -217,7 +217,7 @@ const updateDto = CreateUpdateDto(selectUserSchema, 'id');
 
 将日期字符串转换为 Date 对象，用于处理前端传递的日期字符串。
 
-```typescript
+```ts [route.ts]
 import { ParseDateFields } from '@/types/dto';
 
 app.post('/user', async ({ body }) => {

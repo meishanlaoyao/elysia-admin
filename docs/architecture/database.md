@@ -423,7 +423,7 @@ head:
 
 ### 推荐索引
 
-```sql
+```sql [sql]
 -- 用户表
 CREATE INDEX idx_user_username ON system_user(username);
 CREATE INDEX idx_user_dept ON system_user(dept_id);
@@ -455,7 +455,7 @@ CREATE INDEX idx_oper_log_user ON system_oper_log(user_id);
 
 ### 初始化数据库
 
-```bash
+```bash [terminal]
 # 推送数据库结构
 cd server
 bun db:push
@@ -463,7 +463,7 @@ bun db:push
 
 ### 数据迁移
 
-```bash
+```bash [bun]
 # 生成迁移文件
 bun drizzle-kit generate
 
@@ -473,7 +473,7 @@ bun drizzle-kit migrate
 
 ### 数据库同步
 
-```bash
+```bash [bun]
 # 从数据库拉取结构
 bun db:pull
 ```

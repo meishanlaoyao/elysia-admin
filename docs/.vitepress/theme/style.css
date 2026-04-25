@@ -181,3 +181,14 @@
   --vp-badge-danger-text: var(--vp-c-danger-1);
   --vp-badge-danger-bg: var(--vp-c-danger-soft);
 }
+
+/**
+ * Busuanzi Statistics
+ * -------------------------------------------------------------------------- */
+
+#busuanzi_value_site_pv,
+#busuanzi_value_site_uv {
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  margin: 0 0.25rem;
+}

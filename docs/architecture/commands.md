@@ -23,7 +23,7 @@ head:
 在开发环境下启动后端服务（仅主进程）。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun dev
 ```
 
@@ -31,7 +31,7 @@ bun dev
 构建 Processor 文件后启动 Worker 进程（定时任务、队列消费）。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun dev:workers
 ```
 
@@ -39,38 +39,50 @@ bun dev:workers
 同时启动主进程和 Worker 进程，两个进程的日志合并输出，`[server]` 和 `[workers]` 前缀区分，Ctrl+C 同时关闭。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun dev:all
 ```
 
 **指定运行环境：**
-```bash
-# Windows
+::: code-group
+```bash [windows]
 $env:NODE_ENV="development"; bun dev:all
-
-# Linux / macOS
-NODE_ENV="development" bun dev:all
 ```
+
+```bash [linux]
+NODE_ENV="development"; bun dev:all
+```
+
+```bash [macos]
+NODE_ENV="development"; bun dev:all
+```
+:::
 
 ### build
 构建后端服务，生成生产环境代码。同时会构建 Worker 进程和所有 Processor 文件。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun build
 ```
 
 **推荐使用方式（设置生产环境变量）：**
-```bash
-# Windows
+::: code-group
+```bash [windows]
 $env:NODE_ENV="production"; bun run build
+```
 
-# Linux / macOS
+```bash [linux]
 NODE_ENV="production" bun run build
 ```
 
-**构建产物：**
+```bash [macos]
+NODE_ENV="production" bun run build
 ```
+:::
+
+**构建产物：**
+```bash [terminal]
 dist/
 ├── index.js              # 主进程
 ├── workers.js            # Worker 进程
@@ -86,7 +98,7 @@ dist/
 单独构建所有 Processor 文件，开发时修改 `processor.ts` 后执行。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun build:processors
 ```
 
@@ -98,7 +110,7 @@ bun build:processors
 将本地数据库配置推送到数据库服务，自动创建或更新数据库结构。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun db:push
 ```
 
@@ -106,7 +118,7 @@ bun db:push
 从数据库服务拉取配置到本地，同步数据库结构变更。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun db:pull
 ```
 
@@ -116,7 +128,7 @@ bun db:pull
 构建项目的 Docker 镜像，用于容器化部署。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun docker:build
 ```
 
@@ -124,7 +136,7 @@ bun docker:build
 在 Docker 容器中启动后端服务。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun docker:run
 ```
 
@@ -132,7 +144,7 @@ bun docker:run
 停止 Docker 容器中运行的后端服务。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun docker:stop
 ```
 
@@ -140,7 +152,7 @@ bun docker:stop
 删除 Docker 中运行的后端服务容器。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun docker:rm
 ```
 
@@ -148,6 +160,6 @@ bun docker:rm
 查看 Docker 容器中运行的后端服务日志。
 
 **使用方式：**
-```bash
+```bash [bun]
 bun docker:logs
 ```

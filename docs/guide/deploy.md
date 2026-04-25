@@ -30,21 +30,27 @@ head:
 **部署步骤：**
 
 1. 进入 server 目录：
-```bash
+```bash [terminal]
 cd server
 ```
 
 2. 构建 Docker 镜像：
-```bash
+::: code-group
+```bash [bun]
 bun docker:build
-# 或者
+```
+```bash [docker]
 docker build -t hnq1/elysia-admin:latest .
 ```
+:::
 
 3. 运行容器：
-```bash
+::: code-group
+```bash [bun]
 bun docker:run
+```
 # 或者
+```bash [docker]
 docker run -d \
   --name elysia-admin \
   -p 3000:3000 \
@@ -52,6 +58,7 @@ docker run -d \
   -v /path/to/production.yaml:/app/production.yaml \
   hnq1/elysia-admin:latest
 ```
+:::
 
 **使用 Docker Compose（推荐）：**
 
@@ -103,12 +110,12 @@ volumes:
 ```
 
 启动服务：
-```bash
+```bash [docker]
 docker-compose up -d
 ```
 
 **常用 Docker 命令：**
-```bash
+```bash [docker]
 # 查看日志
 bun docker:logs
 # 或者
@@ -133,25 +140,34 @@ docker restart elysia-admin
 - 已安装 `PM2` 和 `Bun`
 
 **安装依赖：**
-```bash
+```bash [terminal]
 npm i -g pm2 bun
 ```
 
 **部署步骤：**
 
-1. 进入 `server` 目录并进行打包：
-```bash
+1. 进入 `server` 目录：
+```bash [terminal]
 cd server
+```
+并进行打包:
 
-# Windows
+::: code-group
+```bash [windows]
 $env:NODE_ENV="production"; bun run build
+```
 
-# Linux / macOS
+```bash [linux]
 NODE_ENV="production" bun run build
 ```
 
-2. 打包完成后，会在 `dist` 目录下生成以下文件：
+```bash [macos]
+NODE_ENV="production" bun run build
 ```
+:::
+
+2. 打包完成后，会在 `dist` 目录下生成以下文件：
+```bash [terminal]
 dist/
 ├── public/              # 静态资源目录
 ├── ecosystem.config.cjs # PM2 配置文件
@@ -170,7 +186,7 @@ dist/
 > 注意：上传的是 `dist` 目录**内的文件**，不是 `dist` 目录本身。服务器目录结构应与上方保持一致。
 
 4. 在服务器上启动应用：
-```bash
+```bash [terminal]
 cd /www/wwwroot/elysia-admin
 pm2 start ecosystem.config.cjs
 ```
@@ -180,7 +196,7 @@ PM2 会同时启动两个进程：
 - `{appId}-workers` — Worker 进程（队列消费、定时任务）
 
 **PM2 常用命令：**
-```bash
+```bash [terminal]
 # 查看所有进程状态
 pm2 status
 
@@ -236,7 +252,7 @@ pm2 startup
 在宝塔面板中进入 `网站` -> `Node项目`，安装 `Node.js`（推荐 v22.13.0 或更高版本）。
 
 然后在终端中安装 Bun：
-```bash
+```bash [terminal]
 npm i -g bun
 ```
 
@@ -253,7 +269,7 @@ npm i -g bun
 5. 启动项目
 
 在 Node 项目管理页面点击 `启动` 按钮，或在终端中执行：
-```bash
+```bash [terminal]
 cd /www/wwwroot/elysia-admin
 pm2 start ecosystem.config.cjs
 ```
@@ -265,12 +281,12 @@ pm2 start ecosystem.config.cjs
 1. **健康检查：** 访问 `http://your-domain/` 确认应用正常运行
 
 2. **进程状态：** 确认主进程和 Worker 进程均正常运行
-```bash
+```bash [terminal]
 pm2 status
 ```
 
 3. **日志检查：** 查看应用日志，确认没有错误信息
-```bash
+```bash [terminal]
 # 主进程日志
 pm2 logs elysia-admin
 
@@ -282,7 +298,7 @@ docker logs elysia-admin
 ```
 
 4. **性能监控：** 使用 PM2 监控应用性能
-```bash
+```bash [terminal]
 pm2 monit
 ```
 

@@ -23,7 +23,7 @@ head:
 
 在对应模块的 `task.ts` 中定义任务函数并导出：
 
-```ts
+```ts [task.ts]
 // src/modules/monitor-job/task.ts
 import { logger } from "@/shared/logger";
 
@@ -40,7 +40,7 @@ export function jobDemo(name: string, age?: number, isActive?: boolean) {
 
 打开 `/server/src/infrastructure/queue/queues/system-cron/processor.ts`，import 并注册你的任务函数：
 
-```ts
+```ts [processor.ts]
 import { createTaskRegistry, parseArgs } from '../../core/processor-utils';
 import { jobDemo } from '@/modules/monitor-job/task';
 
@@ -56,13 +56,13 @@ register('测试任务', jobDemo);
 
 每次修改 `processor.ts` 后，需要重新构建才能生效：
 
-```bash
+```bash [bun]
 bun run build:processors
 ```
 
 开发环境重启 Worker 进程：
 
-```bash
+```bash [bun]
 bun run dev:workers
 ```
 

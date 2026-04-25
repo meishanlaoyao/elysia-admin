@@ -35,7 +35,7 @@ head:
 
 ### 使用 Docker 安装
 
-```bash
+```bash [docker]
 docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /mnt/rustfs/data:/data -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin -e RUSTFS_CONSOLE_ENABLE=true rustfs/rustfs:latest --address :9000 --console-enable --access-key rustfsadmin --secret-key rustfsadmin /data
 ```
 
@@ -125,7 +125,7 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 
 在现代浏览器环境下，直接利用原生 `fetch` 即可完成：
 
-```ts
+```ts [ts]
 // 每个文件上传前都调用 fetchGeneratePresign
 const presignUrl = await fetchGeneratePresign({ fileName: file.name })
 
@@ -146,7 +146,7 @@ const fileUrl = presignUrl.split('?')[0]
 
 在 uni-app 环境下，需通过文件管理器读取 `ArrayBuffer` 后进行上传：
 
-```ts
+```ts [ts]
 /**
  * 通过文件名称检测文件类型返回对应的Content-Type
  * @param fileName 文件名称

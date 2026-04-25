@@ -21,7 +21,7 @@ head:
 
 如果你需要在执行具体业务逻辑之前对请求进行拦截或预处理（例如：IP 黑名单校验、认证授权等），可以使用 `onBeforeHandle` 钩子。
 
-```ts
+```ts [ts]
 /**
  * 全局请求预处理中间件
  * @param app Elysia 实例
@@ -46,7 +46,7 @@ export function GlobalMiddleware(app: Elysia) {
 
 如果你需要对响应结果进行统一处理，或者在响应发送后执行异步任务（例如：记录操作日志、统计响应时间等），可以结合 `onRequest` 和 `onAfterResponse` 钩子。
 
-```ts
+```ts [ts]
 /**
  * 全局响应层中间件
  * @param app Elysia 实例
@@ -73,7 +73,7 @@ export function GlobalResponseMiddleware(app: Elysia) {
 
 在 Controller 层的请求处理函数中，你可以方便地从 `Context` 对象中获取由中间件注入的额外上下文信息：
 
-```ts
+```ts [ts]
 import { GetClientIp } from '@/shared/ip';
 
 /**
