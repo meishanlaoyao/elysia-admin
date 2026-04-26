@@ -1,6 +1,17 @@
-import type { IPaymentProvider, MerchantConfig, PaymentCreateParams, PaymentCreateResult, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
-import { callWechat, buildWechatOrderBody, buildWechatJsapiPayload, wechatQuery, wechatRefund, parseWechatNotify } from './base';
 import { GenerateUUID } from '@/shared/uuid';
+import { callWechat, buildWechatOrderBody, buildWechatJsapiPayload, wechatQuery, wechatRefund, parseWechatNotify } from './base';
+import type {
+    IPaymentProvider,
+    MerchantConfig,
+    PaymentCreateParams,
+    PaymentCreateResult,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 /**
  * 微信小程序支付（JSAPI）

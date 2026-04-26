@@ -1,6 +1,17 @@
-import type { IPaymentProvider, MerchantConfig, PaymentCreateParams, PaymentCreateResult, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
 import { buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify } from './base';
 import { GenerateUUID } from '@/shared/uuid';
+import type {
+    IPaymentProvider,
+    MerchantConfig,
+    PaymentCreateParams,
+    PaymentCreateResult,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 /**
  * 支付宝 App 支付

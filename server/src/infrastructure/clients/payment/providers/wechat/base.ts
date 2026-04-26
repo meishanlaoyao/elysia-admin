@@ -1,6 +1,14 @@
 import crypto from 'node:crypto';
 import { sha256WithRsa, aesGcmDecrypt } from '../crypto';
-import type { MerchantConfig, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
+import type {
+    MerchantConfig,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 const BASE_URL = 'https://api.mch.weixin.qq.com';
 

@@ -1,6 +1,6 @@
 # 支付适配层使用文档
 
-统一封装支付宝、微信支付、PayPal 的支付逻辑，通过 `pay(channel, platform)` 一行代码路由到对应实现。
+统一封装支付宝、微信支付、PayPal 的支付逻辑，通过 `Pay(channel, platform)` 一行代码路由到对应实现。
 
 ---
 
@@ -17,10 +17,10 @@
 ## 快速开始
 
 ```ts
-import { pay } from '@/infrastructure/clients/payment';
+import { Pay } from '@/infrastructure/clients/payment';
 ```
 
-`pay(channel, platform)` 返回一个包含 5 个方法的对象：`create` / `query` / `refund` / `notify` / `notifySuccess`。
+`Pay(channel, platform)` 返回一个包含 5 个方法的对象：`create` / `query` / `refund` / `notify` / `notifySuccess`。
 
 所有方法的第一个参数都是 `MerchantConfig`（商户配置），第二个参数是各自的入参。
 
@@ -54,7 +54,7 @@ interface MerchantConfig {
 ## create — 发起支付
 
 ```ts
-const result = await pay('alipay', 'mini').create(merchantConfig, {
+const result = await Pay('alipay', 'mini').create(merchantConfig, {
     orderNo: 'ORDER_20240101_001',   // 业务订单号
     title: '商品名称',
     description: '商品描述',          // 可选
@@ -130,7 +130,7 @@ const result = await pay('alipay', 'mini').create(merchantConfig, {
 ## query — 查询支付状态
 
 ```ts
-const result = await pay('wechat', 'mini').query(merchantConfig, {
+const result = await Pay('wechat', 'mini').query(merchantConfig, {
     paymentNo: 'LOCAL_PAYMENT_NO',    // 本地支付单号
     thirdTradeNo: '4200001...',       // 第三方交易号（可选，PayPal 查询必传）
 });
@@ -146,7 +146,7 @@ const result = await pay('wechat', 'mini').query(merchantConfig, {
 ## refund — 发起退款
 
 ```ts
-const result = await pay('alipay', 'app').refund(merchantConfig, {
+const result = await Pay('alipay', 'app').refund(merchantConfig, {
     orderNo: 'ORDER_20240101_001',
     paymentNo: 'LOCAL_PAYMENT_NO',
     thirdTradeNo: '2024...',
@@ -177,7 +177,7 @@ app.post('/pay/notify/wechat', async ({ request }) => {
     const headers: Record<string, string> = {};
     request.headers.forEach((v, k) => { headers[k] = v; });
 
-    const client = pay('wechat', 'mini');
+    const client = Pay('wechat', 'mini');
 
     try {
         const result = await client.notify(merchantConfig, { rawBody, headers });
@@ -212,7 +212,7 @@ app.post('/pay/notify/wechat', async ({ request }) => {
 ## 完整示例：支付宝小程序下单
 
 ```ts
-import { pay } from '@/infrastructure/clients/payment';
+import { Pay } from '@/infrastructure/clients/payment';
 import type { MerchantConfig } from '@/infrastructure/clients/payment';
 
 // 从数据库读取商户配置
@@ -223,7 +223,7 @@ const merchantConfig: MerchantConfig = {
 };
 
 // 1. 发起支付
-const { paymentNo, payload } = await pay('alipay', 'mini').create(merchantConfig, {
+const { paymentNo, payload } = await Pay('alipay', 'mini').create(merchantConfig, {
     orderNo: order.orderNo,
     title: order.title,
     amount: order.amount,
@@ -234,7 +234,7 @@ const { paymentNo, payload } = await pay('alipay', 'mini').create(merchantConfig
 // 2. 将 paymentNo 存入 business_payments 表，返回 payload.tradeNo 给小程序端
 
 // 3. 回调处理（另一个路由）
-const result = await pay('alipay', 'mini').notify(merchantConfig, { rawBody, headers });
+const result = await Pay('alipay', 'mini').notify(merchantConfig, { rawBody, headers });
 if (result.status === 'success') {
     // 更新 business_payments.status = 'paid'
     // 更新 business_orders.status = 'paid'

@@ -148,6 +148,7 @@ const initFormData = () => {
     const row = props.data || {}
     if (isEdit && row.id) {
         fetchGetMerchantConfig(row.id!).then((res) => {
+            res.config = JSON.stringify(res.config || {});
             formData.value = {
                 ...res,
                 merchantName: row.merchantName!,
@@ -192,6 +193,7 @@ const handleSubmit = () => {
         try {
             loading.value = true
             const obj = JSON.parse(JSON.stringify(formData.value!))
+            obj.config = JSON.parse(obj.config || '{}')
             delete obj.merchantName
             if (props.type === 'add') {
                 await fetchCreateMerchantConfig(obj)

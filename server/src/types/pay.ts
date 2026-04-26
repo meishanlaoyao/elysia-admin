@@ -12,11 +12,12 @@ export type PaymentPlatform = 'app' | 'h5' | 'mini' | 'pc';
  * 商户配置
  */
 export interface MerchantConfig {
-    appId?: string;
-    mchId?: string;
-    privateKey?: string;
-    publicKey?: string;
-    config?: Record<string, any>;
+    appId?: string | null;
+    mchId?: string | null;
+    privateKey?: string | null;
+    publicKey?: string | null;
+    config?: Record<string, any> | any;
+    [key: string]: any;
 };
 
 /**
@@ -27,7 +28,7 @@ export interface PaymentCreateParams {
     title: string;
     description?: string;
     amount: string;       // 金额，字符串保留精度
-    currency?: string;
+    currency?: string | null;
     notifyUrl: string;
     returnUrl?: string;
     extra?: Record<string, any>;

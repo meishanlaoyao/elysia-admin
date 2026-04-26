@@ -17,9 +17,9 @@ head:
 
 ## 为什么不再支持二进制打包？
 
-从引入 BullMQ Sandboxed Processors 之后，二进制打包就不再可行了。
-
-原因有两个：第一，`config/index.ts` 通过 `readFileSync` 读取 `production.yaml`，二进制文件没有文件系统，读不到外部文件。第二，也是更根本的问题，Sandboxed 模式下 BullMQ 会用 `child_process.spawn` 启动独立子进程来执行每个任务，而二进制包里没有 `bun` 运行时，也没有 `processors/` 目录，子进程根本无法启动。
+从引入 BullMQ Sandboxed Processors 之后，二进制打包就不再可行了。主要原因有两个：
+- 第一，`config/index.ts` 通过 `readFileSync` 读取 `production.yaml`，二进制文件没有文件系统，读不到外部文件。
+- 第二，也是更根本的问题，Sandboxed 模式下 BullMQ 会用 `child_process.spawn` 启动独立子进程来执行每个任务，而二进制包里没有 `bun` 运行时，也没有 `processors/` 目录，子进程根本无法启动。
 
 如果放弃 Sandboxed 模式改回函数模式，二进制是可以打包的，但会失去进程隔离的优势。综合考虑，直接使用 PM2 部署是更合适的方案，稳定性和功能都更完整。
 

@@ -12,7 +12,7 @@ export const businessOrdersSchema = pgTable(
         merchantId: bigint('merchant_id', { mode: 'number' }).notNull().references(() => businessMerchantSchema.id), // 关联商户ID
         title: varchar('title', { length: 200 }).notNull(), // 订单标题
         description: varchar('description', { length: 500 }), // 订单描述
-        amount: decimal('amount', { precision: 10, scale: 2 }).notNull(), // 订单总金额
+        amount: decimal('amount', { precision: 10, scale: 2, mode: 'number' }).notNull(), // 订单总金额
         currency: varchar('currency', { length: 10 }).default('CNY'), // 货币类型
         status: varchar('status', { length: 20 }).default('0'), // 订单状态 （字典：system_orders_status）
         expireTime: timestamp('expire_time'), // 订单过期时间

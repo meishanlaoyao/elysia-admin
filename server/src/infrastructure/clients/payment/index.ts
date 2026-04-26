@@ -11,13 +11,11 @@ import type {
     RefundResult,
     NotifyParams,
     NotifyResult,
-} from './providers/types';
+} from '@/types/pay';
 
 import { alipayProviders } from './providers/alipay';
 import { wechatProviders } from './providers/wechat';
 import { paypalProviders } from './providers/paypal';
-
-export type { PaymentChannel, PaymentPlatform, MerchantConfig, PaymentCreateParams, PaymentCreateResult, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult };
 
 // 渠道 -> 平台 -> provider 映射表
 const registry: Record<PaymentChannel, Partial<Record<PaymentPlatform, IPaymentProvider>>> = {
@@ -42,7 +40,7 @@ function resolve(channel: PaymentChannel, platform: PaymentPlatform): IPaymentPr
  * 发起支付
  * @example pay('alipay', 'mini')
  */
-export function pay(channel: PaymentChannel, platform: PaymentPlatform) {
+export function Pay(channel: PaymentChannel, platform: PaymentPlatform) {
     const provider = resolve(channel, platform);
     return {
         create: (config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> =>

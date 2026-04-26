@@ -192,3 +192,29 @@
   color: var(--vp-c-brand-1);
   margin: 0 0.25rem;
 }
+
+.vp-doc a {
+    text-decoration: none;
+}
+
+/* VPFeatures 页卡悬浮效果 */
+.VPFeatures .items .item {
+  transition: transform 0.3s;
+}
+
+.VPFeatures .items .item:hover {
+  transform: translateY(-5px);
+}
+
+.VPFooter{
+  padding: 0.6rem !important;
+}
+
+/** 图片缩放 */
+.medium-zoom-overlay {
+  z-index: 30;
+}
+
+.medium-zoom-image {
+  z-index: 9999 !important;
+}

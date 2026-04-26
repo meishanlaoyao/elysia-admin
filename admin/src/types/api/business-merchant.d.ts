@@ -9,7 +9,7 @@ declare namespace Api {
             mchId?: string;
             privateKey?: string;
             publicKey?: string;
-            config?: Record<string, string>;
+            config?: Record<string, string> | string;
             status?: boolean;
             createTime?: Date;
             createBy?: number | null;

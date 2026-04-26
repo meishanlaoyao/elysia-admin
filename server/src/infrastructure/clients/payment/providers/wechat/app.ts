@@ -1,8 +1,19 @@
-import type { IPaymentProvider, MerchantConfig, PaymentCreateParams, PaymentCreateResult, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
-import { callWechat, buildWechatOrderBody, wechatQuery, wechatRefund, parseWechatNotify } from './base';
-import { GenerateUUID } from '@/shared/uuid';
 import crypto from 'node:crypto';
 import { sha256WithRsa } from '../crypto';
+import { GenerateUUID } from '@/shared/uuid';
+import { callWechat, buildWechatOrderBody, wechatQuery, wechatRefund, parseWechatNotify } from './base';
+import type {
+    IPaymentProvider,
+    MerchantConfig,
+    PaymentCreateParams,
+    PaymentCreateResult,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 /**
  * 微信 App 支付

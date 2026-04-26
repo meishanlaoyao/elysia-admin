@@ -1,7 +1,15 @@
 import { defineConfig } from 'vitepress'
-import { groupIconMdPlugin, groupIconVitePlugin, } from 'vitepress-plugin-group-icons'
+import { groupIconMdPlugin, groupIconVitePlugin, localIconLoader } from 'vitepress-plugin-group-icons'
 import vitepressProtectPlugin from "vitepress-protect-plugin"
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import timeline from "vitepress-markdown-timeline"
+import llmstxtPlugin from 'vitepress-plugin-llmstxt'
+
+function loaderCustomIcon(path: string) {
+  return localIconLoader(import.meta.url, path)
+    .replace(/^\s*<\?xml[\s\S]*?\?>\s*/i, '')
+    .replace(/^\s*<!doctype[\s\S]*?>\s*/i, '')
+};
 
 // https://vitepress.dev/reference/site-config
 export default withMermaid(
@@ -32,11 +40,17 @@ export default withMermaid(
     markdown: {
       config(md) {
         md.use(groupIconMdPlugin)
+        md.use(timeline)
       },
+      image: {
+        lazyLoading: true,
+      },
+      lineNumbers: true,
     },
     vite: {
       plugins: [
         groupIconVitePlugin({
+          // https://icon-sets.iconify.design/logos/?category=Logos
           customIcon: {
             ts: 'logos:typescript-icon',
             windows: 'logos:microsoft-windows-icon',
@@ -47,13 +61,18 @@ export default withMermaid(
             docker: 'logos:docker-icon',
             js: 'logos:javascript',
             nginx: 'logos:nginx',
+            gitee: loaderCustomIcon('../public/logos/gitee.svg'),
+            github: 'logos:github-icon',
           }
         }),
         vitepressProtectPlugin({
           disableF12: true, // 禁用F12开发者模式
           disableCopy: false, // 禁用文本复制
           disableSelect: false, // 禁用文本选择
-        })
+        }),
+        llmstxtPlugin({
+          hostname: 'https://elysia-admin.top',
+        }),
       ],
     },
     mermaid: {},
@@ -110,7 +129,7 @@ export default withMermaid(
         },
       ],
       outline: {
-        level: [2, 3],
+        level: [2, 4],
         label: '目录'
       },
       socialLinks: [
@@ -124,13 +143,13 @@ export default withMermaid(
       lastUpdated: {
         text: '最后更新时间',
         formatOptions: {
-          dateStyle: 'full',
+          dateStyle: 'short',
           timeStyle: 'medium'
         }
       },
       footer: {
-        message: 'MIT Licensed',
-        copyright: 'Copyright © 2026-present Elysia Admin | <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">湘ICP备2026013170号-1</a>'
+        message: 'Released under the MIT License.',
+        copyright: `Copyright © 2026-${new Date().getFullYear()} Elysia Admin | <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">湘ICP备2026013170号-1</a>`,
       },
       docFooter: {
         prev: '上一页',

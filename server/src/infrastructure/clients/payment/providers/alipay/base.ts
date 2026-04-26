@@ -1,5 +1,13 @@
 import { rsaSign, rsaVerify, buildSortedQueryString } from '../crypto';
-import type { MerchantConfig, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
+import type {
+    MerchantConfig,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 const GATEWAY = 'https://openapi.alipay.com/gateway.do';
 

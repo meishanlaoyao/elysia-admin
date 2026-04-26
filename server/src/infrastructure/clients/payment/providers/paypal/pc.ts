@@ -1,6 +1,17 @@
-import type { IPaymentProvider, MerchantConfig, PaymentCreateParams, PaymentCreateResult, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
-import { callPaypal, paypalQuery, paypalRefund, parsePaypalNotify } from './base';
 import { GenerateUUID } from '@/shared/uuid';
+import { callPaypal, paypalQuery, paypalRefund, parsePaypalNotify } from './base';
+import type {
+    IPaymentProvider,
+    MerchantConfig,
+    PaymentCreateParams,
+    PaymentCreateResult,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 /**
  * PayPal PC 支付（Smart Payment Buttons）

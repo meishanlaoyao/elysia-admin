@@ -6,8 +6,10 @@
     "cytoscape-cose-bilkent": "^4.1.0",
     "dayjs": "^1.11.20",
     "debug": "^4.4.3",
+    "medium-zoom": "^1.1.0",
     "nprogress-v2": "^1.1.10",
     "vitepress": "^1.6.4",
+    "vitepress-markdown-timeline": "^1.2.2",
     "vitepress-plugin-group-icons": "^1.7.5",
     "vitepress-plugin-mermaid": "^2.0.17",
     "vitepress-protect-plugin": "^1.0.6",
@@ -17,5 +19,8 @@
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview"
+  },
+  "dependencies": {
+    "vitepress-plugin-llmstxt": "^0.5.1"
   }
 }

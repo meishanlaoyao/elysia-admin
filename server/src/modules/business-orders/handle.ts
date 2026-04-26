@@ -12,9 +12,11 @@ import {
 import { GenerateUUID } from '@/shared/uuid';
 import { BaseResultData } from '@/core/result';
 import { queueManager, } from '@/infrastructure/queue';
+import { Pay } from '@/infrastructure/clients/payment';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
 import { businessMerchantSchema, businessMerchantConfigsSchema } from '@database/schema/business_merchant';
+import type { PaymentChannel, PaymentPlatform, } from '@/types/pay';
 
 /**
  * 获取 flow-buffer-queue 实例
@@ -112,7 +114,7 @@ export async function payOrder(ctx: Context) {
          * 注意：所有涉及金额的计算和状态的流转，必须在数据库事务中完成，防止并发导致的数据不一致。
          */
         const userId = (ctx as any)?.user?.userId;
-        const { orderNo, paymentMethod, platform } = ctx.body as any;
+        const { orderNo, paymentMethod, platform } = ctx.body as { orderNo: string; paymentMethod: PaymentChannel; platform: PaymentPlatform };
         // 订单信息
         const orderInfo = await FindOneByKey(businessOrdersSchema, 'orderNo', orderNo);
         if (!orderInfo) return BaseResultData.fail(404, '订单不存在');
@@ -156,8 +158,18 @@ export async function payOrder(ctx: Context) {
          * 判断逻辑：
          * 判断属于哪种支付，再调用对应的请求接口
          */
-
-
+        const { notifyUrl, returnUrl } = merchantConfig.config as any;
+        const result = await Pay(paymentMethod, platform).create(
+            merchantConfig,
+            {
+                orderNo,
+                title: orderInfo.title,
+                amount: orderInfo.amount + '',
+                currency: orderInfo.currency,
+                notifyUrl,
+                returnUrl,
+            }
+        );
         await InsertOne(
             businessPaymentsSchema,
             null,
@@ -168,9 +180,10 @@ export async function payOrder(ctx: Context) {
                 platform,
                 amount: orderInfo.amount,
                 createBy: userId,
+                paymentNo: result.paymentNo,
             }
         );
-        return BaseResultData.ok();
+        return BaseResultData.ok(result);
     }
     catch (error) {
         return BaseResultData.fail(500, error);

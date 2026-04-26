@@ -1,5 +1,13 @@
-import type { MerchantConfig, QueryParams, QueryResult, RefundParams, RefundResult, NotifyParams, NotifyResult } from '../types';
 import crypto from 'node:crypto';
+import type {
+    MerchantConfig,
+    QueryParams,
+    QueryResult,
+    RefundParams,
+    RefundResult,
+    NotifyParams,
+    NotifyResult
+} from '@/types/pay';
 
 const BASE_URL = 'https://api-m.paypal.com'; // 生产环境；沙箱用 api-m.sandbox.paypal.com
 

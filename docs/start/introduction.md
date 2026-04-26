@@ -101,6 +101,7 @@ head:
   - [`Jose`](https://github.com/panva/jose)：JWT/OIDC 标准加密处理。
   - [`Croner`](https://github.com/hexagon/croner)：轻量级定时任务调度。
   - [`nodemailer`](https://nodemailer.com/)：邮件发送服务。
+  - [`BullMQ`](https://bullmq.io/)：任务队列处理。
 
 ## 内置功能
 
