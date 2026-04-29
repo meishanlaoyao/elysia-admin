@@ -38,7 +38,7 @@ export async function createApp() {
     if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app);
 
     // 配置 BullMQ UI (存在问题，正常接口会被拦住)
-    await configureBullMQUI(app);
+    // await configureBullMQUI(app);
 
     // 注册全局中间件
     GlobalMiddleware(app);

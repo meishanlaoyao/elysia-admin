@@ -262,6 +262,10 @@ export async function update(ctx: Context) {
     }
 };
 
+export async function payOrderReturn(ctx: Context) { };
+
+export async function payOrderNotify(ctx: Context) { };
+
 /**
  * 创建订单
  */

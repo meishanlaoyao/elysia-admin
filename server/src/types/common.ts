@@ -28,3 +28,8 @@ export type IRequestMethod = 'get' | 'post' | 'put' | 'delete';
  * 账号人员类型
  */
 export type IAccountType = 'admin' | 'user' | 'anonymous';
+
+/**
+ * 环境类型
+ */
+export type IEnvType = 'development' | 'production';

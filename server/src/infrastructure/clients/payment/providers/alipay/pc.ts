@@ -1,5 +1,5 @@
 import { GenerateUUID } from '@/shared/uuid';
-import { buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify } from './base';
+import { formatPrivateKey, formatPublicKey, buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify, GATEWAY, } from './base';
 import type {
     IPaymentProvider,
     MerchantConfig,
@@ -13,16 +13,6 @@ import type {
     NotifyResult
 } from '@/types/pay';
 
-const GATEWAY = 'https://openapi.alipay.com/gateway.do';
-
-const formatPrivateKey = (privateKey: string) => `-----BEGIN RSA PRIVATE KEY-----
-${privateKey}
------END RSA PRIVATE KEY-----`;
-
-const formatPublicKey = (publicKey: string) => `-----BEGIN PUBLIC KEY-----
-${publicKey}
------END PUBLIC KEY-----`;
-
 /**
  * 支付宝 PC 网页支付
  * 接口：alipay.trade.page.pay
@@ -30,7 +20,6 @@ ${publicKey}
  */
 export class AlipayPcProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        // 格式化私钥和公钥
         config.privateKey = formatPrivateKey(config.privateKey || '');
         config.publicKey = formatPublicKey(config.publicKey || '');
         const paymentNo = GenerateUUID();

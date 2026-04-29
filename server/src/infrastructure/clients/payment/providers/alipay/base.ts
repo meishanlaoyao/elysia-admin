@@ -8,8 +8,38 @@ import type {
     NotifyParams,
     NotifyResult
 } from '@/types/pay';
+import type { IEnvType } from '@/types/common';
 
-const GATEWAY = 'https://openapi.alipay.com/gateway.do';
+const appEnv = process.env.NODE_ENV || 'development';
+const GATEWAYS = {
+    development: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+    production: 'https://openapi.alipay.com/gateway.do',
+};
+export const GATEWAY: string = GATEWAYS[appEnv as IEnvType];
+
+/**
+ * 格式化私钥
+ * @param privateKey 私钥字符串
+ * @returns 格式化后的私钥字符串
+ */
+export const formatPrivateKey = (privateKey: string) => {
+    if (privateKey.includes('-----BEGIN RSA PRIVATE KEY-----') && privateKey.includes('-----END RSA PRIVATE KEY-----')) return privateKey;
+    return `-----BEGIN RSA PRIVATE KEY-----
+${privateKey}
+-----END RSA PRIVATE KEY-----`;
+};
+
+/**
+ * 格式化公钥
+ * @param publicKey 公钥字符串
+ * @returns 格式化后的公钥字符串
+ */
+export const formatPublicKey = (publicKey: string) => {
+    if (publicKey.includes('-----BEGIN PUBLIC KEY-----') && publicKey.includes('-----END PUBLIC KEY-----')) return publicKey;
+    return `-----BEGIN PUBLIC KEY-----
+${publicKey}
+-----END PUBLIC KEY-----`;
+};
 
 /**
  * 构造支付宝公共请求参数并签名，返回完整的 POST body（application/x-www-form-urlencoded）

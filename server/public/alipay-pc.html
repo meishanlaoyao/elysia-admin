@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付宝PC端支付模拟</title>
+    <style>
+        :root {
+            --primary: #1677FF;
+            --primary-hover: #4096ff;
+            --primary-light: #e6f4ff;
+            --primary-dark: #0958d9;
+            --success: #52c41a;
+            --success-bg: #f6ffed;
+            --error: #ff4d4f;
+            --error-bg: #fff2f0;
+            --warning: #faad14;
+            --warning-bg: #fffbe6;
+            --bg: #f0f5fa;
+            --card-bg: #ffffff;
+            --text: #1f1f1f;
+            --text-secondary: #5a5a5a;
+            --text-muted: #8c8c8c;
+            --border: #e5e8ec;
+            --border-light: #f0f2f5;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Courier New', 'Source Code Pro', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: linear-gradient(160deg, #e8f0fb 0%, #f0f5fa 25%, #f5f7fa 50%, #eef3f8 75%, #e3ecf5 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 32px 16px 60px;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* 背景装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -180px;
+            right: -120px;
+            width: 560px;
+            height: 560px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(22, 119, 255, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -200px;
+            left: -100px;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(22, 119, 255, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 头部 */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 0 4px;
+        }
+        .header .logo-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(22, 119, 255, 0.3);
+            flex-shrink: 0;
+        }
+        .header .logo-wrapper svg {
+            width: 26px;
+            height: 26px;
+            fill: #fff;
+        }
+        .header .title-group h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        .header .title-group .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fafbfc;
+        }
+        .card-header .icon-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .card-header .icon-dot.blue {
+            background: var(--primary);
+            box-shadow: 0 0 8px rgba(22, 119, 255, 0.4);
+        }
+        .card-header .icon-dot.green {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(82, 196, 26, 0.4);
+        }
+        .card-header .card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.2px;
+        }
+        .card-header .card-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .card-header .card-badge.post {
+            background: #e6f4ff;
+            color: #1677FF;
+        }
+        .card-body {
+            padding: 20px 24px;
+        }
+        .card-body.no-padding {
+            padding: 0;
+        }
+
+        /* 表单 */
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .form-group label .required {
+            color: var(--error);
+            font-size: 11px;
+        }
+        .form-group label .optional {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 400;
+        }
+        .input-wrapper {
+            position: relative;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: var(--font-sans);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafbfc;
+            color: var(--text);
+            transition: all var(--transition);
+            outline: none;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .form-group textarea {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            min-height: 120px;
+            line-height: 1.6;
+            tab-size: 2;
+            resize: vertical;
+        }
+        .form-group input:hover,
+        .form-group textarea:hover {
+            border-color: #c0c8d4;
+            background: #fff;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.08);
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #bfc5ce;
+        }
+        .form-group .input-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .form-row .form-group {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            letter-spacing: 0.2px;
+            font-family: var(--font-sans);
+            white-space: nowrap;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(22, 119, 255, 0.35);
+            width: 100%;
+            font-size: 16px;
+            padding: 14px 28px;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 6px 22px rgba(22, 119, 255, 0.45);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            background: #a0c4f0;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-pay {
+            background: linear-gradient(135deg, #1677FF 0%, #4096ff 100%);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            padding: 16px 36px;
+            border-radius: 28px;
+            box-shadow: 0 8px 30px rgba(22, 119, 255, 0.4);
+            letter-spacing: 0.5px;
+            animation: pulse-shadow 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse-shadow {
+            0%,
+            100% {
+                box-shadow: 0 8px 30px rgba(22, 119, 255, 0.4);
+            }
+            50% {
+                box-shadow: 0 12px 40px rgba(22, 119, 255, 0.6);
+            }
+        }
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 44px rgba(22, 119, 255, 0.55);
+        }
+        .btn-outline {
+            background: #fff;
+            color: var(--primary);
+            border: 1.5px solid var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-light);
+        }
+        .btn-sm {
+            padding: 7px 16px;
+            font-size: 12px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f7fa;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-shrink: 0;
+        }
+        .btn-icon:hover {
+            background: #e8ecf2;
+            border-color: #c0c8d4;
+        }
+        .btn-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-secondary);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* 加载动画 */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .loading-overlay {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* 响应区 */
+        .response-area {
+            display: none;
+            animation: fadeInUp 0.35s ease-out;
+        }
+        .response-area.visible {
+            display: block;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+        .status-badge.success {
+            background: var(--success-bg);
+            color: #389e0d;
+            border: 1px solid #b7eb8f;
+        }
+        .status-badge.error {
+            background: var(--error-bg);
+            color: #cf1322;
+            border: 1px solid #ffa39e;
+        }
+        .status-badge.info {
+            background: var(--primary-light);
+            color: #0958d9;
+            border: 1px solid #91caff;
+        }
+        .response-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .response-meta .meta-item {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .code-block {
+            background: #1e1e2a;
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.7;
+            color: #c9d1d9;
+            position: relative;
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1px solid #2a2a38;
+        }
+        .code-block .json-key {
+            color: #79c0ff;
+        }
+        .code-block .json-string {
+            color: #a5d6ff;
+            word-break: break-all;
+        }
+        .code-block .json-number {
+            color: #ffa657;
+        }
+        .code-block .json-boolean {
+            color: #56d364;
+        }
+        .code-block .json-null {
+            color: #8b949e;
+        }
+        .code-block .json-bracket {
+            color: #c9d1d9;
+        }
+        .code-block .copy-btn-top {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: #2a2a38;
+            border: 1px solid #3a3a4a;
+            color: #c9d1d9;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
+            z-index: 2;
+        }
+        .code-block .copy-btn-top:hover {
+            background: #3a3a4a;
+            color: #fff;
+        }
+
+        /* 支付操作区 */
+        .pay-action-area {
+            display: none;
+            margin-top: 18px;
+            padding: 22px 24px;
+            background: linear-gradient(135deg, #f8faff 0%, #f0f7ff 100%);
+            border-radius: var(--radius);
+            border: 1.5px solid #d6e4ff;
+            text-align: center;
+            animation: fadeInUp 0.4s ease-out;
+        }
+        .pay-action-area.visible {
+            display: block;
+        }
+        .pay-action-area .pay-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .pay-action-area .pay-info .pay-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .pay-action-area .pay-info .pay-no {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid #d6e4ff;
+        }
+        .pay-url-preview {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            word-break: break-all;
+            text-align: left;
+            max-height: 80px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            user-select: all;
+        }
+        .pay-url-preview:hover {
+            border-color: var(--primary);
+            background: #fafcff;
+        }
+        .pay-url-preview::after {
+            content: '点击可选中复制';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 10px;
+            color: var(--text-muted);
+            background: #f5f5f5;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-sans);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .pay-url-preview:hover::after {
+            opacity: 1;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease-out, fadeOutRight 0.3s ease-in forwards;
+            animation-delay: 0s, 2.5s;
+            pointer-events: auto;
+            max-width: 400px;
+            letter-spacing: 0.2px;
+        }
+        .toast.success {
+            background: #52c41a;
+        }
+        .toast.error {
+            background: #ff4d4f;
+        }
+        .toast.info {
+            background: #1677FF;
+        }
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes fadeOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            body {
+                padding: 16px 10px 40px;
+            }
+            .card-body {
+                padding: 16px;
+            }
+            .card-header {
+                padding: 14px 16px;
+            }
+            .header .title-group h1 {
+                font-size: 18px;
+            }
+            .btn-pay {
+                width: 100%;
+                font-size: 15px;
+                padding: 14px 24px;
+            }
+            .code-block {
+                font-size: 11px;
+                padding: 14px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d0d5dd;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #b0b5bd;
+        }
+
+        /* 高亮闪烁 */
+        .highlight-flash {
+            animation: highlightPulse 0.6s ease-out;
+        }
+        @keyframes highlightPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 0 24px rgba(22, 119, 255, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="logo-wrapper">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5v-4.25L7.5 15.5 6 14l4-2.5L6 9l1.5-1.5L11 9.75V5.5h2v4.25L16.5 7.5 18 9l-4 2.5L18 14l-1.5 1.5L13 13.25V17.5h-2z"/>
+                </svg>
+            </div>
+            <div class="title-group">
+                <h1>支付宝支付模拟器</h1>
+                <span class="subtitle">PC端 · 页面支付接口调试工具</span>
+            </div>
+        </div>
+
+        <!-- 请求配置卡片 -->
+        <div class="card" id="requestCard">
+            <div class="card-header">
+                <span class="icon-dot blue"></span>
+                <span class="card-title">请求配置</span>
+                <span class="card-badge post">POST</span>
+            </div>
+            <div class="card-body">
+                <div class="form-section">
+                    <!-- API地址 -->
+                    <div class="form-group">
+                        <label>接口地址 <span class="required">*</span></label>
+                        <input
+                        type="text"
+                        id="apiUrl"
+                        value="http://127.0.0.1:3000/api/business/orders/pay"
+                        placeholder="请输入API接口地址"
+                        >
+                        <span class="input-hint">POST 请求的目标地址</span>
+                    </div>
+
+                    <!-- Authorization -->
+                    <div class="form-group">
+                        <label>
+                            Authorization
+                            <span class="optional">(可选)</span>
+                        </label>
+                        <input
+                        type="text"
+                        id="authorization"
+                        placeholder="Bearer eyJhbGciOiJIUzI1NiIs..."
+                        value=""
+                        >
+                        <span class="input-hint">请求头 Authorization 的值，如：Bearer &lt;token&gt;</span>
+                    </div>
+
+                    <!-- 请求体JSON -->
+                    <div class="form-group">
+                        <label>请求体 JSON <span class="required">*</span></label>
+                        <textarea
+                        id="requestBody"
+                        rows="6"
+                        placeholder='请输入JSON格式的请求体...'
+                        >{
+                            "orderNo": "019dd3e50d6970009444268ea5b9e422",
+                            "paymentMethod": "alipay",
+                            "platform": "pc"
+                        }</textarea>
+                        <span class="input-hint">发送到后端的 JSON 数据，请确保格式正确</span>
+                    </div>
+
+                    <!-- 发送按钮 -->
+                    <button class="btn btn-primary" id="sendBtn" onclick="sendRequest()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                            <polyline points="22 2 11 13"></polyline>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        发送支付请求
+                    </button>
+                    <button class="btn btn-outline btn-sm" style="align-self:flex-start;" onclick="resetForm()" type="button">
+                        重置表单
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 响应展示卡片 -->
+        <div class="card response-area" id="responseCard">
+            <div class="card-header">
+                <span class="icon-dot green" id="statusDot"></span>
+                <span class="card-title">响应结果</span>
+                <span class="status-badge info" id="statusBadge" style="display:none;">-</span>
+            </div>
+            <div class="card-body">
+                <!-- 响应元信息 -->
+                <div class="response-meta" id="responseMeta" style="display:none;">
+                    <span class="meta-item">⏱ <strong id="responseTime">-</strong></span>
+                    <span class="meta-item">📦 <strong id="responseSize">-</strong></span>
+                    <span class="meta-item" id="paymentNoMeta" style="display:none;">
+                        💳 支付编号：<strong id="paymentNoDisplay">-</strong>
+                    </span>
+                </div>
+                <!-- 响应体代码块 -->
+                <div class="code-block" id="codeBlock" style="display:none;">
+                    <button class="copy-btn-top" onclick="copyResponse()" title="复制响应内容">📋 复制</button>
+                    <pre id="responseContent" style="margin:0;white-space:pre-wrap;word-break:break-all;"></pre>
+                </div>
+                <!-- 加载中 -->
+                <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+                    <span class="spinner" style="border-color:rgba(22,119,255,0.25);border-top-color:#1677FF;"></span>
+                    正在请求接口...
+                </div>
+                <!-- 空状态 -->
+                <div id="emptyState" style="text-align:center;padding:30px;color:var(--text-muted);">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#c0c8d4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    <p style="font-size:14px;">点击上方「发送支付请求」查看响应结果</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 支付操作区 -->
+        <div class="pay-action-area" id="payActionArea">
+            <div style="font-size:22px;margin-bottom:6px;">✅ 支付链接已生成</div>
+            <div class="pay-info">
+                <span class="pay-label">支付编号</span>
+                <span class="pay-no" id="payNoInAction">-</span>
+            </div>
+            <div class="pay-url-preview" id="payUrlPreview" title="点击选中复制URL" onclick="selectPayUrl()">
+                点击发送请求后，支付URL将显示在此处...
+            </div>
+            <div class="btn-group" style="justify-content:center;flex-wrap:wrap;">
+                <button class="btn btn-pay" onclick="openPayPage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="3" width="14" height="18" rx="2" ry="2"></rect>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    前往支付宝支付
+                </button>
+                <button class="btn btn-outline" onclick="copyPayUrl()">
+                    📋 复制支付链接
+                </button>
+            </div>
+            <p style="font-size:11px;color:var(--text-muted);margin-top:10px;">
+                点击「前往支付宝支付」将在新窗口中打开支付宝支付页面
+            </p>
+        </div>
+    </div>
+
+    <!-- Toast容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // 存储当前响应数据
+        let currentResponseData = null;
+        let currentPayUrl = null;
+        let currentPaymentNo = null;
+        let requestStartTime = 0;
+
+        /**
+         * 显示Toast消息
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            // 自动移除
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 3000);
+        }
+
+        /**
+         * 格式化JSON并高亮
+         */
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            // 转义HTML
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // 高亮
+            return json.replace(
+                /("(\\u[a-fA-F0-9]{4}|\\[^u]|[^"\\])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+                function(match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                }
+            );
+        }
+
+        /**
+         * 更新响应展示
+         */
+        function updateResponseDisplay(responseData, statusCode, elapsedMs) {
+            const responseCard = document.getElementById('responseCard');
+            const codeBlock = document.getElementById('codeBlock');
+            const responseContent = document.getElementById('responseContent');
+            const emptyState = document.getElementById('emptyState');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const responseMeta = document.getElementById('responseMeta');
+            const statusBadge = document.getElementById('statusBadge');
+            const statusDot = document.getElementById('statusDot');
+            const payActionArea = document.getElementById('payActionArea');
+
+            // 隐藏加载
+            loadingOverlay.style.display = 'none';
+            // 隐藏空状态
+            emptyState.style.display = 'none';
+            // 显示响应卡片
+            responseCard.classList.add('visible');
+            responseCard.classList.add('highlight-flash');
+            setTimeout(() => responseCard.classList.remove('highlight-flash'), 600);
+
+            // 状态徽章
+            statusBadge.style.display = 'inline-flex';
+            if (statusCode >= 200 && statusCode < 300) {
+                statusBadge.className = 'status-badge success';
+                statusBadge.textContent = '✓ ' + statusCode + ' 成功';
+                statusDot.className = 'icon-dot green';
+            } else if (statusCode >= 400 && statusCode < 500) {
+                statusBadge.className = 'status-badge error';
+                statusBadge.textContent = '✗ ' + statusCode + ' 客户端错误';
+                statusDot.className = 'icon-dot green';
+                statusDot.style.background = '#ff4d4f';
+                statusDot.style.boxShadow = '0 0 8px rgba(255,77,79,0.4)';
+            } else if (statusCode >= 500) {
+                statusBadge.className = 'status-badge error';
+                statusBadge.textContent = '✗ ' + statusCode + ' 服务端错误';
+                statusDot.className = 'icon-dot green';
+                statusDot.style.background = '#ff4d4f';
+                statusDot.style.boxShadow = '0 0 8px rgba(255,77,79,0.4)';
+            } else {
+                statusBadge.className = 'status-badge info';
+                statusBadge.textContent = statusCode;
+            }
+
+            // 显示代码块
+            codeBlock.style.display = 'block';
+            const formattedJson = JSON.stringify(responseData, null, 2);
+            responseContent.innerHTML = syntaxHighlight(formattedJson);
+
+            // 响应元信息
+            responseMeta.style.display = 'flex';
+            document.getElementById('responseTime').textContent = elapsedMs + ' ms';
+            const jsonStr = JSON.stringify(responseData);
+            const sizeBytes = new Blob([jsonStr]).size;
+            document.getElementById('responseSize').textContent =
+                sizeBytes < 1024 ? sizeBytes + ' B' : (sizeBytes / 1024).toFixed(2) + ' KB';
+
+            // 检查是否成功 && 是否有payUrl
+            const payUrl = responseData?.data?.payload?.payUrl;
+            const paymentNo = responseData?.data?.paymentNo;
+            currentResponseData = responseData;
+            currentPayUrl = payUrl || null;
+            currentPaymentNo = paymentNo || null;
+
+            // 支付编号展示
+            const paymentNoMeta = document.getElementById('paymentNoMeta');
+            const paymentNoDisplay = document.getElementById('paymentNoDisplay');
+            if (paymentNo) {
+                paymentNoMeta.style.display = 'inline-flex';
+                paymentNoDisplay.textContent = paymentNo;
+            } else {
+                paymentNoMeta.style.display = 'none';
+            }
+
+            // 支付操作区
+            if (payUrl && statusCode >= 200 && statusCode < 300) {
+                payActionArea.classList.add('visible');
+                document.getElementById('payNoInAction').textContent = paymentNo || '-';
+                document.getElementById('payUrlPreview').textContent = payUrl;
+                // 滚动到支付区域
+                setTimeout(() => {
+                    payActionArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 200);
+                showToast('支付链接获取成功！请点击按钮前往支付', 'success');
+            } else {
+                payActionArea.classList.remove('visible');
+                if (statusCode >= 200 && statusCode < 300 && !payUrl) {
+                    showToast('请求成功，但响应中未找到 payUrl 字段', 'info');
+                }
+            }
+        }
+
+        /**
+         * 显示错误（请求失败或网络错误）
+         */
+        function showError(message, statusCode = 0) {
+            const responseCard = document.getElementById('responseCard');
+            const codeBlock = document.getElementById('codeBlock');
+            const responseContent = document.getElementById('responseContent');
+            const emptyState = document.getElementById('emptyState');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const responseMeta = document.getElementById('responseMeta');
+            const statusBadge = document.getElementById('statusBadge');
+            const statusDot = document.getElementById('statusDot');
+            const payActionArea = document.getElementById('payActionArea');
+
+            loadingOverlay.style.display = 'none';
+            emptyState.style.display = 'none';
+            responseCard.classList.add('visible');
+            responseCard.classList.add('highlight-flash');
+            setTimeout(() => responseCard.classList.remove('highlight-flash'), 600);
+
+            statusBadge.style.display = 'inline-flex';
+            statusBadge.className = 'status-badge error';
+            statusBadge.textContent = '✗ 请求失败';
+            statusDot.className = 'icon-dot green';
+            statusDot.style.background = '#ff4d4f';
+            statusDot.style.boxShadow = '0 0 8px rgba(255,77,79,0.4)';
+
+            codeBlock.style.display = 'block';
+            responseContent.innerHTML =
+                '<span style="color:#ff7b72;">// 请求失败</span>\n<span style="color:#c9d1d9;">' +
+                message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +
+                '</span>\n\n<span style="color:#8b949e;">// 可能原因：</span>\n<span style="color:#8b949e;">// 1. 后端服务未启动</span>\n<span style="color:#8b949e;">// 2. 跨域(CORS)未配置</span>\n<span style="color:#8b949e;">// 3. 网络连接异常</span>\n<span style="color:#8b949e;">// 4. 接口地址错误</span>';
+
+            responseMeta.style.display = 'flex';
+            document.getElementById('responseTime').textContent = '-';
+            document.getElementById('responseSize').textContent = '-';
+            document.getElementById('paymentNoMeta').style.display = 'none';
+            payActionArea.classList.remove('visible');
+            currentPayUrl = null;
+            currentPaymentNo = null;
+            currentResponseData = null;
+
+            showToast(message, 'error');
+        }
+
+        /**
+         * 发送支付请求
+         */
+        async function sendRequest() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const authorization = document.getElementById('authorization').value.trim();
+            const requestBodyStr = document.getElementById('requestBody').value.trim();
+            const sendBtn = document.getElementById('sendBtn');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const codeBlock = document.getElementById('codeBlock');
+            const emptyState = document.getElementById('emptyState');
+            const payActionArea = document.getElementById('payActionArea');
+
+            // 验证API地址
+            if (!apiUrl) {
+                showToast('请输入接口地址', 'error');
+                document.getElementById('apiUrl').focus();
+                return;
+            }
+
+            // 验证JSON
+            let requestBody;
+            try {
+                if (!requestBodyStr) {
+                    throw new Error('请求体不能为空');
+                }
+                requestBody = JSON.parse(requestBodyStr);
+            } catch (e) {
+                showToast('JSON格式错误：' + e.message, 'error');
+                document.getElementById('requestBody').focus();
+                return;
+            }
+
+            // 准备UI
+            payActionArea.classList.remove('visible');
+            currentPayUrl = null;
+            currentPaymentNo = null;
+            currentResponseData = null;
+            codeBlock.style.display = 'none';
+            emptyState.style.display = 'none';
+            loadingOverlay.style.display = 'flex';
+            document.getElementById('responseCard').classList.add('visible');
+            document.getElementById('responseMeta').style.display = 'none';
+            document.getElementById('statusBadge').style.display = 'none';
+            document.getElementById('paymentNoMeta').style.display = 'none';
+            document.getElementById('statusDot').className = 'icon-dot green';
+            document.getElementById('statusDot').style.background = '';
+            document.getElementById('statusDot').style.boxShadow = '';
+
+            // 禁用按钮
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="spinner"></span> 请求中...';
+
+            // 构建请求头
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (authorization) {
+                headers['Authorization'] = authorization;
+            }
+
+            // 记录开始时间
+            requestStartTime = performance.now();
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody),
+                });
+
+                const elapsedMs = Math.round(performance.now() - requestStartTime);
+                const statusCode = response.status;
+                let responseData;
+
+                // 尝试解析JSON响应
+                const contentType = response.headers.get('content-type') || '';
+                if (contentType.includes('application/json') || contentType.includes('text/')) {
+                    try {
+                        responseData = await response.json();
+                    } catch (parseError) {
+                        // 如果不是JSON，获取文本
+                        const text = await response.text();
+                        responseData = { _raw: text, _parseError: '响应不是有效的JSON格式' };
+                    }
+                } else {
+                    const text = await response.text();
+                    responseData = { _raw: text, _parseError: '响应Content-Type: ' + contentType };
+                }
+
+                updateResponseDisplay(responseData, statusCode, elapsedMs);
+
+            } catch (error) {
+                const elapsedMs = Math.round(performance.now() - requestStartTime);
+                let errorMsg = '';
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    errorMsg = '网络请求失败：无法连接到服务器 (' + apiUrl + ')。请检查后端服务是否启动、地址是否正确、以及是否存在跨域限制。';
+                } else if (error.name === 'AbortError') {
+                    errorMsg = '请求已超时或被取消';
+                } else {
+                    errorMsg = '请求异常：' + error.message;
+                }
+                showError(errorMsg, 0);
+                document.getElementById('responseTime').textContent = elapsedMs + ' ms';
+            } finally {
+                // 恢复按钮
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                                <polyline points="22 2 11 13"></polyline>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                            发送支付请求
+                        `;
+            }
+        }
+
+        /**
+         * 在新窗口打开支付页面
+         */
+        function openPayPage() {
+            if (!currentPayUrl) {
+                showToast('暂无支付链接，请先发送请求获取支付URL', 'error');
+                return;
+            }
+            const win = window.open(currentPayUrl, '_blank', 'noopener,noreferrer');
+            if (!win) {
+                showToast('弹窗被浏览器拦截，请允许弹窗或手动复制链接打开', 'error');
+            } else {
+                showToast('已在新窗口打开支付宝支付页面', 'success');
+            }
+        }
+
+        /**
+         * 复制支付URL
+         */
+        function copyPayUrl() {
+            if (!currentPayUrl) {
+                showToast('暂无支付链接可复制', 'error');
+                return;
+            }
+            copyToClipboard(currentPayUrl, '支付链接已复制到剪贴板');
+        }
+
+        /**
+         * 点击URL预览区选中复制
+         */
+        function selectPayUrl() {
+            if (!currentPayUrl) return;
+            const previewEl = document.getElementById('payUrlPreview');
+            // 创建range选中文本
+            const range = document.createRange();
+            range.selectNodeContents(previewEl);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            // 尝试复制
+            try {
+                navigator.clipboard.writeText(currentPayUrl).then(() => {
+                    showToast('支付链接已复制到剪贴板', 'success');
+                }).catch(() => {
+                    showToast('已选中链接，请手动 Ctrl+C 复制', 'info');
+                });
+            } catch (e) {
+                showToast('已选中链接，请手动 Ctrl+C 复制', 'info');
+            }
+        }
+
+        /**
+         * 复制响应内容
+         */
+        function copyResponse() {
+            if (!currentResponseData) {
+                showToast('暂无响应内容可复制', 'error');
+                return;
+            }
+            const jsonStr = JSON.stringify(currentResponseData, null, 2);
+            copyToClipboard(jsonStr, '响应内容已复制到剪贴板');
+        }
+
+        /**
+         * 通用复制到剪贴板
+         */
+        function copyToClipboard(text, successMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(successMsg, 'success');
+                }).catch(() => {
+                    fallbackCopy(text, successMsg);
+                });
+            } else {
+                fallbackCopy(text, successMsg);
+            }
+        }
+
+        function fallbackCopy(text, successMsg) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (e) {
+                showToast('复制失败，请手动复制', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        /**
+         * 重置表单
+         */
+        function resetForm() {
+            document.getElementById('apiUrl').value = 'http://127.0.0.1:3000/api/business/orders/pay';
+            document.getElementById('authorization').value = '';
+            document.getElementById('requestBody').value = `{
+                "orderNo": "019dd3e50d6970009444268ea5b9e422",
+                "paymentMethod": "alipay",
+                "platform": "pc"
+            }`;
+            // 隐藏响应
+            document.getElementById('responseCard').classList.remove('visible');
+            document.getElementById('codeBlock').style.display = 'none';
+            document.getElementById('emptyState').style.display = '';
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('responseMeta').style.display = 'none';
+            document.getElementById('statusBadge').style.display = 'none';
+            document.getElementById('paymentNoMeta').style.display = 'none';
+            document.getElementById('payActionArea').classList.remove('visible');
+            document.getElementById('statusDot').className = 'icon-dot green';
+            document.getElementById('statusDot').style.background = '';
+            document.getElementById('statusDot').style.boxShadow = '';
+            currentResponseData = null;
+            currentPayUrl = null;
+            currentPaymentNo = null;
+            showToast('表单已重置', 'info');
+        }
+
+        /**
+         * 键盘快捷键：Ctrl+Enter 发送请求
+         */
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                sendRequest();
+            }
+        });
+
+        /**
+         * 页面初始化
+         */
+        console.log('🚀 支付宝PC端支付模拟器已就绪');
+        console.log('💡 提示：填写Authorization和JSON后，点击发送按钮或按 Ctrl+Enter 发送请求');
+        console.log('📋 接口地址：http://127.0.0.1:3000/api/business/orders/pay');
+        console.log('🔑 请在Authorization输入框中输入认证头（如：Bearer your-token）');
+    </script>
+</body>
+</html>
