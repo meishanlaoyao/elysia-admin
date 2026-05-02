@@ -42,7 +42,6 @@ const currentOrderId = ref<number>()
 const searchForm = ref({
     orderNo: undefined,
     status: undefined,
-    paymentMethod: undefined,
     daterange: undefined,
 })
 
@@ -100,24 +99,24 @@ const {
                     return h(ElTag, { type: dict?.tagType || 'info' }, { default: () => dict?.dictLabel || '未知' })
                 }
             },
-            {
-                prop: 'paymentMethod',
-                label: '支付方式',
-                align: 'center',
-                width: 150,
-                formatter: (row) => {
-                    const dict = system_pay_method.value?.find(item => item.dictValue === row.paymentMethod)
-                    if (dict?.remark) {
-                        return h(ElSpace, { size: 4 }, {
-                            default: () => [
-                                h(ArtSvgIcon, { icon: dict.remark || '', class: dict.customClass }),
-                                h('span', dict.dictLabel)
-                            ]
-                        })
-                    }
-                    return dict?.dictLabel || row.paymentMethod || '-'
-                }
-            },
+            // {
+            //     prop: 'paymentMethod',
+            //     label: '支付方式',
+            //     align: 'center',
+            //     width: 150,
+            //     formatter: (row) => {
+            //         const dict = system_pay_method.value?.find(item => item.dictValue === row.paymentMethod)
+            //         if (dict?.remark) {
+            //             return h(ElSpace, { size: 4 }, {
+            //                 default: () => [
+            //                     h(ArtSvgIcon, { icon: dict.remark || '', class: dict.customClass }),
+            //                     h('span', dict.dictLabel)
+            //                 ]
+            //             })
+            //         }
+            //         return dict?.dictLabel || row.paymentMethod || '-'
+            //     }
+            // },
             {
                 prop: 'createTime',
                 label: '创建日期',

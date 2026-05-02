@@ -49,6 +49,7 @@ export function buildAlipayRequest(
     method: string,
     bizContent: Record<string, any>,
 ): string {
+    const { notifyUrl, returnUrl } = config.config;
     const params: Record<string, string> = {
         app_id: config.appId!,
         method,
@@ -57,6 +58,8 @@ export function buildAlipayRequest(
         sign_type: 'RSA2',
         timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
         version: '1.0',
+        return_url: returnUrl || '',
+        notify_url: notifyUrl || '',
         biz_content: JSON.stringify(bizContent),
     };
     const signStr = buildSortedQueryString(params);

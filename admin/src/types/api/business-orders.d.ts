@@ -12,7 +12,6 @@ declare namespace Api {
             currency: string;
             expireTime?: Date;
             timeout: number;
-            paymentMethod: string;
             extra?: any;
             createTime?: Date;
             createBy?: number | null;
@@ -26,7 +25,7 @@ declare namespace Api {
         type OrdersList = Api.Common.PaginatedResponse<OrdersListItem>
 
         type OrdersSearchParams = Partial<
-            Pick<OrdersListItem, 'orderNo' | 'status' | 'paymentMethod'> &
+            Pick<OrdersListItem, 'orderNo' | 'status'> &
             Api.Common.CommonSearchParams
         >
     }

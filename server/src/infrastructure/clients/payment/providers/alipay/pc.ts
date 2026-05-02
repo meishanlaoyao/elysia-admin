@@ -31,8 +31,6 @@ export class AlipayPcProvider implements IPaymentProvider {
                 total_amount: params.amount,
                 subject: params.title,
                 body: params.description,
-                notify_url: params.notifyUrl,
-                return_url: params.returnUrl,
                 product_code: 'FAST_INSTANT_TRADE_PAY',
             }
         );

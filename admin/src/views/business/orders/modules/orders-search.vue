@@ -36,19 +36,19 @@ const formItems = computed(() => [
         type: 'input',
         props: { placeholder: '请输入订单号', clearable: true },
     },
-    {
-        label: '支付方式',
-        key: 'paymentMethod',
-        type: 'select',
-        props: {
-            placeholder: '请选择支付方式',
-            clearable: true,
-            options: system_pay_method.value?.map(item => ({
-                label: item.dictLabel,
-                value: item.dictValue
-            })) || []
-        },
-    },
+    // {
+    //     label: '支付方式',
+    //     key: 'paymentMethod',
+    //     type: 'select',
+    //     props: {
+    //         placeholder: '请选择支付方式',
+    //         clearable: true,
+    //         options: system_pay_method.value?.map(item => ({
+    //             label: item.dictLabel,
+    //             value: item.dictValue
+    //         })) || []
+    //     },
+    // },
     {
         label: '状态',
         key: 'status',

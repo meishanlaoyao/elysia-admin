@@ -30,39 +30,33 @@ export interface TransactionOptions {
      * - serializable: 串行化
      */
     isolationLevel?: 'read uncommitted' | 'read committed' | 'repeatable read' | 'serializable';
-
     /**
      * 事务访问模式
      * - read write: 读写（默认）
      * - read only: 只读
      */
     accessMode?: 'read write' | 'read only';
-
     /**
      * 是否启用错误日志（默认 true）
      */
     enableErrorLog?: boolean;
-
     /**
      * 自定义错误处理器
      */
     onError?: (error: Error) => void;
-
     /**
      * 事务开始前的钩子
      */
     onBegin?: () => void | Promise<void>;
-
     /**
      * 事务提交后的钩子
      */
     onCommit?: () => void | Promise<void>;
-
     /**
      * 事务回滚后的钩子
      */
     onRollback?: (error: Error) => void | Promise<void>;
-}
+};
 
 /**
  * 执行事务
@@ -83,13 +77,11 @@ export async function RunTransaction<T = any>(
         onCommit,
         onRollback
     } = options;
-
     try {
         // 执行事务开始钩子
         if (onBegin) {
             await onBegin();
-        }
-
+        };
         // 执行事务
         // 注意：postgres-js 驱动不支持通过选项对象设置 isolationLevel 和 accessMode
         // 如果需要设置隔离级别，需要在事务内手动执行 SQL
@@ -99,45 +91,39 @@ export async function RunTransaction<T = any>(
                 const parts: string[] = [];
                 if (isolationLevel) {
                     parts.push(`ISOLATION LEVEL ${isolationLevel.toUpperCase().replace(' ', ' ')}`);
-                }
+                };
                 if (accessMode) {
                     parts.push(accessMode.toUpperCase());
-                }
+                };
                 if (parts.length > 0) {
                     await tx.execute(`SET TRANSACTION ${parts.join(', ')}`);
-                }
-            }
+                };
+            };
             return await callback(tx as TransactionContext);
         });
-
         // 执行事务提交钩子
         if (onCommit) {
             await onCommit();
-        }
-
+        };
         return result;
     } catch (error) {
         const err = error as Error;
-
         // 执行事务回滚钩子
         if (onRollback) {
             await onRollback(err);
-        }
-
+        };
         // 错误日志
         if (enableErrorLog) {
             logger.error('[Transaction Error]:' + err.message);
             logger.error('[Transaction Stack]:' + err.stack);
-        }
-
+        };
         // 自定义错误处理
         if (onError) {
             onError(err);
-        }
-
+        };
         throw err;
-    }
-}
+    };
+};
 
 /**
  * 事务构建器类
@@ -225,10 +211,10 @@ export class TransactionBuilder<T = any> {
     async run(): Promise<T> {
         if (!this.callback) {
             throw new Error('Transaction callback is not set. Use .execute() to set it.');
-        }
+        };
         return await RunTransaction(this.callback, this.options);
-    }
-}
+    };
+};
 
 /**
  * 创建事务构建器
@@ -247,7 +233,7 @@ export class TransactionBuilder<T = any> {
  */
 export function CreateTransaction<T = any>(): TransactionBuilder<T> {
     return new TransactionBuilder<T>();
-}
+};
 
 /**
  * 批量事务执行器
@@ -266,7 +252,7 @@ export class BatchTransactionExecutor {
     add(name: string, callback: TransactionCallback, options?: TransactionOptions): this {
         this.transactions.push({ name, callback, options });
         return this;
-    }
+    };
 
     /**
      * 执行所有事务
@@ -274,7 +260,6 @@ export class BatchTransactionExecutor {
      */
     async runAll(): Promise<Array<{ name: string; result: any; success: boolean; error?: Error }>> {
         const results: Array<{ name: string; result: any; success: boolean; error?: Error }> = [];
-
         for (const { name, callback, options } of this.transactions) {
             try {
                 const result = await RunTransaction(callback, options);
@@ -283,10 +268,9 @@ export class BatchTransactionExecutor {
                 results.push({ name, result: null, success: false, error: error as Error });
                 break; // 停止执行后续事务
             }
-        }
-
+        };
         return results;
-    }
+    };
 
     /**
      * 并行执行所有事务（独立事务，互不影响）
@@ -301,10 +285,9 @@ export class BatchTransactionExecutor {
                 return { name, result: null, success: false, error: error as Error };
             }
         });
-
         return await Promise.all(promises);
-    }
-}
+    };
+};
 
 /**
  * 创建批量事务执行器
@@ -322,7 +305,7 @@ export class BatchTransactionExecutor {
  */
 export function CreateBatchTransaction(): BatchTransactionExecutor {
     return new BatchTransactionExecutor();
-}
+};
 
 /**
  * 嵌套事务辅助函数
@@ -354,12 +337,11 @@ export async function WithTransaction<T = any>(
 ): Promise<T> {
     // 检测是否已经在事务中
     const isInTransaction = 'rollback' in txOrDb;
-
     if (isInTransaction) {
         // 已在事务中，直接使用当前事务
         return await callback(txOrDb as TransactionContext);
     } else {
         // 不在事务中，创建新事务
         return await RunTransaction(callback);
-    }
-}
+    };
+};
