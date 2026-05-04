@@ -22,7 +22,7 @@ export class AlipayPcProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
         config.privateKey = formatPrivateKey(config.privateKey || '');
         config.publicKey = formatPublicKey(config.publicKey || '');
-        const paymentNo = GenerateUUID();
+        const paymentNo = params.paymentNo || GenerateUUID();
         const body = buildAlipayRequest(
             config,
             'alipay.trade.page.pay',

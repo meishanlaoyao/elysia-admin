@@ -14,5 +14,7 @@ export const ListDto = {
         orderNo: t.Optional(t.String({ description: '订单号' })),
         paymentNo: t.Optional(t.String({ description: '支付订单号' })),
         status: t.Optional(t.String({ description: '状态' })),
+        platform: t.Optional(t.String({ description: '支付平台' })),
+        paymentMethod: t.Optional(t.String({ description: '支付方式' })),
     })
 };

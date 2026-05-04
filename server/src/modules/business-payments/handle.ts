@@ -1,5 +1,5 @@
 import { Context } from 'elysia';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import pg from '@/core/database/pg';
 import { BaseResultData } from '@/core/result';
 import {
@@ -10,6 +10,7 @@ import {
     FindOneByKey,
 } from '@/core/database/repository';
 import { Pay } from '@/infrastructure/clients/payment';
+import { RunTransaction } from '@/core/database/transaction';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
 import { businessMerchantSchema, businessMerchantConfigsSchema } from '@database/schema/business_merchant';
@@ -87,18 +88,19 @@ export async function payOrder(ctx: Context) {
          * 判断属于哪种支付，再调用对应的请求接口
          */
         const { notifyUrl, returnUrl } = merchantConfig.config as any;
+        const payment = await FindOneByKey(businessPaymentsSchema, 'orderNo', orderInfo.orderNo);
         const result = await Pay(paymentMethod, platform).create(
             merchantConfig,
             {
-                orderNo,
+                paymentNo: payment?.paymentNo,
                 title: orderInfo.title,
                 amount: orderInfo.amount + '',
                 currency: orderInfo.currency,
+                orderNo,
                 notifyUrl,
                 returnUrl,
             }
         );
-        const payment = await FindOneByKey(businessPaymentsSchema, 'orderNo', orderInfo.orderNo);
         if (payment) {
             if (payment.delFlag) return BaseResultData.fail(404, '支付记录不存在');
             if (orderInfo.status === '0') {
@@ -152,12 +154,16 @@ export async function findList(ctx: Context) {
             orderNo,
             status,
             paymentNo,
+            platform,
+            paymentMethod,
         } = ctx.query;
         const whereCondition = CreateQueryBuilder(businessPaymentsSchema)
             .eq('delFlag', false)
             .eq('orderNo', orderNo)
             .eq('paymentNo', paymentNo)
             .eq('status', status)
+            .eq('platform', platform)
+            .eq('paymentMethod', paymentMethod)
             .dateRange('createTime', startTime, endTime)
             .build();
         const res = await FindPage(businessPaymentsSchema, whereCondition, {
@@ -190,7 +196,7 @@ export async function payOrderReturn(ctx: Context) {
          * 1.查订单状态
          * 2.网页端：302重定向到前端结果页
          */
-        console.log('同步通知', ctx.query);
+        // console.log('同步通知', ctx.query);
         return 'success';
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -205,32 +211,58 @@ export async function payOrderNotify(ctx: Context) {
          * 3.返回成功结果
          */
         const data: any = ctx.body;
+        console.log('异步通知', data);
         const paymentNo = data?.out_trade_no || '';
         if (paymentNo) {
             const payment = await FindOneByKey(businessPaymentsSchema, 'paymentNo', paymentNo);
-            if (payment && !payment?.delFlag && payment?.status === '0') {
+            if (payment && !payment?.delFlag && payment?.status === '0' && payment.merchantConfigId && payment.paymentMethod) {
                 let thirdTradeNo = ''; // 第三方交易号
                 let status = '2'; // 订单状态 （默认失败）
                 let amount = 0; // 实付金额
-                if (payment.paymentMethod === 'alipay') {
-                    // 支付宝
-                    thirdTradeNo = data?.trade_no || '';
-                    status = data?.trade_status === 'TRADE_SUCCESS' ? '1' : '2';
-                    amount = data?.buyer_pay_amount || 0;
-                } else if (payment.paymentMethod === 'wechat') {
-                    // 微信
-                } else if (payment.paymentMethod === 'paypal') {
-                    // PayPal
-                }
-                // await pg.update(businessPaymentsSchema)
-                //     .set({
-                //         amount: Number(amount),
-                //         status,
-                //         thirdTradeNo,
-                //         extra: data,
-                //         updateTime: new Date(),
-                //     })
-                //     .where(eq(businessPaymentsSchema.paymentNo, paymentNo));
+                const configArr = await pg.select().from(businessMerchantConfigsSchema).where(
+                    and(
+                        eq(businessMerchantConfigsSchema.merchantId, payment.merchantConfigId),
+                        eq(businessMerchantConfigsSchema.channel, payment.paymentMethod),
+                        eq(businessMerchantConfigsSchema.status, true),
+                        eq(businessMerchantConfigsSchema.delFlag, false),
+                    )
+                );
+                const merchantConfig = configArr[0] || null;
+                if (merchantConfig) {
+                    const res = await Pay(payment?.paymentMethod as PaymentChannel, payment?.platform as PaymentPlatform)
+                        .notify(merchantConfig, { rawBody: data, headers: ctx.headers as any, });
+                    console.log('进来了', res)
+                    if (payment.paymentMethod === 'alipay') {
+                        // 支付宝
+                        thirdTradeNo = res.thirdTradeNo;
+                        status = res.status === 'success' ? '1' : '2';
+                        amount = Number(res.amount);
+                    } else if (payment.paymentMethod === 'wechat') {
+                        // 微信
+                    } else if (payment.paymentMethod === 'paypal') {
+                        // PayPal
+                    }
+                    await RunTransaction(async (tx) => {
+                        await tx.update(businessPaymentsSchema)
+                            .set({
+                                amount,
+                                status,
+                                thirdTradeNo,
+                                extra: res.extra,
+                                updateTime: new Date(),
+                            })
+                            .where(eq(businessPaymentsSchema.paymentNo, paymentNo));
+                        await tx.update(businessOrdersSchema)
+                            .set({ status: '1', updateTime: new Date() })
+                            .where(
+                                and(
+                                    eq(businessOrdersSchema.orderNo, payment.orderNo),
+                                    eq(businessOrdersSchema.status, '0'),
+                                    eq(businessOrdersSchema.delFlag, false),
+                                )
+                            );
+                    });
+                };
             };
         };
         return 'success';

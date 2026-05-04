@@ -94,13 +94,19 @@ export async function callAlipay<T = any>(
  * 验证支付宝异步通知签名并解析
  */
 export function parseAlipayNotify(config: MerchantConfig, params: NotifyParams): NotifyResult {
-    const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
-    const urlParams = new URLSearchParams(raw);
-    const map: Record<string, string> = {};
-    urlParams.forEach((v, k) => { map[k] = v; });
+    let map: Record<string, string>;
+    if (typeof params.rawBody === 'object' && !Buffer.isBuffer(params.rawBody)) {
+        map = params.rawBody as any;
+    } else {
+        const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
+        const urlParams = new URLSearchParams(raw);
+        map = {};
+        urlParams.forEach((v, k) => { map[k] = v; });
+    }
     const { sign, sign_type, ...rest } = map;
     const signStr = buildSortedQueryString(rest);
-    if (!rsaVerify(signStr, sign, config.publicKey!)) {
+    const formattedPublicKey = formatPublicKey(config.publicKey!);
+    if (!rsaVerify(signStr, sign, formattedPublicKey)) {
         throw new Error('支付宝回调验签失败');
     };
     const status = map.trade_status === 'TRADE_SUCCESS' || map.trade_status === 'TRADE_FINISHED'

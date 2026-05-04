@@ -17,10 +17,9 @@
 import dayjs from 'dayjs'
 import { useAuth } from '@/hooks'
 import { useTable } from '@/hooks/core/useTable'
-import { ElMessage, ElTag, ElSpace, ElText } from 'element-plus'
+import { ElMessage, ElTag, ElText } from 'element-plus'
 import { useDictStore } from '@/store/modules/dict'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-import ArtSvgIcon from "@/components/core/base/art-svg-icon/index.vue";
 import OrdersSearch from './modules/orders-search.vue'
 import OrdersDialog from './modules/orders-dialog.vue'
 import OrdersDetailDialog from './modules/orders-detail-dialog.vue'
@@ -30,7 +29,7 @@ type OrdersListItem = Api.BusinessOrders.OrdersListItem
 
 const auth = useAuth()
 const dictStore = useDictStore()
-const { system_orders_status, system_pay_method } = dictStore.getDictData(['system_orders_status', 'system_pay_method'])
+const { system_orders_status } = dictStore.getDictData(['system_orders_status'])
 
 // 弹窗相关
 const dialogVisible = ref(false)
@@ -99,24 +98,6 @@ const {
                     return h(ElTag, { type: dict?.tagType || 'info' }, { default: () => dict?.dictLabel || '未知' })
                 }
             },
-            // {
-            //     prop: 'paymentMethod',
-            //     label: '支付方式',
-            //     align: 'center',
-            //     width: 150,
-            //     formatter: (row) => {
-            //         const dict = system_pay_method.value?.find(item => item.dictValue === row.paymentMethod)
-            //         if (dict?.remark) {
-            //             return h(ElSpace, { size: 4 }, {
-            //                 default: () => [
-            //                     h(ArtSvgIcon, { icon: dict.remark || '', class: dict.customClass }),
-            //                     h('span', dict.dictLabel)
-            //                 ]
-            //             })
-            //         }
-            //         return dict?.dictLabel || row.paymentMethod || '-'
-            //     }
-            // },
             {
                 prop: 'createTime',
                 label: '创建日期',

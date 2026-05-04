@@ -19,16 +19,14 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const dictStore = useDictStore()
-const { system_orders_status } = dictStore.getDictData(['system_orders_status'])
+const { system_pay_platform, system_pay_method, system_pay_status } = dictStore.getDictData(['system_pay_platform', 'system_pay_method', 'system_pay_status'])
 
-// 表单数据双向绑定
 const searchBarRef = ref()
 const formData = computed({
     get: () => props.modelValue,
     set: (val) => emit('update:modelValue', val)
 })
 
-// 表单配置
 const formItems = computed(() => [
     {
         label: '订单号',
@@ -37,13 +35,45 @@ const formItems = computed(() => [
         props: { placeholder: '请输入订单号', clearable: true },
     },
     {
-        label: '状态',
+        label: '支付单号',
+        key: 'paymentNo',
+        type: 'input',
+        props: { placeholder: '请输入支付单号', clearable: true },
+    },
+    {
+        label: '支付平台',
+        key: 'platform',
+        type: 'select',
+        props: {
+            placeholder: '请选择支付平台',
+            clearable: true,
+            options: system_pay_platform.value?.map(item => ({
+                label: item.dictLabel,
+                value: item.dictValue
+            })) || []
+        },
+    },
+    {
+        label: '支付方式',
+        key: 'paymentMethod',
+        type: 'select',
+        props: {
+            placeholder: '请选择支付方式',
+            clearable: true,
+            options: system_pay_method.value?.map(item => ({
+                label: item.dictLabel,
+                value: item.dictValue
+            })) || []
+        },
+    },
+    {
+        label: '支付状态',
         key: 'status',
         type: 'select',
         props: {
-            placeholder: '请选择状态',
+            placeholder: '请选择支付状态',
             clearable: true,
-            options: system_orders_status.value?.map(item => ({
+            options: system_pay_status.value?.map(item => ({
                 label: item.dictLabel,
                 value: item.dictValue
             })) || []
@@ -70,7 +100,6 @@ const formItems = computed(() => [
     }
 ])
 
-// 事件
 function handleReset() {
     emit('reset')
 }

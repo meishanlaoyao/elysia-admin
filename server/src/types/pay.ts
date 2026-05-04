@@ -24,6 +24,7 @@ export interface MerchantConfig {
  * 发起支付入参
  */
 export interface PaymentCreateParams {
+    paymentNo?: string;
     orderNo: string;
     title: string;
     description?: string;
@@ -88,7 +89,7 @@ export interface QueryResult {
  * 回调验签入参
  */
 export interface NotifyParams {
-    rawBody: string | Buffer;
+    rawBody: string | Buffer | Record<string, any>;
     headers: Record<string, string>;
 };
 
