@@ -51,16 +51,18 @@ export function buildAlipayRequest(
 ): string {
     const { notifyUrl, returnUrl } = config.config;
     const params: Record<string, string> = {
-        app_id: config.appId!,
-        method,
-        format: 'JSON',
-        charset: 'utf-8',
-        sign_type: 'RSA2',
-        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-        version: '1.0',
-        return_url: returnUrl || '',
-        notify_url: notifyUrl || '',
-        biz_content: JSON.stringify(bizContent),
+        app_id: config.appId!, // 支付宝分配给开发者的应用ID
+        method, // 接口名称
+        format: 'JSON', // 仅支持JSON
+        charset: 'utf-8', // 请求使用的编码格式，如utf-8,gbk,gb2312等
+        sign_type: 'RSA2', // 商户生成签名字符串所使用的签名算法类型，目前支持RSA2和RSA，推荐使用RSA2
+        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19), // 发送请求的时间，格式"yyyy-MM-dd HH:mm:ss"
+        version: '1.0', // 调用的接口版本，固定为：1.0
+        return_url: returnUrl || '', // 支付成功后跳转的URL
+        notify_url: notifyUrl || '', // 支付异步通知的URL
+        product_code: bizContent?.product_code || '', // 销售产品码，商家和支付宝签约的产品码。
+        goods_detail: bizContent?.goods_detail || [], // 订单包含的商品列表信息，json格式
+        biz_content: JSON.stringify(bizContent), // 业务参数，json格式
     };
     const signStr = buildSortedQueryString(params);
     params.sign = rsaSign(signStr, config.privateKey!);
@@ -81,6 +83,7 @@ export async function callAlipay<T = any>(
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
         body,
     });
+    console.log('支付宝请求参数:', res, body);
     const json = await res.json() as Record<string, any>;
     // 响应 key 格式：alipay_trade_xxx_response
     const responseKey = method.replace(/\./g, '_') + '_response';

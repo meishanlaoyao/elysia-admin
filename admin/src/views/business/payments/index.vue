@@ -62,62 +62,38 @@ const {
         columnsFactory: () => [
             { type: 'index', width: 60, label: '序号', align: 'center' },
             {
-                prop: 'paymentNo', label: '支付订单号', align: 'center', width: 300, formatter: (row) => {
-                    return h(
-                        ElText,
-                        {
-                            type: 'primary',
-                            style: 'cursor:pointer',
-                            onClick: () => {
-                                navigator.clipboard.writeText(row.paymentNo)
-                                ElMessage.success('复制成功')
-                            }
-                        },
-                        { default: () => row.paymentNo }
-                    )
+                prop: 'paymentNo', label: '订单信息', align: 'left', width: 320, formatter: (row) => {
+                    const makeClickable = (label: string, value: string) =>
+                        h('div', { style: 'display:flex; align-items:center; gap:4px; line-height:1.8' }, [
+                            h('span', { style: 'color:var(--el-text-color-secondary); font-size:12px; flex-shrink:0' }, label),
+                            h(ElText, {
+                                type: 'primary',
+                                style: 'cursor:pointer; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;',
+                                title: value,
+                                onClick: () => {
+                                    navigator.clipboard.writeText(value)
+                                    ElMessage.success('复制成功')
+                                }
+                            }, { default: () => value || '-' })
+                        ])
+                    return h('div', { style: 'padding: 4px 0' }, [
+                        makeClickable('支付单:', row.paymentNo),
+                        makeClickable('订单号:', row.orderNo),
+                    ])
                 }
             },
             {
-                prop: 'orderNo', label: '关联订单号', align: 'center', width: 300, formatter: (row) => {
-                    return h(
-                        ElText,
-                        {
-                            type: 'primary',
-                            style: 'cursor:pointer',
-                            onClick: () => {
-                                navigator.clipboard.writeText(row.orderNo)
-                                ElMessage.success('复制成功')
-                            }
-                        },
-                        { default: () => row.orderNo }
-                    )
-                }
-            },
-            {
-                prop: 'platform',
-                label: '支付平台',
-                align: 'center',
-                formatter: (row) => {
-                    const dict = system_pay_platform.value?.find(item => item.dictValue === row.platform)
-                    return dict?.dictLabel || row.platform || '-'
-                }
-            },
-            {
-                prop: 'paymentMethod',
-                label: '支付方式',
-                align: 'center',
-                width: 150,
-                formatter: (row) => {
-                    const dict = system_pay_method.value?.find(item => item.dictValue === row.paymentMethod)
-                    if (dict?.remark) {
-                        return h(ElSpace, { size: 4 }, {
-                            default: () => [
-                                h(ArtSvgIcon, { icon: dict.remark || '', class: dict.customClass }),
-                                h('span', dict.dictLabel)
-                            ]
-                        })
-                    }
-                    return dict?.dictLabel || row.paymentMethod || '-'
+                prop: 'platform', label: '支付渠道', align: 'center', width: 130, formatter: (row) => {
+                    const platformDict = system_pay_platform.value?.find(item => item.dictValue === row.platform)
+                    const methodDict = system_pay_method.value?.find(item => item.dictValue === row.paymentMethod)
+                    const platformLabel = platformDict?.dictLabel || row.platform || '-'
+                    const methodContent = methodDict?.remark
+                        ? [h(ArtSvgIcon, { icon: methodDict.remark, class: methodDict.customClass, }), h('span', methodDict.dictLabel)]
+                        : [h('span', methodDict?.dictLabel || row.paymentMethod || '-')]
+                    return h('div', { style: 'display:flex;flex-direction:row;align-items:center;gap:6px' }, [
+                        h(ElSpace, { size: 3, style: 'color:var(--el-text-color-secondary);font-size:12px' }, { default: () => methodContent }),
+                        h(ElTag, { size: 'small', effect: 'plain' }, { default: () => platformLabel }),
+                    ])
                 }
             },
             {

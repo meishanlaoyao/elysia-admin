@@ -33,6 +33,7 @@ export interface PaymentCreateParams {
     notifyUrl: string;
     returnUrl?: string;
     extra?: Record<string, any>;
+    goodsList?: Record<string, any>[];
 };
 
 /**

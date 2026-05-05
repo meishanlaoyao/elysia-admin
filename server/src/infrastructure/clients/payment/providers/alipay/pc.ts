@@ -32,6 +32,7 @@ export class AlipayPcProvider implements IPaymentProvider {
                 subject: params.title,
                 body: params.description,
                 product_code: 'FAST_INSTANT_TRADE_PAY',
+                goods_detail: params.goodsList || [],
             }
         );
         // page.pay 直接拼接跳转 URL，前端 GET 跳转即可

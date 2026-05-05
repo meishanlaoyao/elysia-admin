@@ -34,29 +34,40 @@ export async function create(ctx: Context) {
             merchantId: 6,
             title: 'DR钻戒-求婚系列',
             description: '一生只送一人，真爱唯一的承诺',
-            amount: 12899.00,
+            amount: 25698.00,           // 订单总金额
             currency: 'CNY',
             extra: {
-                product: {
-                    productId: 101,
-                    productName: 'DR钻戒-心形1克拉',
-                    productPrice: 12899.00, // 单价
-                    productNum: 1,        // 数量
-                    productTotal: 12899.00, // 小计
-                    specs: "圈口: 12号; 材质: 18K金; 主钻: 30分"
-                },
+                products: [             // 改为数组，支持多商品
+                    {
+                        productId: 101,
+                        productName: 'DR钻戒-心形1克拉',
+                        productPrice: 12899.00,
+                        productNum: 1,
+                        productTotal: 12899.00,
+                        specs: "圈口: 12号; 材质: 18K金; 主钻: 30分"
+                    },
+                    {
+                        productId: 102,
+                        productName: 'DR对戒-经典款',
+                        productPrice: 12799.00,
+                        productNum: 1,
+                        productTotal: 12799.00,
+                        specs: "圈口: 男15号/女12号; 材质: PT950铂金"
+                    }
+                ],
                 user: {
                     userId: userId,
-                    nickname: "张三", // 扩展：用户昵称
-                    phone: "13800138000", // 扩展：收货电话
-                    address: "北京市海淀区中关村软件园二期", // 详细地址
-                    postalCode: "100000" // 扩展：邮编
+                    nickname: "张三",
+                    phone: "13800138000",
+                    address: "北京市海淀区中关村软件园二期",
+                    postalCode: "100000"
                 },
                 marketing: {
-                    couponId: null, // 使用的优惠券ID
-                    discountAmount: 0 // 优惠金额
+                    couponId: null, // 优惠券ID
+                    discountAmount: 0, // 优惠金额
+                    couponName: ""  // 扩展：优惠券名称
                 }
-            },
+            }
         };
 
         /**

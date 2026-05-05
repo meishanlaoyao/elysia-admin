@@ -89,6 +89,12 @@ export async function payOrder(ctx: Context) {
          */
         const { notifyUrl, returnUrl } = merchantConfig.config as any;
         const payment = await FindOneByKey(businessPaymentsSchema, 'orderNo', orderInfo.orderNo);
+        const goodsList = ((orderInfo.extra as any)?.products || []).map((item: any) => ({
+            goods_id: item.productId,
+            goods_name: item.productName || '',
+            quantity: item.productNum || 0,
+            price: item.productPrice || 0,
+        }));
         const result = await Pay(paymentMethod, platform).create(
             merchantConfig,
             {
@@ -99,6 +105,7 @@ export async function payOrder(ctx: Context) {
                 orderNo,
                 notifyUrl,
                 returnUrl,
+                goodsList,
             }
         );
         if (payment) {
@@ -211,7 +218,7 @@ export async function payOrderNotify(ctx: Context) {
          * 3.返回成功结果
          */
         const data: any = ctx.body;
-        console.log('异步通知', data);
+        // console.log('异步通知', data);
         const paymentNo = data?.out_trade_no || '';
         if (paymentNo) {
             const payment = await FindOneByKey(businessPaymentsSchema, 'paymentNo', paymentNo);
@@ -231,37 +238,42 @@ export async function payOrderNotify(ctx: Context) {
                 if (merchantConfig) {
                     const res = await Pay(payment?.paymentMethod as PaymentChannel, payment?.platform as PaymentPlatform)
                         .notify(merchantConfig, { rawBody: data, headers: ctx.headers as any, });
-                    console.log('进来了', res)
-                    if (payment.paymentMethod === 'alipay') {
-                        // 支付宝
-                        thirdTradeNo = res.thirdTradeNo;
-                        status = res.status === 'success' ? '1' : '2';
-                        amount = Number(res.amount);
-                    } else if (payment.paymentMethod === 'wechat') {
-                        // 微信
-                    } else if (payment.paymentMethod === 'paypal') {
-                        // PayPal
-                    }
-                    await RunTransaction(async (tx) => {
-                        await tx.update(businessPaymentsSchema)
-                            .set({
-                                amount,
-                                status,
-                                thirdTradeNo,
-                                extra: res.extra,
-                                updateTime: new Date(),
-                            })
-                            .where(eq(businessPaymentsSchema.paymentNo, paymentNo));
-                        await tx.update(businessOrdersSchema)
-                            .set({ status: '1', updateTime: new Date() })
-                            .where(
-                                and(
-                                    eq(businessOrdersSchema.orderNo, payment.orderNo),
-                                    eq(businessOrdersSchema.status, '0'),
-                                    eq(businessOrdersSchema.delFlag, false),
-                                )
-                            );
-                    });
+                    if (res) {
+                        if (payment.paymentMethod === 'alipay') {
+                            // 支付宝
+                            thirdTradeNo = res.thirdTradeNo;
+                            status = res.status === 'success' ? '1' : '2';
+                            amount = Number(res.amount);
+                        } else if (payment.paymentMethod === 'wechat') {
+                            // 微信
+                        } else if (payment.paymentMethod === 'paypal') {
+                            // PayPal
+                        }
+                        let safeExtra = {};
+                        if (res.extra) safeExtra = JSON.parse(JSON.stringify(res.extra));
+                        await RunTransaction(
+                            async (tx) => {
+                                await tx.update(businessPaymentsSchema)
+                                    .set({
+                                        amount,
+                                        status,
+                                        thirdTradeNo,
+                                        extra: safeExtra,
+                                        updateTime: new Date(),
+                                    })
+                                    .where(eq(businessPaymentsSchema.paymentNo, paymentNo));
+                                await tx.update(businessOrdersSchema)
+                                    .set({ status: '1', updateTime: new Date() })
+                                    .where(
+                                        and(
+                                            eq(businessOrdersSchema.orderNo, payment.orderNo),
+                                            eq(businessOrdersSchema.status, '0'),
+                                            eq(businessOrdersSchema.delFlag, false),
+                                        )
+                                    );
+                            }
+                        );
+                    };
                 };
             };
         };
