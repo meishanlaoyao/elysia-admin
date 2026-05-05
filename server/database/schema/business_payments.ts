@@ -12,7 +12,6 @@ export const businessPaymentsSchema = pgTable(
         orderNo: varchar('order_no', { length: 64 }).notNull().unique().references(() => businessOrdersSchema.orderNo), // 关联订单号
         merchantConfigId: bigint('merchant_config_id', { mode: 'number' }).notNull().references(() => businessMerchantSchema.id), // 关联商户配置ID
         paymentNo: varchar('payment_no', { length: 64 }).notNull().unique(), // 支付订单号
-        channel: varchar('channel', { length: 20 }), // 支付渠道
         platform: varchar('platform', { length: 20 }).notNull(), // 支付平台 (字典：system_pay_platform)
         paymentMethod: varchar('payment_method', { length: 20 }).notNull(), // 支付方式 （字典：system_pay_method）
         amount: decimal('amount', { precision: 10, scale: 2, mode: 'number' }).default(0), // 实付金额

@@ -60,8 +60,6 @@ export function buildAlipayRequest(
         version: '1.0', // 调用的接口版本，固定为：1.0
         return_url: returnUrl || '', // 支付成功后跳转的URL
         notify_url: notifyUrl || '', // 支付异步通知的URL
-        product_code: bizContent?.product_code || '', // 销售产品码，商家和支付宝签约的产品码。
-        goods_detail: bizContent?.goods_detail || [], // 订单包含的商品列表信息，json格式
         biz_content: JSON.stringify(bizContent), // 业务参数，json格式
     };
     const signStr = buildSortedQueryString(params);
@@ -83,7 +81,10 @@ export async function callAlipay<T = any>(
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' },
         body,
     });
-    console.log('支付宝请求参数:', res, body);
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`支付宝网关错误: ${res.status} ${res.statusText} — ${text.slice(0, 200)}`);
+    };
     const json = await res.json() as Record<string, any>;
     // 响应 key 格式：alipay_trade_xxx_response
     const responseKey = method.replace(/\./g, '_') + '_response';

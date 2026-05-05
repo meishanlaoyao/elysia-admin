@@ -24,9 +24,6 @@
                 <ElDescriptionsItem label="支付方式">
                     {{ dictStore.getDictLabel('system_pay_method', paymentData?.paymentMethod) || '-' }}
                 </ElDescriptionsItem>
-                <ElDescriptionsItem label="支付渠道">
-                    {{ paymentData?.channel || '-' }}
-                </ElDescriptionsItem>
                 <ElDescriptionsItem label="第三方交易号">
                     {{ paymentData?.thirdTradeNo || '-' }}
                 </ElDescriptionsItem>

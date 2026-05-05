@@ -35,7 +35,6 @@ export class AlipayPcProvider implements IPaymentProvider {
                 goods_detail: params.goodsList || [],
             }
         );
-        // page.pay 直接拼接跳转 URL，前端 GET 跳转即可
         const payUrl = `${GATEWAY}?${body}`;
         return { paymentNo, payload: { payUrl } };
     }

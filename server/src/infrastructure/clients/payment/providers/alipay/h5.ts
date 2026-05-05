@@ -1,4 +1,4 @@
-import { callAlipay, alipayQuery, alipayRefund, parseAlipayNotify, formatPrivateKey, formatPublicKey } from './base';
+import { GATEWAY, buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify, formatPrivateKey, formatPublicKey } from './base';
 import { GenerateUUID } from '@/shared/uuid';
 import type {
     IPaymentProvider,
@@ -23,7 +23,7 @@ export class AlipayH5Provider implements IPaymentProvider {
         config.privateKey = formatPrivateKey(config.privateKey || '');
         config.publicKey = formatPublicKey(config.publicKey || '');
         const paymentNo = params.paymentNo || GenerateUUID();
-        const data = await callAlipay(
+        const body = buildAlipayRequest(
             config,
             'alipay.trade.wap.pay',
             {
@@ -32,10 +32,11 @@ export class AlipayH5Provider implements IPaymentProvider {
                 subject: params.title,
                 body: params.description,
                 product_code: 'QUICK_WAP_WAY',
-                // goods_detail: params.goodsList || [],
+                goods_detail: params.goodsList || [],
             }
         );
-        return { paymentNo, payload: { payUrl: data.trade_no } };
+        const payUrl = `${GATEWAY}?${body}`;
+        return { paymentNo, payload: { payUrl } };
     }
 
     async query(config: MerchantConfig, params: QueryParams): Promise<QueryResult> {
