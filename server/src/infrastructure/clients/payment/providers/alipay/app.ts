@@ -1,4 +1,4 @@
-import { buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify } from './base';
+import { buildAlipayRequest, alipayQuery, alipayRefund, parseAlipayNotify, formatPrivateKey, formatPublicKey } from './base';
 import { GenerateUUID } from '@/shared/uuid';
 import type {
     IPaymentProvider,
@@ -20,16 +20,21 @@ import type {
  */
 export class AlipayAppProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
-        // app.pay 直接返回签名串，不需要请求网关，客户端拿到后直接调起
-        const orderString = buildAlipayRequest(config, 'alipay.trade.app.pay', {
-            out_trade_no: paymentNo,
-            total_amount: params.amount,
-            subject: params.title,
-            body: params.description,
-            notify_url: params.notifyUrl,
-        });
-
+        config.privateKey = formatPrivateKey(config.privateKey || '');
+        config.publicKey = formatPublicKey(config.publicKey || '');
+        const paymentNo = params.paymentNo || GenerateUUID();
+        const orderString = buildAlipayRequest(
+            config,
+            'alipay.trade.app.pay',
+            {
+                out_trade_no: paymentNo,
+                total_amount: params.amount,
+                subject: params.title,
+                body: params.description,
+                product_code: 'QUICK_MSECURITY_PAY',
+                // goods_detail: params.goodsList || [],
+            }
+        );
         return { paymentNo, payload: orderString };
     }
 
