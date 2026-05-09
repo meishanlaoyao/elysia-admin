@@ -26,14 +26,11 @@ export default withMermaid(
       ['meta', { name: 'description', content: '一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。' }],
       [
         'script',
-        {},
-        `var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "https://hm.baidu.com/hm.js?59968d8a96f97cb28289b78ca79b5477";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();`
+        {
+          'src': 'https://cloud.umami.is/script.js',
+          'data-website-id': '1a315815-03f3-4b11-96df-3626866e8373',
+          'defer': 'true',
+        }
       ],
     ],
     ignoreDeadLinks: true,
@@ -109,6 +106,7 @@ export default withMermaid(
             { text: '中间件', link: '/guide/middleware' },
             { text: '队列', link: '/guide/queue' },
             { text: '部署', link: '/guide/deploy' },
+            { text: '支付', link: '/guide/payment' }
           ]
         },
         {

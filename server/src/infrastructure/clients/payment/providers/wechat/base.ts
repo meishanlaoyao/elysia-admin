@@ -43,7 +43,6 @@ export async function callWechat<T = any>(
             'Authorization': auth,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Wechatpay-Serial': config.config?.serialNo ?? '',
         },
         ...(bodyStr ? { body: bodyStr } : {}),
     });
@@ -95,16 +94,37 @@ export function buildWechatJsapiPayload(config: MerchantConfig, prepayId: string
     };
 };
 
+function getNotifyHeader(headers: Record<string, string>, name: string): string | undefined {
+    const lower = name.toLowerCase();
+    for (const [k, v] of Object.entries(headers)) {
+        if (k.toLowerCase() === lower) return v;
+    }
+    return undefined;
+}
+
 /**
  * 验证微信回调签名并解密 resource
+ * 注意：验签必须使用网关收到的原始 body 字符串（与 Content-Length 一致），不能使用已 JSON.parse 的对象再 stringify。
  */
 export function parseWechatNotify(config: MerchantConfig, params: NotifyParams): NotifyResult {
-    const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
+    let raw: string;
+    if (typeof params.rawBody === 'string') {
+        raw = params.rawBody;
+    } else if (Buffer.isBuffer(params.rawBody)) {
+        raw = params.rawBody.toString('utf8');
+    } else if (params.rawBody !== null && typeof params.rawBody === 'object') {
+        throw new Error('微信异步通知验签需要原始请求体字符串，请传入 request.text() 等返回的原始 body，勿传入已解析对象');
+    } else {
+        raw = String(params.rawBody ?? '');
+    }
+
     const body = JSON.parse(raw);
-    // 验签
-    const timestamp = params.headers['wechatpay-timestamp'];
-    const nonce = params.headers['wechatpay-nonce'];
-    const signature = params.headers['wechatpay-signature'];
+    const timestamp = getNotifyHeader(params.headers, 'wechatpay-timestamp');
+    const nonce = getNotifyHeader(params.headers, 'wechatpay-nonce');
+    const signature = getNotifyHeader(params.headers, 'wechatpay-signature');
+    if (!timestamp || !nonce || !signature) {
+        throw new Error('微信回调缺少验签所需请求头（wechatpay-timestamp / wechatpay-nonce / wechatpay-signature）');
+    }
     const message = `${timestamp}\n${nonce}\n${raw}\n`;
     const verify = crypto.createVerify('SHA256withRSA');
     verify.update(message);
@@ -116,10 +136,14 @@ export function parseWechatNotify(config: MerchantConfig, params: NotifyParams):
     const apiV3Key = config.config?.apiV3Key as string;
     const plaintext = aesGcmDecrypt(ciphertext, apiV3Key, resNonce, associated_data ?? '');
     const trade = JSON.parse(plaintext);
+    const payerTotal = trade.amount?.payer_total ?? trade.amount?.total ?? 0;
+    const paymentNo = trade.out_trade_no as string;
+    const attach = trade.attach != null && String(trade.attach).trim() !== '' ? String(trade.attach) : '';
     return {
-        orderNo: trade.out_trade_no,
+        orderNo: attach || paymentNo,
+        paymentNo,
         thirdTradeNo: trade.transaction_id,
-        amount: (trade.amount.payer_total / 100).toFixed(2),
+        amount: (payerTotal / 100).toFixed(2),
         status: trade.trade_state === 'SUCCESS' ? 'success' : 'failed',
         extra: trade,
     };

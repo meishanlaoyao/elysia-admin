@@ -20,7 +20,7 @@ import type {
  */
 export class WechatPcProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
+        const paymentNo = params.paymentNo || GenerateUUID();
         const body = buildWechatOrderBody(config, 'native', paymentNo, params);
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/native', body);
         return { paymentNo, payload: { codeUrl: data.code_url } };

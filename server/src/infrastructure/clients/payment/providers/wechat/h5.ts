@@ -20,7 +20,7 @@ import type {
  */
 export class WechatH5Provider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
+        const paymentNo = params.paymentNo || GenerateUUID();
         const body = {
             ...buildWechatOrderBody(config, 'h5', paymentNo, params),
             scene_info: {

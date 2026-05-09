@@ -20,7 +20,7 @@ import type {
  */
 export class WechatMiniProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
+        const paymentNo = params.paymentNo || GenerateUUID();
         const body = {
             ...buildWechatOrderBody(config, 'jsapi', paymentNo, params),
             payer: { openid: params.extra?.openid }, // 小程序必传 openid

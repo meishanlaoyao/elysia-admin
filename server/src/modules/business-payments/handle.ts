@@ -218,7 +218,7 @@ export async function payOrderNotify(ctx: Context) {
          * 3.返回成功结果
          */
         const data: any = ctx.body;
-        // console.log('异步通知', data);
+        console.log('异步通知', data);
         const paymentNo = data?.out_trade_no || '';
         if (paymentNo) {
             const payment = await FindOneByKey(businessPaymentsSchema, 'paymentNo', paymentNo);

@@ -22,7 +22,7 @@ import type {
  */
 export class WechatAppProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
+        const paymentNo = params.paymentNo || GenerateUUID();
         const body = buildWechatOrderBody(config, 'app', paymentNo, params);
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/app', body);
         const timestamp = Math.floor(Date.now() / 1000).toString();
