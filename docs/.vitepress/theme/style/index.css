@@ -197,6 +197,14 @@
     text-decoration: none;
 }
 
+/* Mermaid：图表在正文区域内居中（适配 vitepress-plugin-mermaid 输出） */
+.vp-doc .mermaid {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 1rem 0 1.25rem;
+}
+
 /* VPFeatures 页卡悬浮效果 */
 .VPFeatures .items .item {
   transition: transform 0.3s;

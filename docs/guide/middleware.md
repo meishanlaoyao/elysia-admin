@@ -94,3 +94,16 @@ export async function handleRequest(ctx: Context) {
     }
 }
 ```
+
+## 请求生命周期概览
+
+`Elysia` 将一次请求拆成多个钩子：进入路由前可先记录元数据（如开始时间），在 `onBeforeHandle` 中集中做黑名单、认证、限流、权限等**前置校验**；通过后执行真实业务处理函数；响应发出前或在之后触发 `onAfterResponse`，适合写操作日志、落库限流统计等**副作用**。下图是三类中间件的简化执行顺序，具体守卫是否启用以 `GlobalMiddleware`、`GlobalResponseMiddleware` 及环境变量为准。
+
+```mermaid
+flowchart LR
+    R[onRequest<br/>记录开始时间等] --> B[onBeforeHandle<br/>预处理守卫链]
+    B --> H[路由处理函数]
+    H --> A[onAfterResponse<br/>日志 / 限流记录等]
+```
+
+若某一环返回响应（例如认证失败），后续业务处理函数不会执行，这一点在排查「为何接口未进 Controller」时很有用。

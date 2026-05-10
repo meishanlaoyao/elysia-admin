@@ -58,10 +58,16 @@
 ### 系统监控
 - 在线用户、定时任务、缓存监控、登录日志、操作日志
 
-### 其他
+### 支付
+- 统一适配层 `Pay(channel, platform)` 支持支付宝、微信支付、PayPal 多渠道多终端
+- 内置下单、查询、退款、异步回调验签，业务侧无需处理各渠道差异
+
+### 认证与安全
 - JWT 双 Token 认证（登录/注册/忘记密码）
 - RBAC 权限控制 + 动态路由
 - IP 限流 + 接口熔断
+
+### 界面
 - 多主题（亮色/暗色）+ 多语言（中/英）
 - 响应式布局
 
@@ -126,39 +132,6 @@ elysia-admin/
 └── docs/           # 文档站（VitePress）
 ```
 
-## 部署
-
-### PM2 部署（推荐）
-
-```bash
-cd server
-
-# 构建（Linux/macOS）
-NODE_ENV=production bun run build
-
-# Windows
-$env:NODE_ENV="production"; bun run build
-
-# 启动（主进程 + Worker 进程）
-pm2 start dist/ecosystem.config.cjs
-```
-
-### Docker 部署
-
-```bash
-cd server
-bun docker:build
-bun docker:run
-```
-
-### 前端部署
-
-```bash
-cd admin
-pnpm build
-# dist 目录部署到 Nginx / Vercel / Netlify 等
-```
-
 ## 文件存储
 
 支持阿里云 OSS、腾讯云 COS、七牛云、MinIO、RustFS 等 S3 兼容存储。
@@ -215,6 +188,39 @@ VITE_APP_TITLE=Elysia Admin
 # .env.production
 VITE_API_BASE_URL=https://your-api-domain.com
 VITE_APP_TITLE=Elysia Admin
+```
+
+## 部署
+
+### PM2 部署（推荐）
+
+```bash
+cd server
+
+# 构建（Linux/macOS）
+NODE_ENV=production bun run build
+
+# Windows
+$env:NODE_ENV="production"; bun run build
+
+# 启动（主进程 + Worker 进程）
+pm2 start dist/ecosystem.config.cjs
+```
+
+### Docker 部署
+
+```bash
+cd server
+bun docker:build
+bun docker:run
+```
+
+### 前端部署
+
+```bash
+cd admin
+pnpm build
+# dist 目录部署到 Nginx / Vercel / Netlify 等
 ```
 
 ## 源码分支

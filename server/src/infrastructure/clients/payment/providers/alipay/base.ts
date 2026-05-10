@@ -8,14 +8,12 @@ import type {
     NotifyParams,
     NotifyResult
 } from '@/types/pay';
-import type { IEnvType } from '@/types/common';
 
-const appEnv = process.env.NODE_ENV || 'development';
 const GATEWAYS = {
-    development: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
-    production: 'https://openapi.alipay.com/gateway.do',
+    SANDBOX_ENV: 'https://openapi-sandbox.dl.alipaydev.com/gateway.do',
+    PRODUCTION_ENV: 'https://openapi.alipay.com/gateway.do',
 };
-export const GATEWAY: string = GATEWAYS[appEnv as IEnvType];
+export const GATEWAY = GATEWAYS.SANDBOX_ENV;
 
 /**
  * 格式化私钥（支持 PKCS#1「RSA PRIVATE KEY」与 PKCS#8「PRIVATE KEY」PEM，以及无头尾的 Base64 内容）

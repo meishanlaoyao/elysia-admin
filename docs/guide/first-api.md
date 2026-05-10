@@ -15,7 +15,7 @@ head:
 
 # 第一个接口
 
-本章将详细介绍如何在 `Elysia Admin` 项目中创建第一个 API 接口，包括接口定义、参数校验、响应处理等完整流程。
+本章将详细介绍如何在 `Elysia Admin` 项目中创建第一个 API 接口，包括接口定义、参数校验、响应处理等完整流程；下文按「模块目录 → 路由 → DTO → 处理函数 → 整合」的顺序编写，最后一节会用示意图归纳各文件的协作关系。
 
 ## 一、创建业务模块
 
@@ -171,6 +171,18 @@ export async function create(ctx: Context) {
 }
 ```
 :::
+
+## 六、模块文件协作
+
+完成以上五步后，`route.ts`、`dto.ts`、`handle.ts` 三个文件已在同一个模块目录中各司其职。约定在 `server/src/modules/` 下按领域建目录（如 `business-goods`）；`route.ts` 会被启动流程扫描并自动注册到应用，因此不必手写「把路由挂到 app」的样板代码。下面的示意图归纳了「谁参与注册、谁负责校验与业务」的协作关系：
+
+```mermaid
+flowchart LR
+    M[modules/business-xxx/] --> R[route.ts<br/>路由与 meta]
+    M --> D[dto.ts<br/>入参/出参校验]
+    M --> H[handle.ts 等<br/>业务逻辑]
+    R --> Auto[启动扫描注册]
+```
 
 通过以上步骤，我们成功创建了一个具备以下特性的商品创建接口：
 

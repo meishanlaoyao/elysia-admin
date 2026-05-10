@@ -20,10 +20,14 @@ import type {
  */
 export class WechatMiniProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
+        const openid = params.extra?.openid;
+        if (openid == null || String(openid).trim() === '') {
+            throw new Error('微信小程序支付缺少用户 openid（请在 params.extra.openid 中传入）');
+        }
         const paymentNo = params.paymentNo || GenerateUUID();
         const body = {
             ...buildWechatOrderBody(config, 'jsapi', paymentNo, params),
-            payer: { openid: params.extra?.openid }, // 小程序必传 openid
+            payer: { openid: String(openid).trim() },
         };
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/jsapi', body);
         const payload = buildWechatJsapiPayload(config, data.prepay_id);

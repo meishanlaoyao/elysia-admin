@@ -70,6 +70,34 @@ head:
 
 ## 技术选型
 本项目严格遵循现代化全栈开发标准，采用高性能、类型安全的技术栈构建。
+
+### 单仓目录与运行时
+
+仓库内与日常开发最相关的是 **admin**（Vue 管理端）、**server**（Elysia 接口服务）以及文档 **docs**；
+
+线上典型路径是浏览器访问 **admin**，通过 **HTTP** 调用 **server**，由后者访问 **PostgreSQL** 做持久化、访问 **Redis** 做会话、缓存与队列等。
+
+下面示意图把「界面 → API → 数据」与下一小节「环境依赖」里的 PostgreSQL、Redis、Bun 等条目对齐；本地开发则多为「前端 dev server + 后端监听端口」，与图中所述依赖方向一致。
+
+```mermaid
+flowchart TB
+    subgraph Client["前端 admin"]
+        V[Vue 3 + Vite]
+    end
+    subgraph Server["后端 server"]
+        E[ElysiaJS on Bun]
+    end
+    subgraph Data["数据与中间件"]
+        PG[(PostgreSQL)]
+        RD[(Redis)]
+    end
+    V <-->|HTTP API| E
+    E --> PG
+    E --> RD
+```
+
+若单独启动队列 **Worker** 消费任务，通常仍通过同一 **Redis** 与 HTTP 服务协作，详见 [队列指南](/guide/queue)。
+
 ### 环境依赖
 **必须** ：
 - [`Node.JS >= 22.0.0`](https://nodejs.org/)
@@ -125,11 +153,11 @@ head:
 - 定时任务调度：内置可视化任务管理面板。支持 Cron 表达式配置，可动态启动或暂停任务，轻松处理周期性业务。
 - 自动化接口文档：后端自动生成交互式 API 文档。开发调试无需借助第三方工具，浏览器即可查看与测试接口。
 
-### 支付模块 <Badge type="warning" text="开发中" />
-- 商户管理：
-- 订单管理：
-- 支付记录：
-- 退款记录：
+### 支付模块
+- 多渠道支付接入：统一适配层 `Pay(channel, platform)` 支持支付宝、微信支付、PayPal，按渠道 + 终端自动路由到对应实现。
+- 商户配置管理：支持多商户、多渠道配置，密钥仅存储在服务端，不下发前端。
+- 下单 / 查询 / 退款：统一接口签名，各渠道差异由适配层屏蔽，业务侧只需调用 `create`、`query`、`refund`。
+- 异步回调验签：内置各渠道验签与解密逻辑，业务层只需处理 `NotifyResult`，无需关心原始报文格式。
 
 ## 源码分支
 | 名称 | 描述 | 地址 | 进度 |

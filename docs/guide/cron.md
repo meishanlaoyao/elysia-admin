@@ -88,7 +88,22 @@ bun run dev:workers
 
 提交表单后，确保任务状态设置为"开启"，系统将根据 Cron 表达式自动触发执行。
 
-## 五、多实例与高可用
+## 五、整体串联
+
+完成以上四步后，整个定时任务的运转链路如下：
+
+后台（或种子数据）里配置的「任务名称、Cron 表达式、参数」会转化为对 BullMQ 队列的调度；Worker 进程消费队列后，在 Processor 中根据任务名分发给你在 `task.ts` 里注册的函数。这与手动 `addJob` 的异步任务共用同一套 Redis 与 Worker 模型，只是触发来源从「业务代码投递」变成了「定时触发」。若需了解进程边界与 Sandboxed Processor，可继续阅读 [队列](./queue.md) 中的架构说明。
+
+```mermaid
+flowchart LR
+    CFG[后台/配置<br/>任务名与参数] --> Q[BullMQ 队列<br/>system-cron 等]
+    Q --> W[Worker / Processor]
+    W --> T[task.ts<br/>业务函数]
+```
+
+实际部署时还需保障 **至少有一个 Worker 进程** 在跑，否则上图中的队列只会积压在 Redis 中无法被消费。
+
+## 六、多实例与高可用
 
 系统基于 **BullMQ** 的分布式队列机制，天然支持多实例部署：
 

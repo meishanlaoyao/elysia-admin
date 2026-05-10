@@ -150,6 +150,18 @@ head:
 | menuId | bigint | FK | 菜单ID |
 | menuBtnId | bigint | FK | 按钮ID |
 
+#### RBAC 关联关系
+
+以上六张表构成了权限模块「用户 — 角色 — 菜单/按钮」的核心模型：用户通过 `system_user_role` 绑定多个角色，角色通过 `system_role_menu` 绑定菜单与按钮。下图画出表之间的主体关联，字段级约束与索引请以 Drizzle 定义及迁移为准；若你扩展了部门、数据权限等，可在同一思路下追加实体。
+
+```mermaid
+erDiagram
+    system_user ||--o{ system_user_role : "user_id"
+    system_role ||--o{ system_user_role : "role_id"
+    system_role ||--o{ system_role_menu : "role_id"
+    system_menu ||--o{ system_role_menu : "menu_id"
+```
+
 #### 7. system_dept - 部门表
 
 组织架构的部门信息。

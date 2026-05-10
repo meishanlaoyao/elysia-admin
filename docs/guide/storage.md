@@ -105,18 +105,13 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 
 ### 上传流程
 
-```
-1. 用户选择文件
-   ↓
-2. 调用 fetchGeneratePresign 接口
-   ↓
-3. 服务器返回预签名 URL 与文件 ID
-   ↓
-4. 客户端使用 PUT 方法直接上传二进制流
-   ↓
-5. 上传成功，提取文件访问地址（去除签名参数）
-   ↓
-6. 更新业务表单数据
+```mermaid
+flowchart TD
+    A[用户选择文件] --> B[调用 fetchGeneratePresign 接口]
+    B --> C[服务器返回预签名 URL 与文件 ID]
+    C --> D[客户端 PUT 直接上传二进制流至对象存储]
+    D --> E[提取文件访问地址<br/>去除签名参数]
+    E --> F[更新业务表单数据]
 ```
 
 ## 多端上传实现
