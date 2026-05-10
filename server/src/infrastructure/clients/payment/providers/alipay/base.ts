@@ -18,24 +18,26 @@ const GATEWAYS = {
 export const GATEWAY: string = GATEWAYS[appEnv as IEnvType];
 
 /**
- * 格式化私钥
- * @param privateKey 私钥字符串
- * @returns 格式化后的私钥字符串
+ * 格式化私钥（支持 PKCS#1「RSA PRIVATE KEY」与 PKCS#8「PRIVATE KEY」PEM，以及无头尾的 Base64 内容）
  */
 export const formatPrivateKey = (privateKey: string) => {
-    if (privateKey.includes('-----BEGIN RSA PRIVATE KEY-----') && privateKey.includes('-----END RSA PRIVATE KEY-----')) return privateKey;
+    if (privateKey.includes('-----BEGIN RSA PRIVATE KEY-----') && privateKey.includes('-----END RSA PRIVATE KEY-----'))
+        return privateKey;
+    if (privateKey.includes('-----BEGIN PRIVATE KEY-----') && privateKey.includes('-----END PRIVATE KEY-----'))
+        return privateKey;
     return `-----BEGIN RSA PRIVATE KEY-----
 ${privateKey}
 -----END RSA PRIVATE KEY-----`;
 };
 
 /**
- * 格式化公钥
- * @param publicKey 公钥字符串
- * @returns 格式化后的公钥字符串
+ * 格式化公钥（支持 SPKI「PUBLIC KEY」与 PKCS#1「RSA PUBLIC KEY」PEM，以及无头尾的 Base64 内容）
  */
 export const formatPublicKey = (publicKey: string) => {
-    if (publicKey.includes('-----BEGIN PUBLIC KEY-----') && publicKey.includes('-----END PUBLIC KEY-----')) return publicKey;
+    if (publicKey.includes('-----BEGIN PUBLIC KEY-----') && publicKey.includes('-----END PUBLIC KEY-----'))
+        return publicKey;
+    if (publicKey.includes('-----BEGIN RSA PUBLIC KEY-----') && publicKey.includes('-----END RSA PUBLIC KEY-----'))
+        return publicKey;
     return `-----BEGIN PUBLIC KEY-----
 ${publicKey}
 -----END PUBLIC KEY-----`;

@@ -1,5 +1,5 @@
 import { GenerateUUID } from '@/shared/uuid';
-import { callAlipay, alipayQuery, alipayRefund, parseAlipayNotify } from './base';
+import { callAlipay, alipayQuery, alipayRefund, parseAlipayNotify, formatPrivateKey, formatPublicKey } from './base';
 import type {
     IPaymentProvider,
     MerchantConfig,
@@ -20,7 +20,9 @@ import type {
  */
 export class AlipayMiniProvider implements IPaymentProvider {
     async create(config: MerchantConfig, params: PaymentCreateParams): Promise<PaymentCreateResult> {
-        const paymentNo = GenerateUUID();
+        config.privateKey = formatPrivateKey(config.privateKey || '');
+        config.publicKey = formatPublicKey(config.publicKey || '');
+        const paymentNo =params.paymentNo || GenerateUUID();
         const data = await callAlipay(config, 'alipay.trade.create', {
             out_trade_no: paymentNo,
             total_amount: params.amount,
