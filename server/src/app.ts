@@ -18,9 +18,10 @@ export async function createApp() {
     const { prefix, maxRequestBodySize, timeout } = config.app;
     const app = new Elysia({
         prefix: prefix as any,
-        normalize: true,
-        adapter: BunAdapter,
         aot: true,
+        normalize: true,
+        precompile: true,
+        adapter: BunAdapter,
         nativeStaticResponse: true,
         serve: {
             maxRequestBodySize,
