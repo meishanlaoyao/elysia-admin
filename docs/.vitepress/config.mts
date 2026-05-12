@@ -97,6 +97,7 @@ export default withMermaid(
         {
           text: '指南',
           items: [
+            { text: 'AI 开发', link: '/guide/ai-guide' },
             { text: '第一个接口', link: '/guide/first-api' },
             { text: '参数验证', link: '/guide/parameter-validation' },
             { text: '定时任务', link: '/guide/cron' },
