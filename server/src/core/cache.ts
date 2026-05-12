@@ -35,13 +35,13 @@ export async function WithCache<T>(
     retryDelay: number = 100
 ): Promise<T> {
     const cacheData = await Get(cacheKey);
-    if (cacheData?.length) return cacheData as T;
+    if (cacheData != null) return cacheData as T;
     const lock = new RedisLock(`cache:${cacheKey}`, lockTtl);
     const acquired = await lock.acquire();
     if (acquired) {
         try {
             const doubleCheckCache = await Get(cacheKey);
-            if (doubleCheckCache?.length) return doubleCheckCache as T;
+            if (doubleCheckCache != null) return doubleCheckCache as T;
             const data = await dbQueryFn();
             if (data) await Set(cacheKey, data, expire);
             return data;
@@ -55,7 +55,7 @@ export async function WithCache<T>(
         for (let i = 0; i < retryTimes; i++) {
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             const retryCache = await Get(cacheKey);
-            if (retryCache?.length) return retryCache as T;
+            if (retryCache != null) return retryCache as T;
         };
         logger.warn(`获取锁失败且重试超时 [${cacheKey}]，直接查询数据库`);
         return await dbQueryFn();

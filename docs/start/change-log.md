@@ -17,6 +17,16 @@ head:
 
 ## v1
 
+::: timeline v1.2.1(2026-05-12)
+- 修复了 `WithCache` 缓存命中判断缺陷（空数组和对象类型缓存永远未命中问题）。
+- 修复了权限守卫读取路径错误，细粒度接口权限校验现已正确生效。
+- 修复了 `GetMenuPermissionByRoleIds` 和 `GetRoleMenuIdsAndBtnIds` 在角色无按钮权限时触发全表扫描，导致权限数据返回异常的严重 Bug。
+- 优化了 `FindPage` 分页查询，使用窗口函数 `COUNT(*) OVER()` 将常规分页由 2 次 DB 查询合并为 1 次。
+- 优化了认证守卫，去除了 JWT 重复解析（移除冗余的 `ParseToken` 调用）。
+- 优化了 IP 黑名单缓存，SQL 层直接过滤 `status=true` 数据，减少缓存体积。
+- 修复了角色权限变更时 `forEach(async)` 并发无序问题，改为串行处理确保稳定性。
+:::
+
 ::: timeline v1.2.0(2026-05-10)
 - 新增了支付功能，支持支付宝、微信支付、PayPal 多渠道多终端接入。
 - 修复了若干小问题。

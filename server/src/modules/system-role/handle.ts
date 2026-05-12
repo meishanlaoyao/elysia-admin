@@ -199,6 +199,7 @@ export async function GetUserRoleAndPermission(userId: number): Promise<{
 export async function GetRoleMenuIdsAndBtnIds(userId: number) {
     try {
         const roleIds = await GetUserRoleIds(userId);
+        if (roleIds.length === 0) return { menuIds: [], menuBtnIds: [] };
         const roleMenuWhere = CreateQueryBuilder(systemRoleMenuSchema).in('roleId', roleIds).build();
         const roleMenuData = await FindAll(systemRoleMenuSchema, roleMenuWhere);
         const menuIds = new Set(roleMenuData.map(item => item.menuId).filter(Boolean) as number[]);
@@ -223,16 +224,16 @@ async function updateUserPermission(roleId: number) {
         if (!userKeys?.length) return;
         const roleInfo = await FindOneByKey(systemRoleSchema, 'roleId', roleId);
         if (!roleInfo) return;
-        userKeys.forEach(async (key) => {
+        for (const key of userKeys) {
             const userInfo = await Get(key);
-            if (!userInfo) return;
-            if (!userInfo?.roles?.includes(roleInfo?.roleCode)) return;
+            if (!userInfo) continue;
+            if (!userInfo?.roles?.includes(roleInfo?.roleCode)) continue;
             const { roles, permissions } = await GetUserRoleAndPermission(userInfo?.userId);
             userInfo.roles = roles;
             userInfo.permissions = permissions;
             await RedisSet(key, userInfo);
             await RefreshRoutes(userInfo?.userId);
-        });
+        }
     } catch (error) {
         logger.error('批量更新在线用户的权限失败:' + error);
         throw error;

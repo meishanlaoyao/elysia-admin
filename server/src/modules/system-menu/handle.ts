@@ -137,6 +137,7 @@ export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<str
         const roleMenuWhere = CreateQueryBuilder(systemRoleMenuSchema).in('roleId', roleIds).build();
         const roleMenu = await FindAll(systemRoleMenuSchema, roleMenuWhere);
         const menuBtnIds = new Set(roleMenu.map(item => item.menuBtnId).filter(id => id !== null));
+        if (menuBtnIds.size === 0) return [];
         const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
         const menuBtns = await FindAll(systemMenuBtnSchema, menuBtnWhere);
         const permission = new Set(menuBtns.map(item => item.permission).filter(per => per !== null));

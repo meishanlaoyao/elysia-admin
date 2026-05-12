@@ -8,7 +8,7 @@ export async function PermissionGuard(ctx: Context) {
     const routeInfo = (ctx as any).routeInfo;
     const isAuth = routeInfo?.meta?.isAuth || false;
     if (!isAuth) return;
-    const perm = routeInfo?.meta?.isAuth?.permission || null;
+    const perm = routeInfo?.meta?.permission || null;
     if (!perm) return;
     const userPermissions = (ctx as any).user?.permissions as string[] || [];
     if (!userPermissions.includes(perm)) return BaseResultData.fail(403);

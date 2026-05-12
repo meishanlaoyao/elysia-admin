@@ -80,7 +80,10 @@ export async function GetCacheIpBlackList() {
     const data = await WithCache(
         CacheEnum.IP_BLACK,
         async () => {
-            const where = CreateQueryBuilder(systemIpBlackSchema).eq('delFlag', false).build();
+            const where = CreateQueryBuilder(systemIpBlackSchema)
+                .eq('delFlag', false)
+                .eq('status', true)
+                .build();
             return await FindAll(systemIpBlackSchema, where);
         }
     );

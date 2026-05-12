@@ -1,7 +1,7 @@
 import { Context } from 'elysia';
 import { ParseDateFields } from '@/types/dto';
 import { PgTable, TableConfig, PgColumn } from 'drizzle-orm/pg-core';
-import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count } from 'drizzle-orm';
+import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count, sql, getTableColumns } from 'drizzle-orm';
 import pg from '@/core/database/pg';
 
 // 导出 db 实例供直接使用
@@ -333,30 +333,32 @@ export async function FindPage<T extends PgTable>(
         orderByColumn,
         sortRule = 'desc'
     } = options;
-
     const offset = (Number(pageNum) - 1) * Number(pageSize);
     const limit = Number(pageSize);
     const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
-    // 使用子查询 + 窗口函数，一次查询同时获取数据和总数
-    let baseQuery = pg.select().from(schema as any).where(where);
-    // 添加排序
+    // 使用窗口函数 COUNT(*) OVER() 将总数与列表合并为单次查询
+    const columns = getTableColumns(schema as any);
+    let query = pg
+        .select({ ...columns, _total: sql<number>`COUNT(*) OVER()` })
+        .from(schema as any)
+        .where(where) as any;
     if (orderByColumn) {
         const column = typeof orderByColumn === 'string'
             ? (schema as any)[orderByColumn]
             : orderByColumn;
-        if (column) baseQuery = baseQuery.orderBy(sortFn(column)) as any;
+        if (column) query = query.orderBy(sortFn(column));
     };
-    // 先查询总数（如果数据量大，这个查询会被优化器缓存）
-    const totalResult = await pg
-        .select({ count: count() })
-        .from(schema as any)
-        .where(where);
-    const total = Number(totalResult[0]?.count || 0);
-    // 如果总数为 0，直接返回
-    if (total === 0) return { list: [], total: 0 };
-    // 查询分页数据
-    const list = await baseQuery.limit(limit).offset(offset);
-    return { list: list as InferSelectModel<T>[], total };
+    const result: any[] = await query.limit(limit).offset(offset);
+    // 有数据：从窗口函数直接读取 total
+    if (result.length > 0) {
+        const total = Number(result[0]._total ?? 0);
+        const list = result.map(({ _total, ...row }: any) => row);
+        return { list: list as InferSelectModel<T>[], total };
+    };
+    // 空结果：可能是页码越界，降级做一次 count 确认真实总数
+    const countResult = await pg.select({ count: count() }).from(schema as any).where(where);
+    const total = Number(countResult[0]?.count ?? 0);
+    return { list: [], total };
 };
 
 /**
