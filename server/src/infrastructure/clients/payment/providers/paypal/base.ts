@@ -21,9 +21,9 @@ function getPaypalHeader(headers: Record<string, string>, name: string): string 
     const lower = name.toLowerCase();
     for (const [k, v] of Object.entries(headers)) {
         if (k.toLowerCase() === lower) return v;
-    }
+    };
     return undefined;
-}
+};
 
 async function parseJsonResponse(res: Response): Promise<any> {
     const text = await res.text();
@@ -32,7 +32,7 @@ async function parseJsonResponse(res: Response): Promise<any> {
     } catch {
         throw new Error(`PayPal 响应非 JSON: HTTP ${res.status} ${res.statusText} — ${text.slice(0, 200)}`);
     }
-}
+};
 
 /**
  * 获取 PayPal Access Token（Client Credentials）
@@ -51,7 +51,7 @@ async function getAccessToken(config: MerchantConfig): Promise<string> {
     const json = await parseJsonResponse(res);
     if (!res.ok) {
         throw new Error(`PayPal 获取 token 失败: ${json.error_description ?? json.message ?? JSON.stringify(json)}`);
-    }
+    };
     return json.access_token;
 };
 
@@ -77,7 +77,7 @@ export async function callPaypal<T = any>(
     const json = await parseJsonResponse(res);
     if (!res.ok) {
         throw new Error(`PayPal 请求失败: [${json.name ?? res.status}] ${json.message ?? JSON.stringify(json)}`);
-    }
+    };
     return json as T;
 };
 
@@ -90,7 +90,7 @@ export async function paypalQuery(config: MerchantConfig, params: QueryParams): 
         throw new Error(
             'PayPal 查询需要提供 thirdTradeNo（应为创建订单返回的 PayPal Order ID；若仅有商户 paymentNo，请先通过本地映射取得对应 Order ID）',
         );
-    }
+    };
     const data = await callPaypal(config, 'GET', `/v2/checkout/orders/${encodeURIComponent(orderId)}`);
     const statusMap: Record<string, QueryResult['status']> = {
         CREATED: 'pending',
@@ -133,7 +133,7 @@ export async function paypalRefund(config: MerchantConfig, params: RefundParams)
 function mapPaypalCaptureNotifyStatus(eventType: string, resource: Record<string, any>): 'success' | 'failed' {
     if (eventType === 'PAYMENT.CAPTURE.COMPLETED') {
         return resource?.status === 'COMPLETED' ? 'success' : 'failed';
-    }
+    };
     if (
         eventType === 'PAYMENT.CAPTURE.DENIED' ||
         eventType === 'PAYMENT.CAPTURE.DECLINED' ||
@@ -141,9 +141,9 @@ function mapPaypalCaptureNotifyStatus(eventType: string, resource: Record<string
         eventType === 'PAYMENT.CAPTURE.REFUNDED'
     ) {
         return 'failed';
-    }
+    };
     return 'failed';
-}
+};
 
 /**
  * 验证 PayPal Webhook 签名并解析
@@ -152,12 +152,10 @@ function mapPaypalCaptureNotifyStatus(eventType: string, resource: Record<string
 export async function parsePaypalNotify(config: MerchantConfig, params: NotifyParams): Promise<NotifyResult> {
     const raw = typeof params.rawBody === 'string' ? params.rawBody : params.rawBody.toString('utf8');
     const body = JSON.parse(raw);
-
     const webhookIdRaw = config.config?.webhookId;
     if (webhookIdRaw == null || String(webhookIdRaw).trim() === '') {
         throw new Error('PayPal Webhook 验签缺少 webhookId（请在 MerchantConfig.config.webhookId 中配置）');
-    }
-
+    };
     // 调用 PayPal 验签接口
     const token = await getAccessToken(config);
     const verifyRes = await fetch(`${BASE_URL}/v1/notifications/verify-webhook-signature`, {
@@ -176,17 +174,15 @@ export async function parsePaypalNotify(config: MerchantConfig, params: NotifyPa
     const verifyJson = await parseJsonResponse(verifyRes);
     if (!verifyRes.ok) {
         throw new Error(`PayPal Webhook 验签接口 HTTP 失败: ${verifyJson.message ?? JSON.stringify(verifyJson)}`);
-    }
+    };
     if (verifyJson.verification_status !== 'SUCCESS') {
         throw new Error('PayPal 回调验签失败');
-    }
-
+    };
     const resource = body.resource ?? {};
     const eventType = body.event_type as string;
     const relatedIds = resource.supplementary_data?.related_ids ?? {};
     const paypalOrderId =
         typeof relatedIds.order_id === 'string' ? relatedIds.order_id : undefined;
-
     /** 下单时 purchase_units[].custom_id 多为业务订单号 orderNo */
     const orderNoRaw =
         resource.custom_id ??
@@ -194,24 +190,20 @@ export async function parsePaypalNotify(config: MerchantConfig, params: NotifyPa
         paypalOrderId ??
         resource.id ??
         '';
-
     /** 下单时 purchase_units[].reference_id 对应本地 paymentNo（若回调中带 reference_id） */
     const paymentNoRef =
         typeof resource.reference_id === 'string' && resource.reference_id.trim() !== ''
             ? resource.reference_id.trim()
             : undefined;
-
     const status =
         eventType?.startsWith('PAYMENT.CAPTURE.') === true
             ? mapPaypalCaptureNotifyStatus(eventType, resource)
             : 'failed';
-
     const extra = {
         ...resource,
         ...(paypalOrderId ? { paypalOrderId } : {}),
         _paypalEventType: eventType,
     };
-
     return {
         orderNo: String(orderNoRaw),
         ...(paymentNoRef !== undefined ? { paymentNo: paymentNoRef } : {}),

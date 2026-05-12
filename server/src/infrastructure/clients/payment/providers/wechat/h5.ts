@@ -30,21 +30,21 @@ export class WechatH5Provider implements IPaymentProvider {
         };
         const data = await callWechat(config, 'POST', '/v3/pay/transactions/h5', body);
         return { paymentNo, payload: { h5Url: data.h5_url } };
-    }
+    };
 
     async query(config: MerchantConfig, params: QueryParams): Promise<QueryResult> {
         return wechatQuery(config, params);
-    }
+    };
 
     async refund(config: MerchantConfig, params: RefundParams): Promise<RefundResult> {
         return wechatRefund(config, params);
-    }
+    };
 
     async notify(config: MerchantConfig, params: NotifyParams): Promise<NotifyResult> {
         return parseWechatNotify(config, params);
-    }
+    };
 
     notifySuccess(): string {
         return JSON.stringify({ code: 'SUCCESS', message: '成功' });
-    }
+    };
 };

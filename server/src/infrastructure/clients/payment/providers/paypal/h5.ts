@@ -48,7 +48,7 @@ export class PaypalH5Provider implements IPaymentProvider {
         const approveLink = data.links?.find((l: any) => l.rel === 'approve')?.href;
         if (!approveLink) {
             throw new Error('PayPal 创建订单未返回 approve 链接（links 中无 rel=approve）');
-        }
+        };
         return { paymentNo, thirdTradeNo: data.id, payload: { approveUrl: approveLink, orderId: data.id } };
     }
 
