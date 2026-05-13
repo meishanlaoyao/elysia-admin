@@ -11,8 +11,17 @@ export const BaseResultData = {
         data,
     }),
     fail: (code: number = 500, msg?: any) => {
-        let isStr = typeof msg === 'string';
-        if (code === 500) logger.error("服务端错误: " + isStr ? msg : JSON.stringify(msg));
+        const isStr = typeof msg === 'string';
+        if (code === 500) {
+            const detail = isStr ? msg : msg == null ? String(msg) : msg instanceof Error ? `${msg.name}: ${msg.message}` : (() => {
+                try {
+                    return JSON.stringify(msg, Object.getOwnPropertyNames(Object(msg)));
+                } catch {
+                    return String(msg);
+                }
+            })();
+            logger.error('服务端错误: ' + detail);
+        };
         return {
             code,
             msg: isStr ? msg : (msg?.message || ResCode[code as keyof typeof ResCode]),

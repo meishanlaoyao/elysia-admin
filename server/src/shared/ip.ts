@@ -1,5 +1,6 @@
 import { Context } from 'elysia';
 import { logger } from '@/shared/logger';
+import config from '@/config';
 import type { IClientType, IClientPlatform } from '@/types/common';
 
 /**
@@ -50,6 +51,95 @@ export function NormalizeIp(ip: string) {
 };
 
 /**
+ * 将 IP 地址转换为整数
+ * @param ip IP 地址
+ * @returns 整数
+ */
+function ipv4ToInt(ip: string): number | null {
+    const parts = ip.split('.');
+    if (parts.length !== 4) return null;
+    let n = 0;
+    for (const p of parts) {
+        const v = Number(p);
+        if (!Number.isInteger(v) || v < 0 || v > 255) return null;
+        n = (n << 8) | v;
+    };
+    return n >>> 0;
+};
+
+/**
+ * 检查 IP 地址是否在 CIDR 范围内
+ * @param ip IP 地址
+ * @param cidr CIDR 地址
+ * @returns 是否在 CIDR 范围内
+ */
+function ipv4InCidr(ip: string, cidr: string): boolean {
+    const [base, bitsStr] = cidr.split('/');
+    const bits = Number(bitsStr);
+    if (!Number.isFinite(bits) || bits < 0 || bits > 32) return false;
+    const ipInt = ipv4ToInt(ip.trim());
+    const baseInt = ipv4ToInt(base.trim());
+    if (ipInt === null || baseInt === null) return false;
+    const mask = bits === 0 ? 0 : (~0 << (32 - bits)) >>> 0;
+    return (ipInt & mask) === (baseInt & mask);
+};
+
+/**
+ * 检查直接 IP 地址是否在 CIDR 范围内
+ * @param directIp 直接 IP 地址
+ * @param cidrs CIDR 地址列表
+ * @returns 是否在 CIDR 范围内
+ */
+function directIpMatchesTrustedList(directIp: string, cidrs: string[]): boolean {
+    const norm = NormalizeIp(directIp);
+    for (const raw of cidrs) {
+        const c = raw.trim();
+        if (!c) continue;
+        if (c.includes('/')) {
+            if (norm.includes('.') && ipv4InCidr(norm, c)) return true;
+        } else if (norm === NormalizeIp(c)) return true;
+    };
+    return false;
+};
+
+/**
+ * 读取转发客户端 IP 地址
+ * @param request 请求对象
+ * @returns 转发客户端 IP 地址
+ */
+function readForwardedClientIp(request: Request): string | null {
+    const xff = request.headers.get('x-forwarded-for');
+    if (xff) {
+        const first = xff.split(',')[0].trim();
+        if (first) return NormalizeIp(first);
+    };
+    const xReal = request.headers.get('x-real-ip');
+    if (xReal?.trim()) return NormalizeIp(xReal.trim());
+    return null;
+};
+
+/**
+ * 获取是否信任代理
+ * @returns 是否信任代理
+ */
+function getTrustProxy(): boolean {
+    const e = process.env.TRUST_PROXY;
+    if (e === 'true') return true;
+    if (e === 'false') return false;
+    return !!config.app.trustProxy;
+};
+
+/**
+ * 获取可信任的 CIDR 地址列表
+ * @returns 可信任的 CIDR 地址列表
+ */
+function getTrustedCidrs(): string[] {
+    const raw = process.env.TRUSTED_PROXY_CIDRS;
+    if (raw?.trim()) return raw.split(',').map(s => s.trim()).filter(Boolean);
+    return config.app.trustedProxyCidrs ?? [];
+};
+
+/**
  * 获取客户端 IP 地址
  * @param request 请求对象
  * @param server 服务器对象
@@ -61,13 +151,16 @@ export function GetClientIp(ctx: Context) {
     if (user?.ipaddr) return user.ipaddr;
     const ctxIp = (ctx as any)?.ip;
     if (ctxIp) return ctxIp;
-    const xff = request.headers.get('x-forwarded-for');
-    if (xff) return xff.split(',')[0].trim();
-    const xReal = request.headers.get('x-real-ip');
-    if (xReal) return xReal;
     const server = ctx?.server;
-    const ip = server?.requestIP(request)?.address;
-    return ip ? NormalizeIp(ip) : '未知';
+    const direct = server?.requestIP(request)?.address;
+    const directNorm = direct ? NormalizeIp(direct) : '未知';
+    const trust = getTrustProxy();
+    const cidrs = getTrustedCidrs();
+    if (!trust || !cidrs.length || !direct || !directIpMatchesTrustedList(directNorm, cidrs)) {
+        return directNorm;
+    };
+    const fromHeaders = readForwardedClientIp(request);
+    return fromHeaders || directNorm;
 };
 
 /**
@@ -77,11 +170,16 @@ export function GetClientIp(ctx: Context) {
  */
 export async function GetIpLocation(ip: string): Promise<string> {
     try {
-        if (!ip) return '未知';
+        if (!ip || ip === '未知') return '未知';
         if (IsPrivateIp(ip)) return '内网地址';
-        const response = await fetch(`https://ipinfo.io/${ip}/json`);
+        const ms = config.app.geoIpTimeoutMs > 0 ? config.app.geoIpTimeoutMs : 1500;
+        const response = await fetch(`https://ipinfo.io/${encodeURIComponent(ip)}/json`, {
+            signal: AbortSignal.timeout(ms),
+        });
+        if (!response.ok) return '未知';
         const data = await response.json();
-        return `${data?.region || ''} ${data?.city || ''}`;
+        const loc = `${data?.region || ''} ${data?.city || ''}`.trim();
+        return loc || '未知';
     } catch (error) {
         logger.error('查询 IP 地址地区信息失败:' + error);
         return '未知';
@@ -293,17 +391,17 @@ export async function GetClientInfo(ctx: Context): Promise<{
     clientType: string;
     clientPlatform: string;
     os: string;
-} | null> {
+}> {
+    const ipaddr = GetClientIp(ctx);
+    const userAgent = ctx.headers['user-agent'] || '';
+    let loginLocation = '未知';
     try {
-        const ipaddr = GetClientIp(ctx);
-        const userAgent = ctx.headers['user-agent'] || '';
-        const loginLocation = await GetIpLocation(ipaddr);
-        const clientType = GetClientType(userAgent);
-        const clientPlatform = GetClientPlatform(userAgent);
-        const os = GetClientOs(userAgent);
-        return { ipaddr, userAgent, loginLocation, clientType, clientPlatform, os };
+        loginLocation = await GetIpLocation(ipaddr);
     } catch (error) {
-        logger.error('获取客户端信息失败:' + error);
-        return null;
-    }
+        logger.error('获取登录地区失败:' + error);
+    };
+    const clientType = GetClientType(userAgent);
+    const clientPlatform = GetClientPlatform(userAgent);
+    const os = GetClientOs(userAgent);
+    return { ipaddr, userAgent, loginLocation, clientType, clientPlatform, os };
 };

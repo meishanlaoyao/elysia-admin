@@ -43,7 +43,7 @@ export async function WithCache<T>(
             const doubleCheckCache = await Get(cacheKey);
             if (doubleCheckCache != null) return doubleCheckCache as T;
             const data = await dbQueryFn();
-            if (data) await Set(cacheKey, data, expire);
+            if (data !== undefined && data !== null) await Set(cacheKey, data, expire);
             return data;
         } catch (error) {
             logger.error(`缓存查询失败 [${cacheKey}]:` + error);

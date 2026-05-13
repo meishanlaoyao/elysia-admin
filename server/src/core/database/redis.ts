@@ -44,18 +44,20 @@ function getRedisInstance(): Redis {
 const redis = getRedisInstance();
 export { redis };
 
-// 优雅关闭 Redis 连接
-process.on('SIGINT', async () => {
-    logger.info('正在关闭 Redis 连接...');
-    await redis.quit();
-    logger.info('Redis 连接已关闭');
-});
-
-process.on('SIGTERM', async () => {
-    logger.info('正在关闭 Redis 连接...');
-    await redis.quit();
-    logger.info('Redis 连接已关闭');
-});
+/**
+ * 关闭 Redis 连接
+ * @returns 关闭 Redis 连接
+ */
+export async function quitRedis(): Promise<void> {
+    if (!globalThis.__redisInstance) return;
+    try {
+        logger.info('正在关闭 Redis 连接...');
+        await globalThis.__redisInstance.quit();
+        logger.info('Redis 连接已关闭');
+    } catch (error) {
+        logger.error('Redis 关闭异常' + error);
+    };
+};
 
 /**
  * 设置缓存

@@ -9,6 +9,7 @@ import {
     InsertOne,
     FindOneByKey,
     UpdateByKey,
+    UpdateByKeyAndRes,
     SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
@@ -183,21 +184,35 @@ export async function GetUserBy(key: string, val: any) {
 };
 
 // 注册用户
-export async function RegisterUser(username: string, password: string) {
+export async function RegisterUser(username: string, password: string): Promise<void> {
+    const exists = await GetUserBy('username', username);
+    if (exists) {
+        const e = new Error('用户名已存在') as Error & { httpStatus?: number };
+        e.httpStatus = 409;
+        throw e;
+    };
+    const hash = BcryptHash(password);
     try {
-        password = BcryptHash(password);
-        await InsertOne(systemUserSchema, null, { username, password });
-    } catch (error) {
+        await InsertOne(systemUserSchema, null, { username, password: hash });
+    } catch (error: any) {
+        const code = error?.cause?.code ?? error?.code;
+        if (code === '23505') {
+            const e = new Error('用户名已存在') as Error & { httpStatus?: number };
+            e.httpStatus = 409;
+            throw e;
+        };
         logger.error('注册用户失败' + error);
-    }
+        throw error;
+    };
 };
 
 // 设置用户密码
-export async function SetUserPassword(userId: number, password: string) {
-    try {
-        password = BcryptHash(password);
-        await UpdateByKey(systemUserSchema, 'userId', null, { password, userId });
-    } catch (error) {
-        logger.error('设置用户密码失败' + error);
-    }
+export async function SetUserPassword(userId: number, password: string): Promise<void> {
+    const hash = BcryptHash(password);
+    const row = await UpdateByKeyAndRes(systemUserSchema, 'userId', null, { password: hash, userId });
+    if (!row) {
+        const e = new Error('密码更新失败') as Error & { httpStatus?: number };
+        e.httpStatus = 500;
+        throw e;
+    };
 };

@@ -1,4 +1,5 @@
 import { Elysia } from "elysia";
+import { resolve } from 'node:path';
 import config from "@/config";
 import { cors } from '@elysiajs/cors';
 import { logger } from '@/shared/logger';
@@ -14,7 +15,8 @@ import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 /**
  * 创建并配置 Elysia 应用实例
  */
-export async function createApp() {
+export async function CreateApp() {
+    const appEnv = process.env.NODE_ENV || 'development';
     const { prefix, maxRequestBodySize, timeout } = config.app;
     const app = new Elysia({
         prefix: prefix as any,
@@ -22,21 +24,27 @@ export async function createApp() {
         normalize: true,
         precompile: true,
         adapter: BunAdapter,
-        nativeStaticResponse: true,
+        nativeStaticResponse: appEnv === 'production',
         serve: {
             maxRequestBodySize,
             idleTimeout: timeout,
         }
     });
 
-    // 配置 CORS
-    app.use(cors());
+    const corsOrigin = appEnv === 'production'
+        ? (config.app.corsOrigin ?? false)
+        : (config.app.corsOrigin ?? true);
+    app.use(cors({
+        origin: corsOrigin as any,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['authorization', 'content-type', 'accept'],
+    }));
 
     // 配置静态文件服务
-    app.use(await staticPlugin());
+    app.use(await staticPlugin({ assets: resolve(import.meta.dirname, '../public') }));
 
     // 开发环境：启用 OpenAPI 文档
-    if (process.env.NODE_ENV !== 'production') await configureOpenAPI(app);
+    if (appEnv === 'development') await configureOpenAPI(app);
 
     // 配置 BullMQ UI (存在问题，正常接口会被拦住)
     // await configureBullMQUI(app);

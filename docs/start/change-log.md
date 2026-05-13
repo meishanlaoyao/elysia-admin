@@ -17,6 +17,19 @@ head:
 
 ## v1
 
+::: timeline v1.2.2(2026-05-13)
+- 新增了公开注册 `allowPublicRegister` 与 `ALLOW_PUBLIC_REGISTER` 开关，生产配置默认关闭。
+- 修复了注册假成功（未向上抛出异常）与重置密码操作顺序不一致的问题。
+- 优化了 IP 获取逻辑，仅在 `trustProxy` 受信代理场景下解析 `X-Forwarded-For`。
+- 增加了 IP 归属地查询超时与降级处理，失败不再影响登录流程。
+- IP 路由限流改为 Redis 原子计数，消除高并发下的「先读后写」竞态。
+- 修复了 `BaseResultData.fail` 在 500 状态码下错误日志拼接问题。
+- 优化了 `WithCache`，现在可正确缓存 `0`、`false`、空数组等合法结果。
+- 统一了 CORS/静态资源配置。
+- 规范了 `SIGINT`/`SIGTERM` 服务关闭顺序，移除重复的信号处理。
+- 为 `IConfig` 补充了针对 `app.listen` 返回值类型的 TypeScript 修复。
+:::
+
 ::: timeline v1.2.1(2026-05-12)
 - 修复了 `WithCache` 缓存命中判断缺陷（空数组和对象类型缓存永远未命中问题）。
 - 修复了权限守卫读取路径错误，细粒度接口权限校验现已正确生效。

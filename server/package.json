@@ -1,6 +1,6 @@
 {
   "name": "elysia-admin",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "elysia-admin 基于 Elysia.js 构建，这是一个为 Bun 运行时 深度优化的现代 TypeScript Web 框架。",
   "author": {
     "name": "梅山老妖",
@@ -25,28 +25,28 @@
     "docker:logs": "docker logs elysia-admin"
   },
   "dependencies": {
-    "@bull-board/api": "^6.21.1",
-    "@bull-board/elysia": "^6.21.1",
-    "@elysiajs/cors": "^1.4.0",
-    "@elysiajs/static": "^1.4.7",
-    "bullmq": "^5.73.4",
+    "@bull-board/api": "^6.21.3",
+    "@bull-board/elysia": "^6.21.3",
+    "@elysiajs/cors": "^1.4.2",
+    "@elysiajs/static": "^1.4.10",
+    "bullmq": "^5.76.7",
     "croner": "^10.0.1",
-    "dayjs": "^1.11.19",
-    "drizzle-orm": "^0.45.1",
+    "dayjs": "^1.11.20",
+    "drizzle-orm": "^0.45.2",
     "drizzle-typebox": "^0.3.3",
     "elysia": "latest",
     "ioredis": "^5.10.1",
-    "jose": "^6.1.3",
-    "nodemailer": "^7.0.11",
-    "postgres": "^3.4.7",
-    "zod": "^4.1.13"
+    "jose": "^6.2.3",
+    "nodemailer": "^7.0.13",
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@elysiajs/openapi": "^1.4.11",
-    "@types/nodemailer": "^7.0.4",
+    "@elysiajs/openapi": "^1.4.15",
+    "@types/nodemailer": "^7.0.11",
     "bun-types": "latest",
     "concurrently": "^9.2.1",
-    "drizzle-kit": "^0.31.8"
+    "drizzle-kit": "^0.31.10"
   },
   "module": "src/index.js"
 }

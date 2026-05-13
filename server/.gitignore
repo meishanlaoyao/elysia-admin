@@ -3,9 +3,12 @@
 # dependencies
 /node_modules
 /.pnp
+/.tmp
+/.bun-tmp
 /database/drizzle
 /dist_binary
 /dist
+/logs
 .pnp.js
 
 # generated files

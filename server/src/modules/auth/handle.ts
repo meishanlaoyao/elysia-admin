@@ -15,6 +15,13 @@ import { InsertIpBlack } from '@/modules/system-ip-black/handle';
 import { GetClientInfo, GetClientIp } from '@/shared/ip';
 import type { IAccountType } from '@/types/common';
 
+function isPublicRegisterAllowed(): boolean {
+    const v = process.env.ALLOW_PUBLIC_REGISTER;
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    return config.app.allowPublicRegister ?? false;
+};
+
 export async function accountPasswordLogin(ctx: Context) {
     try {
         const { username, password } = ctx.body as any;
@@ -37,7 +44,6 @@ export async function accountPasswordLogin(ctx: Context) {
         if ('error' in tokens) return tokens.error;
         const { roles, permissions } = await GetUserRoleAndPermission(user.userId);
         const clientInfo = await GetClientInfo(ctx);
-        if (!clientInfo) return BaseResultData.fail(500, '获取客户端信息失败');
         (ctx as any).clientInfo = clientInfo;
         const userInfo = {
             userId: user.userId, // 用户 ID [必须]
@@ -84,10 +90,12 @@ export async function refreshToken(ctx: Context) {
 
 export async function registerUser(ctx: Context) {
     try {
+        if (!isPublicRegisterAllowed()) return BaseResultData.fail(403, '公开注册已关闭');
         const { username, password } = ctx.body as any;
-        await RegisterUser(username, password)
+        await RegisterUser(username, password);
         return BaseResultData.ok();
-    } catch (error) {
+    } catch (error: any) {
+        if (error?.httpStatus === 409) return BaseResultData.fail(409, error.message);
         return BaseResultData.fail(500, error);
     }
 };
@@ -133,9 +141,9 @@ export async function resetPassword(ctx: Context) {
         const key = CacheEnum.FORGET_PASSWORD + uid + ':' + token;
         const payload = await Get(key);
         if (!payload) return BaseResultData.fail(400, '重置令牌无效');
+        await SetUserPassword(uid, password);
         const isDel = await Del(key);
         if (!isDel) return BaseResultData.fail(500, '重置令牌删除失败');
-        await SetUserPassword(uid, password);
         return BaseResultData.ok(null, '密码重置成功');
     } catch (error) {
         return BaseResultData.fail(500, error);
