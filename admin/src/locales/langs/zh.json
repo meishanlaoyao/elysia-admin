@@ -312,8 +312,7 @@
       "title": "支付模块",
       "merchant": "商户管理",
       "orders": "订单管理",
-      "payments": "支付记录",
-      "refund": "退款记录"
+      "payDebug": "支付调试"
     }
   },
   "table": {

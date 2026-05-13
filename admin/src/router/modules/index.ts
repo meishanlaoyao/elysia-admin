@@ -11,5 +11,5 @@ export const routeModules: AppRouteRecord[] = [
   dashboardRoutes,
   systemRoutes,
   resultRoutes,
-  exceptionRoutes
+  exceptionRoutes,
 ]

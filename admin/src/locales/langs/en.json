@@ -312,8 +312,7 @@
       "title": "Payment Module",
       "merchant": "Merchant Manage",
       "orders": "Order Manage",
-      "payments": "Payment Record",
-      "refund": "Refund Record"
+      "payDebug": "Payment Debug"
     }
   },
   "table": {

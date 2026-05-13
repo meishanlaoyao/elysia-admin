@@ -50,7 +50,7 @@ const formItems = computed(() => [
         },
     },
     {
-        label: '创建日期',
+        label: '下单时间',
         key: 'daterange',
         type: 'datetime',
         props: {

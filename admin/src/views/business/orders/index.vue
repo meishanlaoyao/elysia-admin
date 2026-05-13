@@ -2,7 +2,17 @@
     <div class="orders-page art-full-height">
         <OrdersSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams" />
         <ElCard class="art-table-card" shadow="never">
-            <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData" />
+            <div class="orders-table-top">
+                <div class="orders-stats-tags">
+                    <ElTag v-for="item in orderStatusDictItems" :key="item.dictValue" :type="item.tagType || 'info'"
+                        size="small">
+                        {{ item.dictLabel }} {{ orderStats[item.dictValue] ?? 0 }}
+                    </ElTag>
+                </div>
+                <div class="orders-table-top__header">
+                    <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="handleTableRefresh" />
+                </div>
+            </div>
             <ArtTable :loading="loading" :data="data" :columns="columns" :pagination="pagination"
                 @pagination:size-change="handleSizeChange" @pagination:current-change="handleCurrentChange" />
             <OrdersDialog v-model:visible="dialogVisible" :data="currentOrderData" @submit="refreshData" />
@@ -22,12 +32,20 @@ import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import OrdersSearch from './modules/orders-search.vue'
 import OrdersDialog from './modules/orders-dialog.vue'
 import OrdersDetailDialog from './modules/orders-detail-dialog.vue'
-import { fetchGetOrdersList } from '@/api/business/orders'
+import { fetchGetOrdersList, fetchGetOrdersStatusStats } from '@/api/business/orders'
 
 type OrdersListItem = Api.BusinessOrders.OrdersListItem
 
+const ORDERS_STATUS_DICT = 'system_orders_status' as const
+
 const auth = useAuth()
 const dictStore = useDictStore()
+const { system_orders_status } = dictStore.getDictData([ORDERS_STATUS_DICT])
+
+const orderStatusDictItems = computed(() => {
+    const list = system_orders_status.value ?? []
+    return [...list].sort((a, b) => (a.dictSort ?? 0) - (b.dictSort ?? 0))
+})
 
 const dialogVisible = ref(false)
 const detailVisible = ref(false)
@@ -39,6 +57,22 @@ const searchForm = ref({
     status: undefined,
     daterange: undefined,
 })
+
+const orderStats = ref<Api.BusinessOrders.OrdersStatusStats>({})
+
+const loadOrderStats = async () => {
+    try {
+        const data = await fetchGetOrdersStatusStats()
+        orderStats.value = { ...(data ?? {}) }
+    } catch {
+        /* 错误提示由 request 层处理 */
+    }
+}
+
+const handleTableRefresh = () => {
+    refreshData()
+    loadOrderStats()
+}
 
 const fmtAmount = (val?: number | string | null) => {
     if (val == null) return '0.00'
@@ -223,8 +257,22 @@ const {
     }
 })
 
+onMounted(() => {
+    loadOrderStats()
+})
+
 const handleSearch = (params: Record<string, any>) => {
-    Object.assign(searchParams, params)
+    const { daterange, ...rest } = params
+    Object.assign(searchParams, rest)
+    const sp = searchParams as Record<string, unknown>
+    delete sp.daterange
+    if (Array.isArray(daterange) && daterange[0] && daterange[1]) {
+        sp.startTime = daterange[0]
+        sp.endTime = daterange[1]
+    } else {
+        delete sp.startTime
+        delete sp.endTime
+    }
     getData()
 }
 
@@ -241,6 +289,26 @@ const showRemark = (row: Partial<OrdersListItem>) => {
 
 <style scoped lang="scss">
 .orders-page {
+    .orders-table-top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .orders-stats-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .orders-table-top__header {
+        flex: 1;
+        min-width: 200px;
+    }
+
     :deep(.orders-cell) {
         padding: 4px 0;
     }

@@ -1,6 +1,7 @@
 import { Context } from 'elysia';
 import config from '@/config';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, count } from 'drizzle-orm';
+import pg from '@/core/database/pg';
 import { logger } from '@/shared/logger';
 import {
     InsertOne,
@@ -150,6 +151,25 @@ export async function findList(ctx: Context) {
             });
         };
         return BaseResultData.ok(res);
+    }
+    catch (error) {
+        return BaseResultData.fail(500, error);
+    }
+};
+
+export async function findStatusStats(_ctx: Context) {
+    try {
+        const rows = await pg
+            .select({ status: businessOrdersSchema.status, cnt: count(), })
+            .from(businessOrdersSchema)
+            .where(eq(businessOrdersSchema.delFlag, false))
+            .groupBy(businessOrdersSchema.status);
+        const byStatus: Record<string, number> = {};
+        for (const r of rows) {
+            const k = r.status == null || r.status === '' ? '' : String(r.status);
+            byStatus[k] = Number(r.cnt);
+        };
+        return BaseResultData.ok(byStatus);
     }
     catch (error) {
         return BaseResultData.fail(500, error);

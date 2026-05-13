@@ -89,7 +89,16 @@ declare namespace Api {
 
         type OrdersSearchParams = Partial<
             Pick<OrdersListItem, 'orderNo' | 'status'> &
-            Api.Common.CommonSearchParams
+            Api.Common.CommonSearchParams & {
+                pageNum?: number
+                pageSize?: number
+                orderByColumn?: string
+                sortRule?: string
+                startTime?: string
+                endTime?: string
+            }
         >
+
+        type OrdersStatusStats = Record<string, number>
     }
 }
