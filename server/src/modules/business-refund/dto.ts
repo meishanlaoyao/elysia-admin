@@ -12,14 +12,6 @@ export const CreateDto = {
     ...BaseResultDto(t.String({ description: '退款单号' })),
 };
 
-export const ListDto = {
-    query: BaseListQueryDto({
-        refundNo: t.Optional(t.String({ description: '退款单号' })),
-        orderNo: t.Optional(t.String({ description: '订单号' })),
-        status: t.Optional(t.String({ description: '退款状态' })),
-    })
-};
-
 export const UpdateDto = {
     body: t.Object({
         id: t.Number({ description: '退款ID' }),

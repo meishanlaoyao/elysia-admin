@@ -1,5 +1,40 @@
 declare namespace Api {
     namespace BusinessOrders {
+
+        interface PaymentRecord {
+            id: number;
+            orderId: number;
+            orderNo: string;
+            paymentNo: string;
+            paymentMethod: string;
+            platform: string;
+            amount: number;
+            status: string;
+            thirdTradeNo?: string;
+            createTime?: Date;
+            updateTime?: Date;
+        }
+
+        interface RefundRecord {
+            id: number;
+            orderId: number;
+            paymentId: number;
+            refundNo: string;
+            amount: number;
+            status: string;
+            thirdRefundNo?: string;
+            extra?: {
+                reason?: string;
+                orderNo?: string;
+                paymentNo?: string;
+                applyTime?: Date;
+                processTime?: Date;
+            };
+            createTime?: Date;
+            updateTime?: Date;
+            remark?: string;
+        }
+
         interface OrdersListItem {
             id: number;
             orderNo: string;
@@ -12,14 +47,42 @@ declare namespace Api {
             currency: string;
             expireTime?: Date;
             timeout: number;
-            extra?: any;
+            extra?: {
+                products?: {
+                    productId?: number;
+                    productName?: string;
+                    productPrice?: number;
+                    productNum?: number;
+                    productTotal?: number;
+                    specs?: string;
+                    image?: string;
+                }[];
+                user?: {
+                    userId?: number;
+                    nickname?: string;
+                    phone?: string;
+                    address?: string;
+                    postalCode?: string;
+                    avatar?: string;
+                };
+                marketing?: {
+                    couponId?: number | null;
+                    discountAmount?: number;
+                    couponName?: string;
+                };
+            };
             createTime?: Date;
             createBy?: number | null;
             updateTime?: null | Date;
             updateBy?: null | number;
             delFlag?: boolean;
-            configList?: MerchantConfigItem[];
             remark?: null | string;
+            // 列表摘要（来自关联表批量查询）
+            paymentSummary?: PaymentRecord | null;
+            refundSummary?: RefundRecord | null;
+            // 详情完整记录
+            payments?: PaymentRecord[];
+            refunds?: RefundRecord[];
         }
 
         type OrdersList = Api.Common.PaginatedResponse<OrdersListItem>

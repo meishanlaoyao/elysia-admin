@@ -5,7 +5,6 @@ import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
     CreateQueryBuilder,
-    FindPage,
     FindAll,
     FindOneByKey,
 } from '@/core/database/repository';
@@ -143,54 +142,6 @@ export async function payOrder(ctx: Context) {
             );
         };
         return BaseResultData.ok(result);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findList(ctx: Context) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            orderNo,
-            status,
-            paymentNo,
-            platform,
-            paymentMethod,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(businessPaymentsSchema)
-            .eq('delFlag', false)
-            .eq('orderNo', orderNo)
-            .eq('paymentNo', paymentNo)
-            .eq('status', status)
-            .eq('platform', platform)
-            .eq('paymentMethod', paymentMethod)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(businessPaymentsSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        return BaseResultData.ok(res);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findOne(ctx: Context) {
-    try {
-        const id = ctx.params.id;
-        const res = await FindOneByKey(businessPaymentsSchema, 'id', id);
-        return BaseResultData.ok(res);
     }
     catch (error) {
         return BaseResultData.fail(500, error);

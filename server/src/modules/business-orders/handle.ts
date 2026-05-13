@@ -7,6 +7,7 @@ import {
     UpdateByKey,
     CreateQueryBuilder,
     FindPage,
+    FindAll,
     FindOneByKey,
 } from '@/core/database/repository';
 import { GenerateUUID } from '@/shared/uuid';
@@ -15,6 +16,7 @@ import { queueManager, } from '@/infrastructure/queue';
 import { RunTransaction } from '@/core/database/transaction';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
+import { businessRefundSchema } from '@database/schema/business_refund';
 
 /**
  * 获取 flow-buffer-queue 实例
@@ -107,13 +109,11 @@ export async function findList(ctx: Context) {
             endTime,
             orderNo,
             status,
-            paymentMethod,
         } = ctx.query;
         const whereCondition = CreateQueryBuilder(businessOrdersSchema)
             .eq('delFlag', false)
             .eq('orderNo', orderNo)
             .eq('status', status)
-            .eq('paymentMethod', paymentMethod)
             .dateRange('createTime', startTime, endTime)
             .build();
         const res = await FindPage(businessOrdersSchema, whereCondition, {
@@ -122,17 +122,33 @@ export async function findList(ctx: Context) {
             orderByColumn,
             sortRule
         });
-        const nowTime = new Date().getTime();
-        res.list = res.list.map((item: any) => {
-            if (!item.expireTime) {
-                item.timeout = 0;
+        if (res.list.length > 0) {
+            const orderNos = res.list.map((o: any) => o.orderNo);
+            const orderIds = res.list.map((o: any) => o.id);
+            const paymentWhere = CreateQueryBuilder(businessPaymentsSchema)
+                .in('orderNo', orderNos)
+                .eq('delFlag', false)
+                .build();
+            const payments = await FindAll(businessPaymentsSchema, paymentWhere);
+            const refundWhere = CreateQueryBuilder(businessRefundSchema)
+                .in('orderId', orderIds)
+                .eq('delFlag', false)
+                .build();
+            const refunds = await FindAll(businessRefundSchema, refundWhere);
+            const nowTime = new Date().getTime();
+            res.list = res.list.map((item: any) => {
+                if (!item.expireTime) {
+                    item.timeout = 0;
+                } else {
+                    let time = new Date(item.expireTime).getTime() - nowTime;
+                    if (time < 0) time = 0;
+                    item.timeout = (time / 1000).toFixed(2);
+                }
+                item.paymentSummary = (payments as any[]).find(p => p.orderNo === item.orderNo) ?? null;
+                item.refundSummary = (refunds as any[]).find(r => r.orderId === item.id) ?? null;
                 return item;
-            };
-            let time = new Date(item.expireTime).getTime() - nowTime;
-            if (time < 0) time = 0;
-            item.timeout = (time / 1000).toFixed(2);
-            return item;
-        });
+            });
+        };
         return BaseResultData.ok(res);
     }
     catch (error) {
@@ -143,8 +159,21 @@ export async function findList(ctx: Context) {
 export async function findOne(ctx: Context) {
     try {
         const id = ctx.params.id;
-        const res = await FindOneByKey(businessOrdersSchema, 'id', id);
-        return BaseResultData.ok(res);
+        const order = await FindOneByKey(businessOrdersSchema, 'id', id);
+        if (!order) return BaseResultData.fail(404);
+        const paymentWhere = CreateQueryBuilder(businessPaymentsSchema)
+            .eq('orderNo', order.orderNo)
+            .eq('delFlag', false)
+            .build();
+        const payments = await FindAll(businessPaymentsSchema, paymentWhere);
+        const refundWhere = CreateQueryBuilder(businessRefundSchema)
+            .eq('orderId', order.id)
+            .eq('delFlag', false)
+            .build();
+        const refunds = await FindAll(businessRefundSchema, refundWhere);
+        const paymentSummary = (payments as any[])[0] ?? null;
+        const refundSummary = (refunds as any[])[0] ?? null;
+        return BaseResultData.ok({ ...order, payments, refunds, paymentSummary, refundSummary });
     }
     catch (error) {
         return BaseResultData.fail(500, error);
@@ -157,7 +186,6 @@ export async function update(ctx: Context) {
         const data = ctx.body as typeof businessOrdersSchema.$inferSelect;
         await UpdateByKey(businessOrdersSchema, 'id', null, {
             id: data.id,
-            status: data.status,
             remark: data.remark,
             updateBy,
         });

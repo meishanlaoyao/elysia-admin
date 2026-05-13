@@ -65,7 +65,7 @@ export async function create(ctx: Context) {
             pageNum: 1,
             pageSize: 1
         }).then(res => res.list);
-        if (existing && (existing.status === '0' || existing.status === '1'))  return BaseResultData.fail(400, '退款申请已存在，请勿重复提交');
+        if (existing && (existing.status === '0' || existing.status === '1')) return BaseResultData.fail(400, '退款申请已存在，请勿重复提交');
         // 9. 生成退款单号
         let refundNo = GenerateUUID();
         if (refundNo.length > 64) refundNo = refundNo.substring(0, 64);
@@ -96,89 +96,6 @@ export async function create(ctx: Context) {
         logger.info(`用户 ${userId} 创建退款申请，退款单号：${refundNo}`);
         return BaseResultData.ok(refundNo);
     } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findList(ctx: Context) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            refundNo,
-            orderNo,
-            status,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(businessRefundSchema)
-            .eq('delFlag', false)
-            .eq('refundNo', refundNo)
-            .eq('status', status)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        // 如果有订单号查询，需要关联订单表
-        let res;
-        if (orderNo) {
-            const orderCondition = CreateQueryBuilder(businessOrdersSchema)
-                .eq('orderNo', orderNo)
-                .eq('delFlag', false)
-                .build();
-            const orders = await FindPage(businessOrdersSchema, orderCondition, {
-                pageNum: 1,
-                pageSize: 1
-            });
-            if (orders.list.length > 0) {
-                const orderId = (orders.list[0] as any).id;
-                const refundCondition = CreateQueryBuilder(businessRefundSchema)
-                    .eq('orderId', orderId)
-                    .build();
-                const combinedCondition = refundCondition && whereCondition
-                    ? and(whereCondition, refundCondition)
-                    : (refundCondition || whereCondition);
-                res = await FindPage(businessRefundSchema,
-                    combinedCondition,
-                    { pageNum, pageSize, orderByColumn, sortRule }
-                );
-            } else {
-                res = { list: [], total: 0 };
-            }
-        } else {
-            res = await FindPage(businessRefundSchema, whereCondition, {
-                pageNum,
-                pageSize,
-                orderByColumn,
-                sortRule
-            });
-        };
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-}
-
-/**
- * 查询退款详情
- */
-export async function findOne(ctx: Context) {
-    try {
-        const id = ctx.params.id;
-        const refund = await FindOneByKey(businessRefundSchema, 'id', id);
-        if (!refund) return BaseResultData.fail(404, '退款记录不存在');
-        // 查询关联的订单信息
-        const order = await FindOneByKey(businessOrdersSchema, 'id', refund.orderId);
-        // 查询关联的支付信息
-        const payment = await FindOneByKey(businessPaymentsSchema, 'id', refund.paymentId);
-        const result = {
-            ...refund,
-            order,
-            payment,
-        };
-        return BaseResultData.ok(result);
-    } catch (error) {
-        logger.error('查询退款详情失败：' + error);
         return BaseResultData.fail(500, error);
     }
 };
@@ -251,7 +168,7 @@ export async function handleRefundCallback(data: {
                 )
             );
             const refund = refundList[0] || null;
-            if (!refund)  throw new Error('退款记录不存在');
+            if (!refund) throw new Error('退款记录不存在');
             const refundExtra = typeof refund.extra === 'object' ? refund.extra : {};
             await tx.update(businessRefundSchema).set({
                 status,
