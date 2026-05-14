@@ -17,6 +17,10 @@ export interface QueueEnvConfig {
     };
 };
 
+/**
+ * 获取队列环境配置
+ * @returns 
+ */
 export function getQueueEnvConfig(): QueueEnvConfig {
     return {
         appId: appConfig.app.id,

@@ -240,10 +240,26 @@ elysia-admin
 ```
 ├── database                      # 数据库定义层目录
 │   ├── schema                    # 业务表 Schema 定义
+│   │   ├── business_merchant.ts  # 商户管理表 Schema
+│   │   ├── business_orders.ts    # 订单管理表 Schema
+│   │   ├── business_payments.ts  # 支付管理表 Schema
+│   │   ├── business_refund.ts    # 退款管理表 Schema
+│   │   ├── monitor_job.ts        # 定时任务表 Schema
+│   │   ├── system_api.ts         # API 接口表 Schema
+│   │   ├── system_dept.ts        # 部门管理表 Schema
+│   │   ├── system_dict.ts        # 字典管理表 Schema
+│   │   ├── system_ip_black.ts    # IP 黑名单表 Schema
+│   │   ├── system_login_log.ts   # 登录日志表 Schema
+│   │   ├── system_menu.ts        # 菜单管理表 Schema
+│   │   ├── system_oper_log.ts    # 操作日志表 Schema
+│   │   ├── system_role.ts        # 角色管理表 Schema
+│   │   ├── system_storage.ts     # 存储配置表 Schema
+│   │   └── system_user.ts        # 用户管理表 Schema
 │   ├── sql                       # 原始 SQL 脚本
 │   │   └── pg.sql                # PostgreSQL 初始化脚本
 │   └── base-schema.ts            # 基础字段定义
 ├── public                        # 静态资源目录
+│   └── index.html                # 默认首页
 ├── script                        # 脚本工具目录
 │   ├── build-processors.ts       # 构建 worker 脚本
 │   ├── build.ts                  # 构建脚本
@@ -274,12 +290,59 @@ elysia-admin
 │   │   └── task-registry.ts      # 任务注册层
 │   ├── infrastructure            # 基础设施层
 │   │   ├── clients               # 客户端层
+│   │   │   ├── payment           # 支付客户端层
+│   │   │   │   ├── providers     # 支付提供商层
+│   │   │   │   │   ├── alipay    # 支付宝支付
+│   │   │   │   │   │   ├── app.ts      # APP 支付
+│   │   │   │   │   │   ├── base.ts     # 基础实现
+│   │   │   │   │   │   ├── h5.ts       # H5 支付
+│   │   │   │   │   │   ├── index.ts    # 入口文件
+│   │   │   │   │   │   ├── mini.ts     # 小程序支付
+│   │   │   │   │   │   └── pc.ts       # PC 网站支付
+│   │   │   │   │   ├── paypal          # PayPal 支付
+│   │   │   │   │   │   ├── base.ts     # 基础实现
+│   │   │   │   │   │   ├── h5.ts       # H5 支付
+│   │   │   │   │   │   ├── index.ts    # 入口文件
+│   │   │   │   │   │   └── pc.ts       # PC 支付
+│   │   │   │   │   ├── wechat          # 微信支付
+│   │   │   │   │   │   ├── app.ts      # APP 支付
+│   │   │   │   │   │   ├── base.ts     # 基础实现
+│   │   │   │   │   │   ├── h5.ts       # H5 支付
+│   │   │   │   │   │   ├── index.ts    # 入口文件
+│   │   │   │   │   │   ├── mini.ts     # 小程序支付
+│   │   │   │   │   │   └── pc.ts       # PC 支付
+│   │   │   │   │   └── crypto.ts       # 加密货币支付
+│   │   │   │   └── index.ts            # 支付客户端入口
 │   │   │   └── smtp.ts           # SMTP 客户端实例
 │   │   ├── queue                 # 队列
-│   │   │   ├── config
-│   │   │   ├── core
-│   │   │   ├── queues
+│   │   │   ├── config            # 队列配置层
+│   │   │   │   └── env.ts        # 队列环境配置文件
+│   │   │   ├── core              # 队列核心层
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── manager.ts
+│   │   │   │   ├── processor-utils.ts
+│   │   │   │   ├── queue.ts
+│   │   │   │   ├── rate-limit.ts
+│   │   │   │   ├── retry.ts
+│   │   │   │   ├── scheduler.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── worker.ts
+│   │   │   ├── queues                  # 队列实现层
+│   │   │   │   ├── flow-buffer         # 流量缓冲队列
+│   │   │   │   │   ├── processor.ts    # 处理器
+│   │   │   │   │   ├── queue.ts        # 队列定义
+│   │   │   │   │   └── worker.ts       # 工作器
+│   │   │   │   ├── system-cron         # 系统定时任务队列
+│   │   │   │   │   ├── processor.ts    # 处理器
+│   │   │   │   │   ├── queue.ts        # 队列定义
+│   │   │   │   │   └── worker.ts       # 工作器
+│   │   │   │   └── trade-order         # 交易订单队列
+│   │   │   │       ├── processor.ts    # 处理器
+│   │   │   │       ├── queue.ts        # 队列定义
+│   │   │   │       └── worker.ts       # 工作器
 │   │   │   ├── runtime
+│   │   │   │   ├── app.ts
+│   │   │   │   └── worker.ts
 │   │   │   └── index.ts
 │   │   └── storage               # 存储层
 │   │       ├── providers         # 存储提供层
@@ -290,20 +353,89 @@ elysia-admin
 │   │       ├── index.ts          # 存储提供层总入口
 │   │       └── types.ts          # 存储提供层类型定义文件
 │   ├── middleware                # 中间件层
-│   │   ├── guards                    # 守卫层
-│   │   │   ├── api.ts                # API 开关
-│   │   │   ├── auth.ts               # 认证守卫
-│   │   │   ├── ipblack.ts            # IP 黑名单守卫
-│   │   │   ├── ipratelimit.ts        # IP 限流守卫
-│   │   │   └── permission.ts         # 权限守卫
+│   │   ├── guards                # 守卫层
+│   │   │   ├── api.ts            # API 开关
+│   │   │   ├── auth.ts           # 认证守卫
+│   │   │   ├── ipblack.ts        # IP 黑名单守卫
+│   │   │   ├── ipratelimit.ts    # IP 限流守卫
+│   │   │   └── permission.ts     # 权限守卫
 │   │   ├── analysis.ts           # 分析中间件
 │   │   └── index.ts              # 中间件层总入口
 │   ├── modules                   # 模块层
-│   │   ├── ***                   # 模块层目录
+│   │   ├── auth                  # 认证模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── business-merchant     # 商户管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── business-orders       # 订单管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── business-payments     # 支付管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── business-refund       # 退款管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── monitor-cache         # 缓存监控模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── monitor-job           # 任务监控模块
 │   │   │   ├── dto.ts            # 校验层定义
 │   │   │   ├── handle.ts         # 处理层定义
 │   │   │   ├── route.ts          # 路由层定义
 │   │   │   └── task.ts           # 任务层定义
+│   │   ├── monitor-online        # 在线用户监控模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-api            # API 接口管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-dept           # 部门管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-dict           # 字典管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-ip-black       # IP 黑名单模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-login-log      # 登录日志模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-menu           # 菜单管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-oper-log       # 操作日志模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-role           # 角色管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-storage        # 存储配置模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   ├── system-user           # 用户管理模块
+│   │   │   ├── dto.ts            # 校验层定义
+│   │   │   ├── handle.ts         # 处理层定义
+│   │   │   └── route.ts          # 路由层定义
+│   │   └── index.ts              # 模块层入口
 │   ├── shared                    # 共享工具函数目录
 │   │   ├── bcrypt.ts             # 加密工具函数
 │   │   ├── color.ts              # 颜色工具函数
@@ -319,6 +451,7 @@ elysia-admin
 │   │   ├── common.ts             # 公共类型定义文件
 │   │   ├── dto.ts                # 校验层类型定义文件
 │   │   ├── index.ts              # 类型定义总入口
+│   │   ├── pay.ts                # 支付相关类型定义文件
 │   │   ├── route.ts              # 路由层类型定义文件
 │   │   └── task.ts               # 任务层类型定义文件
 │   ├── app.ts                    # 应用层入口文件
