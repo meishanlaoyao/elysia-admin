@@ -75,3 +75,11 @@ shared ✗→ core/database
 - Scan entire directories to "understand the project"
 - Read all modules to find a pattern — use `.ai/AI_CODE_EXAMPLES.md` instead
 - Read `core/repository.ts` unless you need an obscure function not in the examples
+
+---
+
+# `.ai` 文档索引（与 Cursor 规则同源）
+
+- **`AI_CODE_EXAMPLES.md`**：代码模板与实现模式的首选事实来源（实现 CRUD、路由、前后端对齐时优先查阅）。
+- **`AI_CONTEXT_CAPSULE.md`**：MCP、内置 UI 路径、手执 SQL、菜单/权限/字典等运维向补充，按需阅读。
+- 其他：`AI_MODULE_STANDARD.md`、`AI_FRONTEND_RULES.md`、`AI_STRUCTURE.md`、`AI_DEPENDENCY.md`、`AI_GENERATION.md`、`AI_FEATURE_TEMPLATE.md` — 与专题相关时再打开，避免通读。

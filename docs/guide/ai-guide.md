@@ -1,19 +1,22 @@
 ---
-title: AI 快速开发指南
-description: 通过一段提示词，让 AI 立即理解 Elysia Admin 的代码规范，并按项目风格生成完整的前后端模块代码。
+title: AI 开发指南
+description: 介绍 Cursor、Trae、Kiro 的项目规则与 `.ai/` 规范文档，配合提示词让 AI 按 Elysia Admin 风格生成前后端模块代码。
 head:
   - - meta
     - name: keywords
-      content: Elysia Admin AI 开发, AI 代码生成, Cursor AI, 提示词模板
+      content: Elysia Admin AI 开发, AI 代码生成, Cursor, Trae, Kiro, 提示词模板
 ---
 
-# AI 快速开发指南
+# AI 开发指南
 
-本项目内置了一套 AI 规范文档（`.ai/` 目录）和 Cursor 规则（`.cursor/rules/`），可让 AI 在无需阅读大量源码的情况下，直接按照项目规范生成前后端代码。
+本项目内置了一套 AI 规范文档（`.ai/` 目录），并在多种 IDE 中提供了**与 Cursor 规则语义对齐**的项目级配置，便于在不同工具里获得一致的生成行为。代码级模板以 `.ai/AI_CODE_EXAMPLES.md` 为准；**工具链与运维向**约定（内置组件索引、Postgres MCP、手执 SQL、字典与菜单权限等）见 `.ai/AI_CONTEXT_CAPSULE.md`，按需阅读即可。
 
----
 
-## 一、Cursor 用户（推荐）
+## 一、IDE 内建规则（Cursor / Trae / Kiro）
+
+以下三处规则与 `.cursor/rules/` 同源：**架构与读文件纪律**一致，**前后端长模板**仍以 `.ai/AI_CODE_EXAMPLES.md` 为唯一详版，避免多处复制导致漂移。维护时若调整依赖方向、目录约定或读文件策略，请同步更新 Cursor、Trae、Kiro 对应文件（Trae 维护说明见 `.trae/README.md`；Kiro 见下文 1.3 表，无单独 README）。
+
+### Cursor（推荐）
 
 项目已在 `.cursor/rules/` 中配置了三个自动加载的规则文件：
 
@@ -25,7 +28,40 @@ head:
 
 **你不需要做任何配置**，在 Cursor 中对话时，AI 会自动加载对应规则。
 
-### 一键生成后端模块
+`general.mdc` 中已说明：涉及内置 UI 路径、MCP 只读范围、**由开发者本地执行的手执 SQL**、数据字典是否与库一致、新菜单与权限 checklist 时，可让 AI **按需**阅读 `.ai/AI_CONTEXT_CAPSULE.md`（篇幅短，**不替代** `AI_CODE_EXAMPLES.md`）。
+
+### Trae
+
+仓库根目录下 `.trae/rules/` 提供与 Cursor 一一对应的 Markdown 规则（frontmatter 字段与 Cursor 类似，便于对照维护）：
+
+| 文件 | 触发方式 | 作用 |
+|---|---|---|
+| `general.md` | `alwaysApply: true` | 与 `general.mdc` 等价；文末含 `.ai` 各文档职责索引 |
+| `frontend.md` | `globs: admin/src/**/*.vue,admin/src/**/*.ts` | 与 `frontend.mdc` 等价 |
+| `backend.md` | `globs: server/src/**/*.ts` | 与 `backend.mdc` 等价 |
+
+在 Trae 中打开本仓库后，按 Trae 官方文档启用项目规则即可（若你使用的 Trae 版本仅支持单文件如 `project_rules.md`，可将上述三文件合并或按官方说明调整路径，语义仍与上表一致）。
+
+### Kiro
+
+仓库根目录下 `.kiro/steering/` 使用 [Kiro Steering](https://kiro.dev/docs/steering/) 机制，通过 front matter 控制加载范围，并用 **`#[[file:相对路径]]`** 引用仓库内的 `.ai` 大文档，避免把长模板搬进 steering。
+
+| 文件 | 加载方式 | 作用 |
+|---|---|---|
+| `product.md` | `inclusion: always` | 产品定位、典型开发任务（精炼） |
+| `structure.md` | `inclusion: always` | 目录树、职责边界、单参考样例、读文件摘要 |
+| `tech.md` | `inclusion: always` | 技术栈、依赖方向、生成原则；内含对 `AI_CODE_EXAMPLES.md` / `AI_CONTEXT_CAPSULE.md` 的活引用 |
+| `frontend-vue.md` | `inclusion: fileMatch` → `admin/src/**/*.vue`、`admin/src/**/*.ts` | 与 `frontend.mdc` 同正文，顶部引用代码模板文件 |
+| `backend-elysia.md` | `inclusion: fileMatch` → `server/src/**/*.ts` | 与 `backend.mdc` 同正文，顶部引用代码模板文件 |
+| `ai-ops-supplement.md` | `inclusion: auto`（按描述匹配） | 菜单/权限/MCP/字典/手执 SQL 等运维向摘要，并引用 `AI_CONTEXT_CAPSULE.md` |
+
+Kiro 中也可在仓库根使用 [AGENTS.md](https://agents.md/) 标准；本仓库以 `.kiro/steering/` 为主。
+
+## 二、示例提示词（仓库内开发）
+
+在 **Cursor、Trae、Kiro** 中已启用第一章所述规则时，直接把下面整段发给对话即可，AI 更易遵守读文件纪律；示例以「商品」模块为名，可按你的业务改名与路径。任意支持长上下文的对话工具也可粘贴使用。
+
+### 只生成后端模块
 
 直接发送以下消息：
 
@@ -37,12 +73,13 @@ head:
 - 无需定时任务
 ```
 
-AI 会自动：
+AI 通常会：
+
 1. 列出要创建的文件（`dto.ts` / `handle.ts` / `route.ts` / `task.ts`）
 2. 按项目规范生成代码，不读取无关文件
 3. 使用 `CrudDto`、`InsertOne`、`FindPage`、`CreateQueryBuilder`、`BaseResultData` 等封装好的工具
 
-### 一键生成前端页面
+### 只生成前端页面
 
 ```
 帮我创建商品管理的前端页面（business/goods），包含：
@@ -70,7 +107,7 @@ AI 会自动：
 
 ---
 
-## 二、其他 AI 工具（ChatGPT / Claude 网页版等）
+## 三、其他 AI 工具（ChatGPT / Claude 网页版等）
 
 将以下内容复制给 AI，作为上下文前缀：
 
@@ -206,10 +243,11 @@ open 时 initFormData()，closed 时 formRef.value?.reset()
 请按照上述规范，帮我创建商品管理模块（business-goods），字段：goodsId、name、price、stock、status、remark，包括完整的前后端代码。
 ```
 
+若任务涉及 **数据字典对齐、菜单/权限、种子 SQL、内置表格/Excel 导出** 等，可将仓库内 `.ai/AI_CONTEXT_CAPSULE.md` 全文一并粘贴给 AI 作补充（与上文代码模板配合使用）。
 
-## 三、`.ai/` 规范文档说明
+## 四、`.ai/` 规范文档说明
 
-项目根目录下的 `.ai/` 文件夹包含 AI 编写代码的完整规范，可手动传给任何 AI：
+项目根目录下的 `.ai/` 文件夹包含 AI 编写代码的完整规范，可手动传给任何 AI。若使用 **Cursor、Trae 或 Kiro**，仓库内已提交的 IDE 规则（见第一章）会复用本节所列文档的职责划分；在 **纯网页版** 对话中则更依赖你主动粘贴下表中的文件。
 
 | 文件 | 内容 |
 |---|---|
@@ -220,16 +258,19 @@ open 时 initFormData()，closed 时 formRef.value?.reset()
 | `AI_FEATURE_TEMPLATE.md` | 新功能开发的 10 步流程 |
 | `AI_GENERATION.md` | 通用代码生成规则 |
 | `AI_CODE_EXAMPLES.md` | **完整可复用代码模板**（直接复制使用） |
+| `AI_CONTEXT_CAPSULE.md` | **工具链补充**（内置 UI 索引、Postgres MCP 只读、手执 SQL、字典与菜单权限；按需阅读，**非**代码模板） |
 
 ---
 
-## 四、注意事项
+## 五、注意事项
 
 **AI 会自动控制文件读取范围**，规则中已明确：
 
 - 新建模块时只读一个参考模块，不扫描整个目录
 - 修改现有文件时只读该文件本身
-- 不读取 `node_modules/`、`dist/`、`core/`（除非任务明确涉及）
-- 规则和代码模板已内嵌足够的上下文，无需 AI "探索"项目
+- 不读取 `node_modules/`、`dist/`、`build/`；默认不通读 `server/src/core/`、`admin/src/components/core/`；`database/schema/` 仅打开**当前任务涉及的那一张表**（除非任务明确要求基础设施或改表）
+- 规则和代码模板已内嵌足够的上下文，无需 AI「扫目录摸项目」
+- 若在 IDE 中已配置 **Postgres MCP**（如 `user-postgres`），其中 `query` 一般为 **只读**；写库、种子数据、补字典等可由 AI 生成 **可复制 SQL**，由你在本机工具中 **自行执行**（详见 `AI_CONTEXT_CAPSULE.md`）
+- 列表导出等可优先使用内置 `ArtExcelExport` 等组件，不必为导出单独造一套后端（仍按需保留业务接口）
 
 这可以显著减少 token 消耗，同时保证生成的代码与项目风格完全一致。

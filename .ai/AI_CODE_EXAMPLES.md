@@ -3,6 +3,8 @@
 This file contains ready-to-use code templates extracted from the actual codebase.
 AI must copy these patterns exactly. Do NOT invent new patterns.
 
+Ops/tooling notes (built-in UI index, MCP read-only, hand-off SQL, dict & menu checklists): see `.ai/AI_CONTEXT_CAPSULE.md` — load only when relevant; does not replace the templates below.
+
 ---
 
 # Backend Examples
