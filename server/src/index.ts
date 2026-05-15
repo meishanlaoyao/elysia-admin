@@ -36,12 +36,24 @@ async function bootstrap() {
         const appPort = process.env.PORT || port;
         const appEnv = process.env.NODE_ENV || 'development';
         httpServer = app.listen(appPort) as unknown as HttpListenHandle;
-        logger.logStartup({
+        let appVersion: string | undefined;
+        if (appEnv !== 'production') {
+            try {
+                const pkg = await Bun.file(new URL('../package.json', import.meta.url)).json() as {
+                    version?: string;
+                };
+                appVersion = typeof pkg.version === 'string' ? pkg.version : 'unknown';
+            } catch {
+                appVersion = 'unknown';
+            }
+        }
+        await logger.logStartup({
             appId: id,
             port: appPort,
             prefix: config.app.prefix,
             env: appEnv,
             pid: process.pid,
+            ...(appVersion !== undefined ? { appVersion } : {}),
             openApiEnabled: appEnv !== 'production',
             bunVersion: process.versions.bun || 'N/A',
         });

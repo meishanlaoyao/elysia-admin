@@ -1,0 +1,7 @@
+{
+    "version": "1.2.2",
+    "publishDate": "2026-05-13",
+    "description": "本次更新修复了注册流程、IP获取与限流等关键问题，并强化了配置管理、缓存及服务关闭的稳定性。",
+    "changelogUrl": "https://elysia-admin.top/start/change-log.html",
+    "forceUpdate": false
+}

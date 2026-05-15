@@ -20,10 +20,15 @@ head:
 
 ```
 elysia-admin
-├── .ai                         # AI 项目理解目录
-├── admin                       # 后台管理系统目录
-├── docs                        # 文档目录
-└── server                      # 后端服务目录
+├── .ai                         # AI 辅助（代码示例、上下文说明等）
+├── .cursor                     # Cursor 规则与编辑器配置
+├── .kiro                       # Kiro Steering 工程指引
+├── .trae                       # Trae 规则
+├── admin                       # 前端
+├── docs                        # 文档站点
+├── server                      # 后端
+├── LICENSE
+└── README.md
 ```
 
 ## 前端结构

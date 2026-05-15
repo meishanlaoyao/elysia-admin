@@ -17,6 +17,11 @@ const Colors = {
     // 背景色
     bgRed: '\x1b[41m',
     bgYellow: '\x1b[43m',
+
+    /** 启动横幅 */
+    startupVersion: '\x1b[36m',
+    startupVersionArrowUp: '\x1b[32m',
+    startupVersionArrowDown: '\x1b[33m',
 };
 
 export default Colors;
