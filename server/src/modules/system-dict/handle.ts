@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { systemDictDataSchema, systemDictTypeSchema } from '@database/schema/system_dict';
 import {
@@ -13,7 +13,7 @@ import {
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
 
-export async function createType(ctx: Context) {
+export async function createType(ctx: AppContext) {
     try {
         await InsertOne(systemDictTypeSchema, ctx);
         return BaseResultData.ok();
@@ -23,7 +23,7 @@ export async function createType(ctx: Context) {
     }
 };
 
-export async function createData(ctx: Context) {
+export async function createData(ctx: AppContext) {
     try {
         await InsertOne(systemDictDataSchema, ctx);
         return BaseResultData.ok();
@@ -49,7 +49,7 @@ export async function findAllType() {
     }
 };
 
-export async function findAllData(ctx: Context) {
+export async function findAllData(ctx: AppContext) {
     try {
         const { dictType } = ctx.query;
         const data = await WithCache(
@@ -69,7 +69,7 @@ export async function findAllData(ctx: Context) {
     }
 };
 
-export async function findListType(ctx: Context) {
+export async function findListType(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -100,7 +100,7 @@ export async function findListType(ctx: Context) {
     }
 };
 
-export async function findListData(ctx: Context) {
+export async function findListData(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -131,7 +131,7 @@ export async function findListData(ctx: Context) {
     }
 };
 
-export async function findOneType(ctx: Context) {
+export async function findOneType(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemDictTypeSchema, 'dictId', id);
@@ -143,7 +143,7 @@ export async function findOneType(ctx: Context) {
     }
 };
 
-export async function updateType(ctx: Context) {
+export async function updateType(ctx: AppContext) {
     try {
         await UpdateByKey(systemDictTypeSchema, 'dictId', ctx);
         return BaseResultData.ok();
@@ -153,7 +153,7 @@ export async function updateType(ctx: Context) {
     }
 };
 
-export async function updateData(ctx: Context) {
+export async function updateData(ctx: AppContext) {
     try {
         await UpdateByKey(systemDictDataSchema, 'dictCode', ctx);
         return BaseResultData.ok();
@@ -163,7 +163,7 @@ export async function updateData(ctx: Context) {
     }
 };
 
-export async function removeType(ctx: Context) {
+export async function removeType(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemDictTypeSchema, 'dictId', ctx);
         return BaseResultData.ok();
@@ -173,7 +173,7 @@ export async function removeType(ctx: Context) {
     }
 };
 
-export async function removeData(ctx: Context) {
+export async function removeData(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemDictDataSchema, 'dictCode', ctx);
         return BaseResultData.ok();

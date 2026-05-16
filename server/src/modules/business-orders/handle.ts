@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import config from '@/config';
 import { eq, and, count } from 'drizzle-orm';
 import pg from '@/core/database/pg';
@@ -28,9 +28,9 @@ function getFlowBufferQueue() {
     return queue;
 };
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
-        const userId = (ctx as any)?.user?.userId;
+        const userId = ctx?.user?.userId as number;
         // TODO: 这里自行处理创建订单逻辑，这里我用模拟数据来演示
         const mockData = {
             userId,
@@ -99,7 +99,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -157,7 +157,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function findStatusStats(_ctx: Context) {
+export async function findStatusStats(_ctx: AppContext) {
     try {
         const rows = await pg
             .select({ status: businessOrdersSchema.status, cnt: count(), })
@@ -176,7 +176,7 @@ export async function findStatusStats(_ctx: Context) {
     }
 };
 
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = ctx.params.id;
         const order = await FindOneByKey(businessOrdersSchema, 'id', id);
@@ -200,9 +200,9 @@ export async function findOne(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
-        const updateBy = (ctx as any)?.user?.userId || null;
+        const updateBy = ctx?.user?.userId as number || null;
         const data = ctx.body as typeof businessOrdersSchema.$inferSelect;
         await UpdateByKey(businessOrdersSchema, 'id', null, {
             id: data.id,

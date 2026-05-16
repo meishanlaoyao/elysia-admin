@@ -14,7 +14,7 @@ interface GenerateRegistryOptions {
     outputPath: string;
     /** 导出变量名 */
     exportName: string;
-}
+};
 
 /**
  * 生成模块注册文件
@@ -34,9 +34,11 @@ export function generateRegistry(options: GenerateRegistryOptions): number {
     });
     const content = `// 自动生成的${fileName}注册文件
 // 此文件由构建脚本生成，请勿手动修改
-${imports.join('\n')}
+${fileName === 'route'
+            ? `import type { IRouteModule } from '@/types/route';\n`
+            : `import type { ITask } from '@/types/task';\n`}${imports.join('\n')}
 
-export const ${exportName} = [
+export const ${exportName}: ${fileName === 'route' ? 'IRouteModule[]' : 'ITask[]'} = [
     ${exports.join(',\n    ')}
 ];
 `;

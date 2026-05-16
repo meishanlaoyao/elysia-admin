@@ -130,8 +130,11 @@ function configureErrorHandler(app: Elysia) {
         else if (code === 'NOT_FOUND' || code == 404) {
             return BaseResultData.fail(404);
         }
-        // 可能是自定义错误
-        else if (typeof (code as any) === 'number') return;
+        // 守卫等已设置 set.status 并抛出带数字 code 的结果时，交由 Elysia 走默认响应，避免二次包装成 BaseResult
+        else if (typeof (code as unknown) === 'number') {
+            logger.debug('onError: numeric code, pass through', { code: String(code) });
+            return;
+        };
         return BaseResultData.fail(500, '服务器内部错误');
     });
 };

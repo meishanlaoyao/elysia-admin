@@ -1,7 +1,7 @@
 {
-    "version": "1.4.0",
-    "publishDate": "2026-05-15",
-    "description": "本次更新优化了订单管理与支付调试能力，并完善了文档与版本提示；版本号按功能域重新对齐。",
+    "version": "1.4.1",
+    "publishDate": "2026-05-16",
+    "description": "本次更新侧重后端工程规范：优化路由加载与注册、队列沙箱任务登记、请求上下文类型（AppContext）及开发配置，便于排查问题与编写接口。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

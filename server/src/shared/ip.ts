@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { logger } from '@/shared/logger';
 import config from '@/config';
 import type { IClientType, IClientPlatform } from '@/types/common';
@@ -145,11 +145,11 @@ function getTrustedCidrs(): string[] {
  * @param server 服务器对象
  * @returns 客户端 IP 地址
  */
-export function GetClientIp(ctx: Context) {
+export function GetClientIp(ctx: AppContext): string {
     const request = ctx?.request;
-    const user = (ctx as any).user;
-    if (user?.ipaddr) return user.ipaddr;
-    const ctxIp = (ctx as any)?.ip;
+    const user = ctx.user;
+    if (user?.ipaddr) return user.ipaddr as string;
+    const ctxIp = ctx?.ip;
     if (ctxIp) return ctxIp;
     const server = ctx?.server;
     const direct = server?.requestIP(request)?.address;
@@ -384,7 +384,7 @@ export function GetClientOs(userAgent: string): string {
  * @param ctx 请求上下文
  * @returns 客户端信息
  */
-export async function GetClientInfo(ctx: Context): Promise<{
+export async function GetClientInfo(ctx: AppContext): Promise<{
     ipaddr: string;
     userAgent: string;
     loginLocation: string;
@@ -392,7 +392,7 @@ export async function GetClientInfo(ctx: Context): Promise<{
     clientPlatform: string;
     os: string;
 }> {
-    const ipaddr = GetClientIp(ctx);
+    const ipaddr = GetClientIp(ctx) as string;
     const userAgent = ctx.headers['user-agent'] || '';
     let loginLocation = '未知';
     try {

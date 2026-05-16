@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
@@ -13,7 +13,7 @@ import { CacheEnum } from '@/constants/enum';
 import { Del, Set } from '@/core/database/redis';
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(systemApiSchema, ctx);
         return BaseResultData.ok();
@@ -23,7 +23,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -56,7 +56,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemApiSchema, 'apiId', id);
@@ -68,7 +68,7 @@ export async function findOne(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const data = ctx.body as typeof systemApiSchema.$inferSelect;
         await UpdateByKey(systemApiSchema, 'apiId', ctx);
@@ -87,7 +87,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemApiSchema, 'apiId', ctx);
         return BaseResultData.ok();

@@ -9,17 +9,25 @@ import { logger } from '@/shared/logger';
 export async function LoadRouteModules(): Promise<IRouteModule[]> {
     if (process.env.NODE_ENV === 'production') {
         try {
-            // @ts-expect-error - 此文件在构建时生成
-            const { allRoutes } = await import('./route-registry.generated') as { allRoutes: any[] };
+            // @ts-expect-error 构建产物 route-registry.generated，开发环境可能不存在
+            const { allRoutes } = (await import('./route-registry.generated')) as {
+                allRoutes: IRouteModule[];
+            };
             const validRoutes: IRouteModule[] = [];
-            allRoutes.forEach((routeModule) => {
-                if (!routeModule || !routeModule.tags || !Array.isArray(routeModule.routes)) return;
+            allRoutes.forEach((routeModule, index) => {
+                if (!routeModule || !routeModule.tags || !Array.isArray(routeModule.routes)) {
+                    logger.warn(`生产环境路由预生成项格式无效，已跳过: index=${index}`);
+                    return;
+                }
                 validRoutes.push(routeModule);
                 logger.info(`✓ 加载路由模块: ${routeModule.tags} (${routeModule.routes.length}个路由)`);
             });
             return validRoutes;
-        } catch (error: any) {
-            logger.error('生产环境路由加载失败:', error);
+        } catch (error: unknown) {
+            logger.error('生产环境路由加载失败:', {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             throw error;
         }
     } else {
@@ -45,16 +53,22 @@ export async function LoadRouteModules(): Promise<IRouteModule[]> {
                     if (routeModule && routeModule.tags && Array.isArray(routeModule.routes)) {
                         modules.push(routeModule);
                         logger.info(`✓ 加载路由模块: ${routeModule.tags} (${routeModule.routes.length}个路由)`);
-                    };
-                } catch (error) {
-                    // 如果文件不存在或导入失败，跳过
-                    continue;
+                    } else {
+                        logger.warn(`路由模块格式无效（缺少 tags 或 routes），已跳过: ${entry}`);
+                    }
+                } catch (error: unknown) {
+                    logger.warn(`路由模块加载失败，已跳过: ${entry}`, {
+                        error: error instanceof Error ? error.message : String(error),
+                    });
                 }
-            }
-        } catch (error: any) {
-            logger.error('扫描路由目录失败:', error);
+            };
+        } catch (error: unknown) {
+            logger.error('扫描路由目录失败:', {
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             throw error;
         }
         return modules;
-    };
+    }
 };

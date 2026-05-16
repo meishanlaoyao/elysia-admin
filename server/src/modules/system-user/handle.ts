@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import { Get } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
@@ -20,7 +20,7 @@ import { RunTransaction } from '@/core/database/transaction';
 import { logger } from '@/shared/logger';
 import { GetDeptInfoById } from '@/modules/system-dept/handle';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const { roles, ...rest } = ctx.body as any;
         const data = rest as typeof systemUserSchema.$inferInsert;
@@ -39,7 +39,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -78,9 +78,9 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function findPerm(ctx: Context) {
+export async function findPerm(ctx: AppContext) {
     try {
-        const userId = (ctx as any)?.user?.userId as number;
+        const userId = ctx?.user?.userId as number;
         const user = await Get(CacheEnum.ONLINE_USER + userId);
         if (!user) return BaseResultData.fail(404);
         const { loginLocation, ipaddr, userType, loginTime, ...rest } = user;
@@ -90,9 +90,9 @@ export async function findPerm(ctx: Context) {
     }
 };
 
-export async function findBasic(ctx: Context) {
+export async function findBasic(ctx: AppContext) {
     try {
-        const userId = (ctx as any)?.user?.userId as number;
+        const userId = ctx?.user?.userId as number;
         const res = await FindOneByKey(systemUserSchema, 'userId', userId);
         if (!res || res.delFlag) return BaseResultData.fail(404);
         const { password, ...item } = res;
@@ -104,7 +104,7 @@ export async function findBasic(ctx: Context) {
     }
 };
 
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemUserSchema, 'userId', id);
@@ -117,7 +117,7 @@ export async function findOne(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const data = ParseDateFields(ctx.body);
         const { password, roles, ...rest } = data;
@@ -136,10 +136,10 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function updateBasic(ctx: Context) {
+export async function updateBasic(ctx: AppContext) {
     try {
         const data = ctx.body as typeof systemUserSchema.$inferSelect;
-        const userId = (ctx as any)?.user?.userId as number;
+        const userId = ctx?.user?.userId as number;
         const { password, ...rest } = data;
         const user = rest as typeof systemUserSchema.$inferSelect;
         await UpdateByKey(systemUserSchema, 'userId', null, { ...user, userId });
@@ -149,10 +149,10 @@ export async function updateBasic(ctx: Context) {
     }
 };
 
-export async function updatePassword(ctx: Context) {
+export async function updatePassword(ctx: AppContext) {
     try {
         const { oldPassword, newPassword } = ctx.body as any;
-        const userId = (ctx as any)?.user?.userId as number;
+        const userId = ctx?.user?.userId as number;
         const user = await GetUserBy('userId', userId);
         if (!user || user.delFlag) return BaseResultData.fail(404);
         const isSame = BcryptCompare(oldPassword, user.password);
@@ -164,7 +164,7 @@ export async function updatePassword(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemUserSchema, 'userId', ctx);
         return BaseResultData.ok();

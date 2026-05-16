@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { and, eq } from 'drizzle-orm';
 import pg from '@/core/database/pg';
 import { BaseResultData } from '@/core/result';
@@ -15,7 +15,7 @@ import { businessPaymentsSchema } from '@database/schema/business_payments';
 import { businessMerchantSchema, businessMerchantConfigsSchema } from '@database/schema/business_merchant';
 import type { PaymentChannel, PaymentPlatform, } from '@/types/pay';
 
-export async function payOrder(ctx: Context) {
+export async function payOrder(ctx: AppContext) {
     try {
         /**
          * 发起支付之前，请遵循以下规则：
@@ -41,7 +41,7 @@ export async function payOrder(ctx: Context) {
          * 
          * 注意：所有涉及金额的计算和状态的流转，必须在数据库事务中完成，防止并发导致的数据不一致。
          */
-        const userId = (ctx as any)?.user?.userId;
+        const userId = ctx?.user?.userId;
         const { orderNo, paymentMethod, platform } = ctx.body as { orderNo: string; paymentMethod: PaymentChannel; platform: PaymentPlatform };
         // 订单信息
         const orderInfo = await FindOneByKey(businessOrdersSchema, 'orderNo', orderNo);
@@ -148,7 +148,7 @@ export async function payOrder(ctx: Context) {
     }
 };
 
-export async function payOrderReturn(ctx: Context) {
+export async function payOrderReturn(ctx: AppContext) {
     try {
         /**
          * 1.查订单状态
@@ -161,7 +161,7 @@ export async function payOrderReturn(ctx: Context) {
     }
 };
 
-export async function payOrderNotify(ctx: Context) {
+export async function payOrderNotify(ctx: AppContext) {
     try {
         /**
          * 1.验签

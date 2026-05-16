@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { ParseDateFields } from '@/types/dto';
 import { PgTable, TableConfig, PgColumn } from 'drizzle-orm/pg-core';
 import { SQL, eq, ne, inArray, notInArray, like, notLike, ilike, notIlike, gt, gte, lt, lte, between, notBetween, isNull, isNotNull, and, or, not, asc, desc, count, sql, getTableColumns } from 'drizzle-orm';
@@ -48,14 +48,14 @@ type InferSelectModel<T extends PgTable> = T extends PgTable<infer Config extend
  */
 export async function InsertOne<T extends PgTable>(
     schema: T,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData?: InferInsertModel<T>
 ) {
     let data: any = undefined;
     if (ctx) {
         data = ctx.body;
         const keyColumn = (schema as any)['createBy'];
-        const createBy = (ctx as any)?.user?.userId || null;
+        const createBy = ctx?.user?.userId || null;
         if (keyColumn && createBy) data.createBy = createBy;
     } else {
         if (customData) data = customData;
@@ -72,14 +72,14 @@ export async function InsertOne<T extends PgTable>(
  */
 export async function InsertOneAndRes<T extends PgTable>(
     schema: T,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData?: InferInsertModel<T>
 ) {
     let data: any = undefined;
     if (ctx) {
         data = ctx.body;
         const keyColumn = (schema as any)['createBy'];
-        const createBy = (ctx as any)?.user?.userId || null;
+        const createBy = ctx?.user?.userId || null;
         if (keyColumn && createBy) data.createBy = createBy;
     } else {
         if (customData) data = customData;
@@ -97,13 +97,13 @@ export async function InsertOneAndRes<T extends PgTable>(
  */
 export async function InsertMany<T extends PgTable>(
     schema: T,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData: InferInsertModel<T>[]
 ) {
     let data = customData;
     if (ctx) {
         const keyColumn = (schema as any)['createBy'];
-        const createBy = (ctx as any)?.user?.userId || null;
+        const createBy = ctx?.user?.userId || null;
         if (keyColumn && createBy) data = data.map(item => ({ ...item, createBy }));
     };
     return await pg.insert(schema).values(data);
@@ -176,7 +176,7 @@ export async function FindAll<T extends PgTable>(
 export async function UpdateByKey<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData?: Partial<InferInsertModel<T>> & Record<string, any>
 ) {
     const keyColumn = (schema as any)[keyColumnName];
@@ -185,7 +185,7 @@ export async function UpdateByKey<T extends PgTable>(
     if (ctx) {
         data = ParseDateFields(ctx.body);
         const updateByColumn = (schema as any)['updateBy'];
-        const updateBy = (ctx as any)?.user?.userId || null;
+        const updateBy = ctx?.user?.userId || null;
         if (updateByColumn && updateBy) data.updateBy = updateBy;
     } else {
         if (customData) data = ParseDateFields(customData);
@@ -208,7 +208,7 @@ export async function UpdateByKey<T extends PgTable>(
 export async function UpdateByKeyAndRes<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData?: Partial<InferInsertModel<T>> & Record<string, any>
 ) {
     const keyColumn = (schema as any)[keyColumnName];
@@ -217,7 +217,7 @@ export async function UpdateByKeyAndRes<T extends PgTable>(
     if (ctx) {
         data = ParseDateFields(ctx.body);
         const updateByColumn = (schema as any)['updateBy'];
-        const updateBy = (ctx as any)?.user?.userId || null;
+        const updateBy = ctx?.user?.userId || null;
         if (updateByColumn && updateBy) data.updateBy = updateBy;
     } else {
         if (customData) data = ParseDateFields(customData);
@@ -241,7 +241,7 @@ export async function UpdateByKeyAndRes<T extends PgTable>(
 export async function SoftDeleteByKeys<T extends PgTable>(
     schema: T,
     keyColumnName: string,
-    ctx: Context | null | undefined,
+    ctx: AppContext | null | undefined,
     customData?: number[]
 ) {
     const keyColumn = (schema as any)[keyColumnName];
@@ -252,7 +252,7 @@ export async function SoftDeleteByKeys<T extends PgTable>(
         ids = ctx.params.ids.split(',').map(Number) as number[];
         if (!ids || ids.length === 0) return;
         const updateByColumn = (schema as any)['updateBy'];
-        const updateBy = (ctx as any)?.user?.userId || null;
+        const updateBy = ctx?.user?.userId || null;
         if (updateByColumn && updateBy) data.updateBy = updateBy;
     } else {
         if (customData?.length) {

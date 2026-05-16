@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
@@ -13,7 +13,7 @@ import { WithCache } from '@/core/cache';
 import { systemDeptSchema } from '@database/schema/system_dept';
 import { ListToTree } from '@/core/function';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(systemDeptSchema, ctx);
         return BaseResultData.ok();
@@ -23,7 +23,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findTree(ctx: Context) {
+export async function findTree(ctx: AppContext) {
     try {
         const {
             deptName,
@@ -73,7 +73,7 @@ export async function findOptions() {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         await UpdateByKey(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok();
@@ -83,7 +83,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok();

@@ -18,6 +18,28 @@ function routeToMap(routes: { tags: string[], route: IRoute }[]) {
     return new Map(routes.map(({ route }, index) => [`${route.method.toUpperCase()}:${prefix}${route.url}`, index]));
 };
 
+/** 将声明式路由挂到 Elysia（避免对 app 做动态下标调用） */
+function attachRoute(app: Elysia, tags: string[], route: IRoute) {
+    const hook = { detail: { tags, summary: route.summary }, ...route.dto } as Record<string, unknown>;
+    const { url, handle } = route;
+    switch (route.method.toLowerCase()) {
+        case 'get':
+            app.get(url, handle as never, hook as never);
+            break;
+        case 'post':
+            app.post(url, handle as never, hook as never);
+            break;
+        case 'put':
+            app.put(url, handle as never, hook as never);
+            break;
+        case 'delete':
+            app.delete(url, handle as never, hook as never);
+            break;
+        default:
+            throw new Error(`不支持的 HTTP 方法: ${route.method}`);
+    };
+};
+
 /**
  * 注册所有路由
  * @param app Elysia 实例
@@ -35,23 +57,13 @@ export async function RegisterRoutes(app: Elysia) {
             }
         });
     });
-    publicRoutes.forEach(({ tags, route }) => {
-        (app as any)[route.method](route.url, route.handle, {
-            detail: { tags, summary: route.summary },
-            ...route.dto
-        });
-    });
+    publicRoutes.forEach(({ tags, route }) => { attachRoute(app, tags, route) });
     app.guard({
         headers: t.Object({
             authorization: t.String({ description: 'Bearer Token令牌', minLength: 1, error: '请先登陆后访问' }),
         }),
     });
-    authRoutes.forEach(({ tags, route }) => {
-        (app as any)[route.method](route.url, route.handle, {
-            detail: { tags, summary: route.summary },
-            ...route.dto
-        });
-    });
+    authRoutes.forEach(({ tags, route }) => { attachRoute(app, tags, route) });
     RouteList.push(...publicRoutes, ...authRoutes);
     RouteMap = routeToMap(RouteList);
     AuthRoutes = authRoutes;

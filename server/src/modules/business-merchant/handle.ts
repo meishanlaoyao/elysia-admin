@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import {
     InsertOne,
@@ -11,7 +11,7 @@ import {
 import { BaseResultData } from '@/core/result';
 import { businessMerchantSchema, businessMerchantConfigsSchema } from 'database/schema/business_merchant';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(businessMerchantSchema, ctx);
         return BaseResultData.ok();
@@ -21,7 +21,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function createConfig(ctx: Context) {
+export async function createConfig(ctx: AppContext) {
     try {
         await InsertOne(businessMerchantConfigsSchema, ctx);
         return BaseResultData.ok();
@@ -31,7 +31,7 @@ export async function createConfig(ctx: Context) {
     }
 };
 
-export async function findOneConfig(ctx: Context) {
+export async function findOneConfig(ctx: AppContext) {
     try {
         const id = ctx.params.id;
         const res = await FindOneByKey(businessMerchantConfigsSchema, 'id', id);
@@ -42,7 +42,7 @@ export async function findOneConfig(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -87,7 +87,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         await UpdateByKey(businessMerchantSchema, 'id', ctx);
         return BaseResultData.ok();
@@ -97,7 +97,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function updateConfig(ctx: Context) {
+export async function updateConfig(ctx: AppContext) {
     try {
         await UpdateByKey(businessMerchantConfigsSchema, 'id', ctx);
         return BaseResultData.ok();
@@ -107,7 +107,7 @@ export async function updateConfig(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(businessMerchantSchema, 'id', ctx);
         return BaseResultData.ok();
@@ -117,7 +117,7 @@ export async function remove(ctx: Context) {
     }
 };
 
-export async function removeConfig(ctx: Context) {
+export async function removeConfig(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(businessMerchantConfigsSchema, 'id', ctx);
         return BaseResultData.ok();

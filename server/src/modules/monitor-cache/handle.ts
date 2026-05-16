@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { Get, Keys, Set, Del } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
@@ -12,7 +12,7 @@ export async function findTypeList() {
     }
 };
 
-export async function findCacheList(ctx: Context) {
+export async function findCacheList(ctx: AppContext) {
     try {
         const { cacheType } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
@@ -29,7 +29,7 @@ export async function findCacheList(ctx: Context) {
     }
 };
 
-export async function findKey(ctx: Context) {
+export async function findKey(ctx: AppContext) {
     try {
         const { cacheType, cacheKey } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
@@ -42,7 +42,7 @@ export async function findKey(ctx: Context) {
     }
 };
 
-export async function updateKey(ctx: Context) {
+export async function updateKey(ctx: AppContext) {
     try {
         const { cacheType, cacheKey, cacheValue } = ctx.body as any;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
@@ -55,7 +55,7 @@ export async function updateKey(ctx: Context) {
     }
 };
 
-export async function removeType(ctx: Context) {
+export async function removeType(ctx: AppContext) {
     try {
         const { cacheType } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
@@ -68,7 +68,7 @@ export async function removeType(ctx: Context) {
     }
 };
 
-export async function removeKey(ctx: Context) {
+export async function removeKey(ctx: AppContext) {
     try {
         const { cacheType, cacheKey } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];

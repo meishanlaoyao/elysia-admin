@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
@@ -18,7 +18,7 @@ import { logger } from '@/shared/logger';
 import { Set as RedisSet } from '@/core/database/redis';
 import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
-export async function createMenu(ctx: Context) {
+export async function createMenu(ctx: AppContext) {
     try {
         await InsertOne(systemMenuSchema, ctx);
         return BaseResultData.ok();
@@ -28,7 +28,7 @@ export async function createMenu(ctx: Context) {
     }
 };
 
-export async function createMenuBtn(ctx: Context) {
+export async function createMenuBtn(ctx: AppContext) {
     try {
         await InsertOne(systemMenuBtnSchema, ctx);
         return BaseResultData.ok();
@@ -38,7 +38,7 @@ export async function createMenuBtn(ctx: Context) {
     }
 };
 
-export async function findSimple(ctx: Context) {
+export async function findSimple(ctx: AppContext) {
     try {
         const { userId } = (ctx as any)?.user;
         const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => {
@@ -58,7 +58,7 @@ export async function findSimple(ctx: Context) {
     }
 };
 
-export async function findTree(ctx: Context) {
+export async function findTree(ctx: AppContext) {
     try {
         const {
             title,
@@ -91,7 +91,7 @@ export async function findTree(ctx: Context) {
     }
 };
 
-export async function updateMenu(ctx: Context) {
+export async function updateMenu(ctx: AppContext) {
     try {
         await UpdateByKey(systemMenuSchema, 'menuId', ctx);
         return BaseResultData.ok();
@@ -101,7 +101,7 @@ export async function updateMenu(ctx: Context) {
     }
 };
 
-export async function updateMenuBtn(ctx: Context) {
+export async function updateMenuBtn(ctx: AppContext) {
     try {
         await UpdateByKey(systemMenuBtnSchema, 'btnId', ctx);
         return BaseResultData.ok();
@@ -111,7 +111,7 @@ export async function updateMenuBtn(ctx: Context) {
     }
 };
 
-export async function removeMenu(ctx: Context) {
+export async function removeMenu(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemMenuSchema, 'menuId', ctx);
         return BaseResultData.ok();
@@ -121,7 +121,7 @@ export async function removeMenu(ctx: Context) {
     }
 };
 
-export async function removeMenuBtn(ctx: Context) {
+export async function removeMenuBtn(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ctx);
         return BaseResultData.ok();

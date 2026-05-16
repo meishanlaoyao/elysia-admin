@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq, and } from 'drizzle-orm';
 import { logger } from '@/shared/logger';
 import {
@@ -35,9 +35,9 @@ import { businessPaymentsSchema } from '@database/schema/business_payments';
  * - 3: 已关闭
  */
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
-        const userId = (ctx as any)?.user?.userId;
+        const userId = ctx?.user?.userId;
         const { orderId, paymentId, amount, reason } = ctx.body as any;
         // 1. 查询订单信息
         const order = await FindOneByKey(businessOrdersSchema, 'id', orderId);
@@ -100,9 +100,9 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
-        const updateBy = (ctx as any)?.user?.userId || null;
+        const updateBy = ctx?.user?.userId as number || null;
         const { id, status, remark } = ctx.body as any;
         // 查询退款记录
         const refund = await FindOneByKey(businessRefundSchema, 'id', id);

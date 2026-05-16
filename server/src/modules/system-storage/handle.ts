@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
@@ -13,7 +13,7 @@ import { RunTransaction } from '@/core/database/transaction';
 import { systemStorageSchema } from '@database/schema/system_storage';
 import { StorageService, type StorageProviderType } from '@/infrastructure/storage';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(systemStorageSchema, ctx);
         return BaseResultData.ok();
@@ -23,7 +23,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -52,7 +52,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function generatePresign(ctx: Context) {
+export async function generatePresign(ctx: AppContext) {
     try {
         const { fileName } = ctx.query;
         const storage = await FindOneByKey(systemStorageSchema, 'status', true);
@@ -68,7 +68,7 @@ export async function generatePresign(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const data = ParseDateFields(ctx.body);
         await RunTransaction(async (tx) => {
@@ -84,7 +84,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemStorageSchema, 'storageId', ctx);
         return BaseResultData.ok();
