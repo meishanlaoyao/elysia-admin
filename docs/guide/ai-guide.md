@@ -11,6 +11,11 @@ head:
 
 本项目内置了一套 AI 规范文档（`.ai/` 目录），并在多种 IDE 中提供了**与 Cursor 规则语义对齐**的项目级配置，便于在不同工具里获得一致的生成行为。代码级模板以 `.ai/AI_CODE_EXAMPLES.md` 为准；**工具链与运维向**约定（内置组件索引、Postgres MCP、手执 SQL、字典与菜单权限等）见 `.ai/AI_CONTEXT_CAPSULE.md`，按需阅读即可。
 
+## 文档索引（llms.txt）
+
+本站构建时自动生成符合 [llmstxt.org](https://llmstxt.org/) 的索引文件，便于 Cursor、Claude 等一次性加载全站目录或全文。
+
+<EaLlmsDownload />
 
 ## 一、IDE 内建规则（Cursor / Trae / Kiro）
 

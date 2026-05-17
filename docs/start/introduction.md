@@ -16,10 +16,7 @@ head:
 # 介绍
 <p align="center">
   <a href="https://gitee.com/nian-qian/elysia-admin">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="/logo.svg">
-      <img src="/logo.svg" style="width: 128px;" alt="Elysia Admin">
-    </picture>
+    <img src="/big-logo.webp" style="width: 128px;" alt="Elysia Admin">
     <h1 align="center">Elysia Admin</h1>
   </a>
 </p>

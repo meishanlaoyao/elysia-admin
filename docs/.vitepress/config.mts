@@ -17,10 +17,16 @@ export default withMermaid(
     title: "Elysia Admin",
     description: "一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。",
     lang: 'zh-CN',
+    appearance: false,
     sitemap: {
       hostname: "https://elysia-admin.top",
     },
     head: [
+      [
+        'script',
+        {},
+        `(function(){try{var t=localStorage.getItem('ea-theme');if(t!=='light'&&t!=='dark')t=localStorage.getItem('vitepress-theme-appearance');var r=document.documentElement;if(t==='light')r.classList.remove('dark');else r.classList.add('dark');}catch(e){document.documentElement.classList.add('dark');}})();`,
+      ],
       ['link', { rel: 'icon', href: '/favicon.ico' }],
       ['meta', { charset: 'utf-8' }],
       ['meta', { name: 'description', content: '一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。' }],
@@ -78,12 +84,16 @@ export default withMermaid(
     },
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config
-      logo: '/logo.svg',
+      logo: '/logo.webp',
       siteTitle: 'Elysia Admin',
       nav: [
-        { text: '快速开始', link: '/start/quick-start' },
+        { text: '文档', link: '/start/quick-start' },
+        { text: '介绍', link: '/start/introduction' },
+        { text: 'AI', link: '/guide/ai-guide' },
+        { text: '架构', link: '/architecture/structure' },
+        { text: '生态', link: '/other/related-links' },
+        { text: 'Showcase', link: 'https://demo.elysia-admin.top/admin' },
         { text: '更新日志', link: '/start/change-log' },
-        { text: '相关链接', link: '/other/related-links' },
       ],
       sidebar: [
         {
