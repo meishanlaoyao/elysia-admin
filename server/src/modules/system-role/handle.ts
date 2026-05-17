@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
@@ -20,7 +20,7 @@ import { systemUserRoleSchema } from '@database/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
 import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(systemRoleSchema, ctx);
         return BaseResultData.ok();
@@ -30,7 +30,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -82,7 +82,7 @@ export async function findOptions() {
     }
 };
 
-export async function findOnePermission(ctx: Context) {
+export async function findOnePermission(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const where = CreateQueryBuilder(systemRoleMenuSchema)
@@ -96,7 +96,7 @@ export async function findOnePermission(ctx: Context) {
     }
 };
 
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(systemRoleSchema, 'roleId', id);
@@ -108,7 +108,7 @@ export async function findOne(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         await UpdateByKey(systemRoleSchema, 'roleId', ctx);
         return BaseResultData.ok();
@@ -118,7 +118,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function updatePermission(ctx: Context) {
+export async function updatePermission(ctx: AppContext) {
     try {
         const { roleId, permissions } = ctx.body as {
             roleId: number;
@@ -129,7 +129,7 @@ export async function updatePermission(ctx: Context) {
             await tx.delete(systemRoleMenuSchema).where(eq(systemRoleMenuSchema.roleId, roleId));
             // 批量插入新的权限关联
             if (permissions && permissions.length > 0) {
-                const createBy = (ctx as any)?.user?.userId || null;
+                const createBy = ctx?.user?.userId || null;
                 const insertData = permissions.map(perm => ({
                     roleId,
                     menuId: perm.menuId,
@@ -147,7 +147,7 @@ export async function updatePermission(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemRoleSchema, 'roleId', ctx);
         return BaseResultData.ok();

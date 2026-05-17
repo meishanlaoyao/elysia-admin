@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
@@ -19,7 +19,7 @@ export async function create(data: typeof systemLoginLogSchema.$inferInsert) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -46,7 +46,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemLoginLogSchema, 'logId', ctx);
         return BaseResultData.ok();
@@ -59,9 +59,9 @@ export async function remove(ctx: Context) {
 /**
  * 添加登陆日志
  */
-export async function AddLoginLog(ctx: Context) {
+export async function AddLoginLog(ctx: AppContext) {
     try {
-        const clientInfo = (ctx as any).clientInfo;
+        const clientInfo = ctx.clientInfo;
         if (!clientInfo) return;
         const user = (ctx as any)?.user || {};
         const res = (ctx as any)?.response || {};

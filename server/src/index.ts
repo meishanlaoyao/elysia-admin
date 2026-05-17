@@ -1,8 +1,8 @@
-import config from "@/config";
+﻿import config from "@/config";
 import { CreateApp } from '@/app';
 import { logger } from '@/shared/logger';
 import { InitSeedData } from 'script/seed';
-import { StopAllCronJobs } from '@/shared/cron';
+import { StopAllCronJobs } from '@/infrastructure/cron/cron-scheduler';
 import { quitRedis } from '@/core/database/redis';
 
 let shuttingDown = false;

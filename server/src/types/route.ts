@@ -1,3 +1,4 @@
+import type { Context } from 'elysia';
 import type { IRequestMethod } from '@/types/common';
 
 export interface IRouteMeta {
@@ -33,13 +34,13 @@ export interface IRoute {
      */
     summary: string
     /**
-     * 路由管道
+     * 路由管道（Elysia 本地 hook：body/query/response/afterHandle 等）
      */
-    dto?: any
+    dto?: Record<string, unknown>
     /**
      * 路由处理函数
      */
-    handle: Function
+    handle: (ctx: Context) => unknown | Promise<unknown>
     /**
      * 路由元信息
      */

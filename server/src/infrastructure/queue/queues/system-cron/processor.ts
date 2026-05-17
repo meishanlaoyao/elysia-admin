@@ -1,14 +1,13 @@
-/**
+﻿/**
  * SystemCron Processor（沙箱模式）
  */
 import type { SandboxedJob } from 'bullmq';
+import { registerSystemCronSandboxTasks } from '@/worker-sandbox/system-cron-tasks';
 import { createTaskRegistry, parseArgs } from '@/infrastructure/queue/core/processor-utils';
 
-const { register, get } = createTaskRegistry();
 
-// 注册所有业务 task
-import { jobDemo } from '@/modules/monitor-job/task';
-register('测试任务', jobDemo);
+const { register, get } = createTaskRegistry();
+registerSystemCronSandboxTasks(register);
 
 export default async function processor(job: SandboxedJob) {
     const { taskName, jobArgs } = job.data;

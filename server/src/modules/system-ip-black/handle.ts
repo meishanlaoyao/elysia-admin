@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import config from '@/config';
 import { BaseResultData } from '@/core/result';
@@ -15,7 +15,7 @@ import { IsIpAddress } from '@/core/check';
 import { CacheEnum } from '@/constants/enum';
 import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
         if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
@@ -27,7 +27,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findAll(ctx: Context) {
+export async function findAll(ctx: AppContext) {
     try {
         const {
             ipAddress,
@@ -50,7 +50,7 @@ export async function findAll(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
         if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
@@ -63,7 +63,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
         await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ctx);

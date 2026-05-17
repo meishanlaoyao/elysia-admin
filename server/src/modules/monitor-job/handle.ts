@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
@@ -22,7 +22,7 @@ function getCronQueue() {
     return queue;
 };
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferInsert;
         if (data.status && data.jobName && data.jobCron) {
@@ -45,7 +45,7 @@ export async function create(ctx: Context) {
     }
 };
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -79,7 +79,7 @@ export async function findList(ctx: Context) {
     }
 };
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const data = ctx.body as typeof monitorJobSchema.$inferSelect;
         const jobId = data.jobId;
@@ -109,7 +109,7 @@ export async function update(ctx: Context) {
     }
 };
 
-export async function remote(ctx: Context) {
+export async function remote(ctx: AppContext) {
     try {
         const ids = ctx.params.ids.split(',').map(Number) as number[];
         const jobs = await FindAll(monitorJobSchema, inArray(monitorJobSchema.jobId, ids));
@@ -117,7 +117,7 @@ export async function remote(ctx: Context) {
         if (jobs?.length) {
             for (const job of jobs) {
                 await removeSchedule(queue, String(job.jobName), String(job.jobCron));
-            }
+            };
         };
         await SoftDeleteByKeys(monitorJobSchema, 'jobId', ctx);
         return BaseResultData.ok();

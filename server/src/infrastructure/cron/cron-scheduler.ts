@@ -1,12 +1,9 @@
-import { Cron } from 'croner';
-import { logger } from './logger';
+﻿import { Cron } from 'croner';
+import { logger } from '@/shared/logger';
 import { RedisLock } from '@/core/database/redis-lock';
 import type { ITask } from '@/types/task';
 
-// 存储所有定时任务实例
 const cronJobs = new Map<string, Cron>();
-
-// 存储所有注册的任务函数
 const taskRegistry = new Map<string, ITask>();
 
 /**
@@ -42,16 +39,18 @@ function parseJobArgs(jobArgs?: string | any[]): any[] {
         try {
             const parsed = JSON.parse(jobArgs);
             return Array.isArray(parsed) ? parsed : [parsed];
-        } catch (error: any) {
-            logger.error(`参数解析失败:`, error);
+        } catch (error: unknown) {
+            logger.error('参数解析失败:', {
+                error: error instanceof Error ? error.message : String(error),
+            });
             return [];
-        }
-    };
+        };
+    }
     return [];
 };
 
 /**
- * 计算cron表达式的下次执行间隔（秒）
+ * 计算 cron 表达式的下次执行间隔（秒）
  */
 function getNextInterval(cronExpression: string): number {
     try {
@@ -60,12 +59,12 @@ function getNextInterval(cronExpression: string): number {
         const next2 = cron.nextRun(next1);
         if (next1 && next2) {
             const interval = Math.floor((next2.getTime() - next1.getTime()) / 1000);
-            return Math.max(interval - 5, 10); // 至少保持10秒，最多到下次执行前5秒
+            return Math.max(interval - 5, 10);
         };
-    } catch (error) {
+    } catch {
         // 解析失败，使用默认值
     }
-    return 55; // 默认55秒（适用于每分钟执行的任务）
+    return 55;
 };
 
 /**
@@ -88,13 +87,15 @@ export function CreateCronJob(
         if (!acquired) {
             logger.warn(`任务 [${jobName}] 已被其他实例锁定，跳过执行`);
             return;
-        };
+        }
         try {
             logger.info(`任务 [${jobName}] 开始执行`);
             await task.taskFunc(...parsedArgs);
             logger.info(`任务 [${jobName}] 执行完成`);
-        } catch (error: any) {
-            logger.error(`任务 [${jobName}] 执行失败:`, error);
+        } catch (error: unknown) {
+            logger.error(`任务 [${jobName}] 执行失败:`, {
+                error: error instanceof Error ? error.message : String(error),
+            });
             await lock.release();
         }
     });
@@ -114,7 +115,7 @@ export function AddCronJob(
     if (cronJobs.has(jobName)) {
         logger.warn(`任务 [${jobName}] 已存在，将先停止旧任务`);
         RemoveCronJob(jobName);
-    };
+    }
     const parsedArgs = parseJobArgs(taskArgs);
     const argsLog = parsedArgs.length ? `，参数: ${JSON.stringify(parsedArgs)}` : '';
     logger.info(`添加定时任务 [${jobName}]，cron: ${cronExpression}${argsLog}`);
@@ -129,7 +130,7 @@ export function RemoveCronJob(jobName: string): boolean {
     if (!cronJob) {
         logger.warn(`任务 [${jobName}] 不存在`);
         return false;
-    };
+    }
     cronJob.stop();
     cronJobs.delete(jobName);
     logger.info(`已移除定时任务 [${jobName}]`);

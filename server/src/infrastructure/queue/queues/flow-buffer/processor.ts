@@ -1,15 +1,13 @@
-/**
+﻿/**
  * FlowBuffer Processor（沙箱模式）
  * 每个任务在独立子进程中执行
  */
-import { createTaskRegistry } from '@/infrastructure/queue/core/processor-utils';
 import type { SandboxedJob } from 'bullmq';
+import { createTaskRegistry } from '@/infrastructure/queue/core/processor-utils';
+import { registerFlowBufferSandboxTasks } from '@/worker-sandbox/flow-buffer-tasks';
 
 const { register, get } = createTaskRegistry();
-
-// 注册所有业务 task
-import { OrderTimeoutHandle } from '@/modules/business-orders/handle';
-register('订单超时处理', OrderTimeoutHandle);
+registerFlowBufferSandboxTasks(register);
 
 export default async function processor(job: SandboxedJob) {
     const taskFn = get(job.name);

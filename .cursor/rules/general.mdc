@@ -12,6 +12,8 @@ elysia-admin/
 ├── admin/src/        # Frontend (Vue 3)
 └── server/src/       # Backend (Elysia + Bun)
     ├── modules/      # Business logic — one folder per module
+    ├── worker-sandbox/  # 沙箱 Worker 任务注册（可 import modules；queue processor 只 import 此处）
+    ├── types/        # 可 import 的手写类型（*.ts）；子目录 `types/ambient/` 仅放 *.d.ts（ambient / 说明性声明，无运行时）
     ├── core/         # Infrastructure (DO NOT modify)
     ├── shared/       # Pure utilities (stateless)
     └── infrastructure/ # External clients
@@ -30,9 +32,12 @@ modules → infrastructure
 
 core  ✗→ modules
 shared ✗→ modules
-infrastructure ✗→ modules
-shared ✗→ core/database
+infrastructure ✗→ modules   （沙箱 processor 通过 `server/src/worker-sandbox/` 注册任务，不在 `infrastructure` 内直接 import `modules`）
+
+shared ✗→ core/database       （定时器与 Redis 锁见 `server/src/infrastructure/cron/cron-scheduler.ts`）
 ```
+
+**Server 类型文件约定**：`server/src/types/*.ts` 为业务/公共类型（可正常 `import`）；`server/src/types/ambient/*.d.ts` 仅放 ambient 声明（如 Elysia 说明、无实现模块的提示），不要把大段业务 interface 写进 `ambient/`。
 
 ---
 

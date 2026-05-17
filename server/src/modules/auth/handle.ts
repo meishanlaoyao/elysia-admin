@@ -1,4 +1,4 @@
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { GenerateToken, VerifyToken } from '@/shared/jwt';
 import { BcryptCompare } from '@/shared/bcrypt';
@@ -22,7 +22,7 @@ function isPublicRegisterAllowed(): boolean {
     return config.app.allowPublicRegister ?? false;
 };
 
-export async function accountPasswordLogin(ctx: Context) {
+export async function accountPasswordLogin(ctx: AppContext) {
     try {
         const { username, password } = ctx.body as any;
         const user = await GetUserBy('username', username);
@@ -44,7 +44,7 @@ export async function accountPasswordLogin(ctx: Context) {
         if ('error' in tokens) return tokens.error;
         const { roles, permissions } = await GetUserRoleAndPermission(user.userId);
         const clientInfo = await GetClientInfo(ctx);
-        (ctx as any).clientInfo = clientInfo;
+        ctx.clientInfo = clientInfo;
         const userInfo = {
             userId: user.userId, // 用户 ID [必须]
             username: user.username,
@@ -62,14 +62,14 @@ export async function accountPasswordLogin(ctx: Context) {
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
-        (ctx as any).user = userInfo;
+        ctx.user = userInfo;
         return BaseResultData.ok(tokens);
     } catch (error) {
         return BaseResultData.fail(500, error);
     }
 };
 
-export async function refreshToken(ctx: Context) {
+export async function refreshToken(ctx: AppContext) {
     try {
         const { refreshToken } = ctx.body as any;
         if (!refreshToken) return BaseResultData.fail(404, '刷新令牌不存在');
@@ -88,7 +88,7 @@ export async function refreshToken(ctx: Context) {
     }
 };
 
-export async function registerUser(ctx: Context) {
+export async function registerUser(ctx: AppContext) {
     try {
         if (!isPublicRegisterAllowed()) return BaseResultData.fail(403, '公开注册已关闭');
         const { username, password } = ctx.body as any;
@@ -100,7 +100,7 @@ export async function registerUser(ctx: Context) {
     }
 };
 
-export async function forgetPassword(ctx: Context) {
+export async function forgetPassword(ctx: AppContext) {
     try {
         const { email } = ctx.body as any;
         const user = await GetUserBy('email', email);
@@ -135,7 +135,7 @@ export async function forgetPassword(ctx: Context) {
     }
 };
 
-export async function resetPassword(ctx: Context) {
+export async function resetPassword(ctx: AppContext) {
     try {
         const { uid, token, password } = ctx.body as any;
         const key = CacheEnum.FORGET_PASSWORD + uid + ':' + token;
@@ -150,9 +150,9 @@ export async function resetPassword(ctx: Context) {
     }
 };
 
-export async function logout(ctx: Context) {
+export async function logout(ctx: AppContext) {
     try {
-        const userId = (ctx as any)?.user?.userId as string;
+        const userId = ctx?.user?.userId;
         // 刷新token
         const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
         const oldKeys = await Keys(refreshKey) || [];
@@ -181,7 +181,7 @@ async function generateAndStoreTokens(payload: any): Promise<{ accessToken: stri
 };
 
 // 添加密码错误次数
-async function addPasswordErrorTimes(ctx: Context) {
+async function addPasswordErrorTimes(ctx: AppContext) {
     const ip = GetClientIp(ctx);
     let strCount = await Get(CacheEnum.ADMIN_LOGIN_ERROR_COUNT + ip);
     let count = Number(strCount) || 0;
