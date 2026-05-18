@@ -24,6 +24,9 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { useAuth } from '@/hooks'
+import { useAppMode } from '@/hooks/core/useAppMode'
+import { router } from '@/router'
+import { reloadDynamicRoutes } from '@/router/guards/beforeEach'
 import { ElTag, ElMessageBox } from 'element-plus'
 import { useTableColumns } from '@/hooks/core/useTableColumns'
 import { formatMenuTitle } from '@/utils/router'
@@ -44,6 +47,14 @@ defineOptions({ name: 'Menus' })
 
 type MenuListItem = Api.SystemMenu.MenuListItem
 const auth = useAuth()
+const { isBackendMode } = useAppMode()
+
+/** 菜单变更后刷新侧边栏（后端权限模式） */
+const refreshSidebarMenus = async () => {
+  if (isBackendMode.value) {
+    await reloadDynamicRoutes(router)
+  }
+}
 
 // 弹窗相关
 const dialogType = ref<'add' | 'edit'>('add')
@@ -383,7 +394,8 @@ const handleSubmit = async (formData: any): Promise<void> => {
         await fetchCreateMenuBtn(btnData)
       }
     }
-    getData()
+    await getData()
+    await refreshSidebarMenus()
   } catch (error) {
     ElMessage.error('操作失败')
   }
@@ -403,7 +415,8 @@ const handleDeleteMenu = async (row: MenuListItem): Promise<void> => {
     if (row.menuId && typeof row.menuId === 'number') {
       await fetchDeleteMenu(row.menuId)
       ElMessage.success('删除成功')
-      getData()
+      await getData()
+      await refreshSidebarMenus()
     }
   } catch (error) {
     if (error !== 'cancel') {
@@ -422,11 +435,10 @@ const handleDeleteAuth = async (row: MenuListItem): Promise<void> => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-
     if (row.btnId) {
       await fetchDeleteMenuBtn(row.btnId)
-      ElMessage.success('删除成功')
-      getData()
+      await getData()
+      await refreshSidebarMenus()
     }
   } catch (error) {
     if (error !== 'cancel') {

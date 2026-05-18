@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import ImagePlaceholder from '../ImagePlaceholder.vue'
+import { ref, computed } from 'vue'
 import { useEaScrollReveal } from '../../composables/useEaScrollReveal'
+import { useEaTheme } from '../../composables/useEaTheme'
 
 const menu = [
   { text: '快速开始', href: '/start/quick-start' },
@@ -15,6 +15,10 @@ const menu = [
 ]
 
 const section = ref<HTMLElement | null>(null)
+const { isDark } = useEaTheme()
+const docsPreviewImgSrc = computed(() =>
+  isDark.value ? '/home/3-dark.webp' : '/home/3.webp',
+)
 useEaScrollReveal(section)
 </script>
 
@@ -63,18 +67,13 @@ useEaScrollReveal(section)
               后端启动后，控制台会打印 API 根路径、OpenAPI 与 JSON 导出地址（与《快速开始》示例输出一致），便于前端与第三方工具拉取契约。
             </p>
             <div class="mt-6 rounded-xl border border-ea bg-ea-code-soft p-4 font-mono text-[12px] leading-relaxed text-fg">
-              <span class="text-brand">GET</span> /api/health ·
+              <span class="text-brand">GET</span> /api/auth/login ·
               <a class="text-fg-muted hover:text-brand" href="/guide/first-api">第一个接口</a>
               ·
               <a class="text-fg-muted hover:text-brand" href="/architecture/structure">项目结构</a>
             </div>
             <div class="mt-8">
-              <ImagePlaceholder
-                label="真实文档页截图：侧栏 + 正文 + 代码块 + 大纲"
-                tone="bg-ea-placeholder"
-                min-height-class="min-h-[220px] md:min-h-[280px]"
-                suggested-height-label="约 260–320px 高，建议与桌面端视口宽度成比例截取"
-              />
+              <img :src="docsPreviewImgSrc" alt="真实文档页截图：侧栏 + 正文 + 代码块 + 大纲" class="min-h-[220px] md:min-h-[280px]">
             </div>
           </div>
         </div>

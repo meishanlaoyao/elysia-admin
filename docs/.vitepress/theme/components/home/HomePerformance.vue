@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useEaScrollReveal } from '../../composables/useEaScrollReveal'
+import { useEaTheme } from '../../composables/useEaTheme'
 
 const stats = [
   {
@@ -21,6 +22,10 @@ const stats = [
 ]
 
 const section = ref<HTMLElement | null>(null)
+const { isDark } = useEaTheme()
+const performanceImgSrc = computed(() =>
+  isDark.value ? '/home/2-dark.webp' : '/home/2.webp',
+)
 useEaScrollReveal(section)
 </script>
 
@@ -56,7 +61,7 @@ useEaScrollReveal(section)
       </div>
 
       <div class="ea-scroll-block mt-10">
-        <img src="/home/2-dark.webp" alt="监控或压测曲线图" class="w-full" >
+        <img :src="performanceImgSrc" alt="监控或压测曲线图" class="w-full" >
       </div>
     </div>
   </section>

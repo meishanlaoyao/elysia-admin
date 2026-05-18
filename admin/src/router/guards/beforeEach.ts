@@ -356,17 +356,36 @@ async function fetchUserInfo(): Promise<void> {
 }
 
 /**
+ * 同步重置动态路由状态（供重新加载菜单使用）
+ */
+function resetDynamicRouteStateSync(): void {
+  routeRegistry?.unregister()
+  IframeRouteManager.getInstance().clear()
+  const menuStore = useMenuStore()
+  menuStore.removeAllDynamicRoutes()
+  menuStore.setMenuList([])
+  resetRouteInitState()
+}
+
+/**
+ * 重新加载动态路由与侧边栏菜单（菜单管理变更后调用）
+ */
+export async function reloadDynamicRoutes(router: Router): Promise<void> {
+  const current = router.currentRoute.value
+  resetDynamicRouteStateSync()
+  await router.replace({
+    path: current.path,
+    query: current.query,
+    hash: current.hash
+  })
+}
+
+/**
  * 重置路由相关状态
  */
 export function resetRouterState(delay: number): void {
   setTimeout(() => {
-    routeRegistry?.unregister()
-    IframeRouteManager.getInstance().clear()
-    const menuStore = useMenuStore()
-    menuStore.removeAllDynamicRoutes()
-    menuStore.setMenuList([])
-    // 重置路由初始化状态，允许重新登录后再次初始化
-    resetRouteInitState()
+    resetDynamicRouteStateSync()
   }, delay)
 }
 

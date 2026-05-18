@@ -15,12 +15,13 @@ import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { logger } from '@/shared/logger';
-import { Set as RedisSet } from '@/core/database/redis';
+import { Keys, Del, Set as RedisSet } from '@/core/database/redis';
 import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: AppContext) {
     try {
         await InsertOne(systemMenuSchema, ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -31,6 +32,7 @@ export async function createMenu(ctx: AppContext) {
 export async function createMenuBtn(ctx: AppContext) {
     try {
         await InsertOne(systemMenuBtnSchema, ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -41,17 +43,7 @@ export async function createMenuBtn(ctx: AppContext) {
 export async function findSimple(ctx: AppContext) {
     try {
         const { userId } = (ctx as any)?.user;
-        const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => {
-            const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
-            const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
-            const menuData = await FindAll(systemMenuSchema, menuWhere, {
-                orderByColumn: 'sort',
-                sortRule: 'desc',
-            });
-            const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
-            const menuBtnData = await FindAll(systemMenuBtnSchema, menuBtnWhere);
-            return handleMenuListToTree(menuData, menuBtnData);
-        });
+        const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => loadUserMenuTree(userId));
         return BaseResultData.ok(data);
     } catch (error) {
         return BaseResultData.fail(500, error);
@@ -94,6 +86,7 @@ export async function findTree(ctx: AppContext) {
 export async function updateMenu(ctx: AppContext) {
     try {
         await UpdateByKey(systemMenuSchema, 'menuId', ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -104,6 +97,7 @@ export async function updateMenu(ctx: AppContext) {
 export async function updateMenuBtn(ctx: AppContext) {
     try {
         await UpdateByKey(systemMenuBtnSchema, 'btnId', ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -114,6 +108,7 @@ export async function updateMenuBtn(ctx: AppContext) {
 export async function removeMenu(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemMenuSchema, 'menuId', ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -124,6 +119,7 @@ export async function removeMenu(ctx: AppContext) {
 export async function removeMenuBtn(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ctx);
+        await invalidateAdminMenuCache();
         return BaseResultData.ok();
     }
     catch (error) {
@@ -221,18 +217,39 @@ export function handleMenuListToTree(
 // 刷新缓存菜单树
 export async function RefreshRoutes(userId: number) {
     try {
-        const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
-        const menuWhere = CreateQueryBuilder(systemMenuSchema).in('menuId', [...menuIds]).build();
-        const menuData = await FindAll(systemMenuSchema, menuWhere, {
-            orderByColumn: 'sort',
-            sortRule: 'desc',
-        });
-        const menuBtnWhere = CreateQueryBuilder(systemMenuBtnSchema).in('btnId', [...menuBtnIds]).build();
-        const menuBtnData = await FindAll(systemMenuBtnSchema, menuBtnWhere);
-        const data = handleMenuListToTree(menuData, menuBtnData);
-        if (data) await RedisSet(CacheEnum.ADMIN_MENU + userId, data);
+        const data = await loadUserMenuTree(userId);
+        await RedisSet(CacheEnum.ADMIN_MENU + userId, data);
     } catch (error) {
         logger.error('刷新缓存菜单树失败:' + error);
         throw error;
     }
+};
+
+/** 加载用户可见菜单树（未删除且已启用） */
+async function loadUserMenuTree(userId: number) {
+    const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
+    if (!menuIds.length) return [];
+    const menuWhere = CreateQueryBuilder(systemMenuSchema)
+        .in('menuId', [...menuIds])
+        .eq('delFlag', false)
+        .eq('status', true)
+        .build();
+    const menuData = await FindAll(systemMenuSchema, menuWhere, {
+        orderByColumn: 'sort',
+        sortRule: 'desc',
+    });
+    const menuBtnBuilder = CreateQueryBuilder(systemMenuBtnSchema)
+        .eq('delFlag', false)
+        .eq('status', true);
+    if (menuBtnIds.length) menuBtnBuilder.in('btnId', [...menuBtnIds]);
+    const menuBtnData = menuBtnIds.length
+        ? await FindAll(systemMenuBtnSchema, menuBtnBuilder.build())
+        : [];
+    return handleMenuListToTree(menuData, menuBtnData);
+};
+
+/** 清除所有用户的侧边栏菜单缓存 */
+export async function invalidateAdminMenuCache() {
+    const keys = await Keys(CacheEnum.ADMIN_MENU + '*') || [];
+    if (keys.length) await Del(keys);
 };

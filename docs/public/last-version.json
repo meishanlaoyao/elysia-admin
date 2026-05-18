@@ -1,7 +1,7 @@
 {
-    "version": "1.4.1",
-    "publishDate": "2026-05-16",
-    "description": "本次更新侧重后端工程规范：优化路由加载与注册、队列沙箱任务登记、请求上下文类型（AppContext）及开发配置，便于排查问题与编写接口。",
+    "version": "1.4.2",
+    "publishDate": "2026-05-18",
+    "description": "修复了菜单删除/禁用后仍显示的问题，并优化菜单管理页保存或删除后自动刷新侧边栏动态路由。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

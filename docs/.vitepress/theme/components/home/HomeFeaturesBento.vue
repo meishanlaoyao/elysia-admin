@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useEaScrollReveal } from '../../composables/useEaScrollReveal'
+import { useEaTheme } from '../../composables/useEaTheme'
 import {
   LayoutTemplate,
   RefreshCw,
@@ -63,6 +64,10 @@ const cards = [
 ]
 
 const sectionEl = ref<HTMLElement | null>(null)
+const { isDark } = useEaTheme()
+const architectureImgSrc = computed(() =>
+  isDark.value ? '/home/1-dark.webp' : '/home/1.webp',
+)
 useEaScrollReveal(sectionEl, {
   trigger: 'head',
   start: 'top 72%',
@@ -117,7 +122,7 @@ useEaScrollReveal(sectionEl, {
 
       <div class="ea-scroll-block mt-10 flex justify-center">
         <img
-          src="/home/1-dark.webp"
+          :src="architectureImgSrc"
           alt="架构图"
           class="w-full max-w-[1100px]"
         >

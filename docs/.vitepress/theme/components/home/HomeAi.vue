@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { FileCode2, BookOpen, Layers, Sparkles } from 'lucide-vue-next'
 import { useEaScrollReveal } from '../../composables/useEaScrollReveal'
+import { useEaTheme } from '../../composables/useEaTheme'
 
 const items = [
   {
@@ -27,6 +28,10 @@ const items = [
 ]
 
 const section = ref<HTMLElement | null>(null)
+const { isDark } = useEaTheme()
+const aiImgSrc = computed(() =>
+  isDark.value ? '/home/4-dark.webp' : '/home/4.webp',
+)
 useEaScrollReveal(section)
 </script>
 
@@ -66,7 +71,7 @@ useEaScrollReveal(section)
             开发指南</a>
         </div>
         <div class="ea-scroll-block">
-          <img src="/home/4-dark.webp" alt="IDE 规则或 .ai 目录结构示意图（Cursor / 规则文件树）" class="w-full" >
+          <img :src="aiImgSrc" alt="IDE 规则或 .ai 目录结构示意图（Cursor / 规则文件树）" class="w-full" >
         </div>
       </div>
     </div>

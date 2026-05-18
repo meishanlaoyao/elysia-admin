@@ -44,7 +44,7 @@ onMounted(() => {
         <HomePerformance />
         <HomeEcosystem />
         <HomeAi />
-        <!-- <HomeDocsPreview /> -->
+        <HomeDocsPreview />
       </main>
       <HomeFooter />
     </div>
