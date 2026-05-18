@@ -242,6 +242,14 @@ elysia-admin
 
 后端采用 `Elysia.js` 框架构建，遵循分层架构设计。
 
+**依赖方向（简要）：**
+
+- `modules` → `core` / `shared` / `infrastructure`
+- `infrastructure/queue/**/processor.ts` → `worker-sandbox` → `modules`（Processor 不直接 import 业务模块）
+- `shared` 不依赖 `core/database`（进程内 Cron 与 Redis 锁见 `infrastructure/cron`）
+
+**路由加载：** 开发环境扫描 `modules/*/route.ts`，单模块格式错误或加载失败会 `warn` 并跳过；生产环境使用构建预生成的 `core/route-registry.generated.ts`。
+
 ```
 ├── database                      # 数据库定义层目录
 │   ├── schema                    # 业务表 Schema 定义
@@ -291,9 +299,11 @@ elysia-admin
 │   │   ├── check.ts              # 常用校验函数
 │   │   ├── function.ts           # 通用函数层
 │   │   ├── result.ts             # 结果处理层
-│   │   ├── route-registry.ts     # 路由注册层
-│   │   └── task-registry.ts      # 任务注册层
+│   │   ├── route-registry.ts     # 路由注册层（开发扫描 / 生产读预生成文件）
+│   │   └── task-registry.ts      # 启动时从 DB 恢复 BullMQ repeat 定时任务
 │   ├── infrastructure            # 基础设施层
+│   │   ├── cron                  # 进程内 Croner + Redis 分布式锁（优雅关闭用）
+│   │   │   └── cron-scheduler.ts # 业务定时以 BullMQ system-cron-queue 为准
 │   │   ├── clients               # 客户端层
 │   │   │   ├── payment           # 支付客户端层
 │   │   │   │   ├── providers     # 支付提供商层
@@ -440,11 +450,13 @@ elysia-admin
 │   │   │   ├── dto.ts            # 校验层定义
 │   │   │   ├── handle.ts         # 处理层定义
 │   │   │   └── route.ts          # 路由层定义
-│   │   └── index.ts              # 模块层入口
+│   │   └── index.ts              # 模块层入口（路由挂载与 RouteMap）
+│   ├── worker-sandbox            # 沙箱 Worker 任务注册（可 import modules）
+│   │   ├── system-cron-tasks.ts  # system-cron-queue 任务组合
+│   │   └── flow-buffer-tasks.ts  # flow-buffer-queue 任务组合
 │   ├── shared                    # 共享工具函数目录
 │   │   ├── bcrypt.ts             # 加密工具函数
 │   │   ├── color.ts              # 颜色工具函数
-│   │   ├── cron.ts               # 定时任务工具函数
 │   │   ├── htmltemplate.ts       # HTML 模板工具函数
 │   │   ├── ip.ts                 # IP 工具函数
 │   │   ├── jwt.ts                # JWT 工具函数
@@ -453,9 +465,10 @@ elysia-admin
 │   │   ├── time.ts               # 时间工具函数
 │   │   └── uuid.ts               # UUID 工具函数
 │   ├── types                     # 类型定义目录
+│   │   ├── app-context.ts        # 请求上下文（user、routeInfo 等）
 │   │   ├── common.ts             # 公共类型定义文件
 │   │   ├── dto.ts                # 校验层类型定义文件
-│   │   ├── index.ts              # 类型定义总入口
+│   │   ├── last-version.ts       # 版本信息类型
 │   │   ├── pay.ts                # 支付相关类型定义文件
 │   │   ├── route.ts              # 路由层类型定义文件
 │   │   └── task.ts               # 任务层类型定义文件

@@ -9,10 +9,14 @@ elysia-admin/
 ├── admin/src/          # 前端（Vue 3 + TypeScript，Art Design Pro）
 └── server/src/         # 后端（Elysia + Bun）
     ├── modules/        # 业务模块，每模块独立目录
+    ├── worker-sandbox/ # 沙箱 Worker 任务注册（可 import modules；queue processor 只 import 此处）
+    ├── types/          # 可 import 的手写类型（*.ts）；`types/ambient/` 仅放 *.d.ts
     ├── core/           # 基础设施（默认不要修改）
     ├── shared/         # 无状态纯工具
     └── infrastructure/ # 外部客户端封装
 ```
+
+**Server 类型文件约定**：`server/src/types/*.ts` 为业务/公共类型；`server/src/types/ambient/*.d.ts` 仅放 ambient 声明，不要把大段业务 interface 写进 `ambient/`。
 
 ## 职责边界
 

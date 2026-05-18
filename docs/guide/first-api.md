@@ -86,15 +86,15 @@ export const CreateDto = {
 在 `/server/src/modules/business-goods/` 目录下创建 `handle.ts` 文件，用于实现接口的业务逻辑：
 
 ```ts [handle.ts]
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 
 /**
  * 创建商品接口处理函数
- * @param ctx Elysia 上下文对象
+ * @param ctx 请求上下文（含 user、routeInfo 等）
  * @returns 标准响应格式
  */
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const data = ctx.body;
         // 这里可以实现具体的业务逻辑，如数据库保存操作
@@ -157,10 +157,10 @@ export const CreateDto = {
 ```
 
 ```ts [handle.ts]
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const data = ctx.body;
         // 保存操作
@@ -174,7 +174,7 @@ export async function create(ctx: Context) {
 
 ## 六、模块文件协作
 
-完成以上五步后，`route.ts`、`dto.ts`、`handle.ts` 三个文件已在同一个模块目录中各司其职。约定在 `server/src/modules/` 下按领域建目录（如 `business-goods`）；`route.ts` 会被启动流程扫描并自动注册到应用，因此不必手写「把路由挂到 app」的样板代码。下面的示意图归纳了「谁参与注册、谁负责校验与业务」的协作关系：
+完成以上五步后，`route.ts`、`dto.ts`、`handle.ts` 三个文件已在同一个模块目录中各司其职。约定在 `server/src/modules/` 下按领域建目录（如 `business-goods`）；`route.ts` 会被启动流程扫描并自动注册到应用（开发环境逐模块加载，失败会 warn 并跳过；生产环境使用预生成的 `route-registry.generated.ts`），因此不必手写「把路由挂到 app」的样板代码。下面的示意图归纳了「谁参与注册、谁负责校验与业务」的协作关系：
 
 ```mermaid
 flowchart LR

@@ -189,7 +189,7 @@
 }
 
 .vp-doc a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 /* Mermaid：图表在正文区域内居中（适配 vitepress-plugin-mermaid 输出） */
@@ -209,7 +209,7 @@
   transform: translateY(-5px);
 }
 
-.VPFooter{
+.VPFooter {
   padding: 0.6rem !important;
 }
 
@@ -288,6 +288,7 @@ body {
 }
 
 @media (min-width: 960px) {
+
   /* 顶栏由 SiteNav 承担，去掉 VP 为默认 Nav 预留的 curtain 条与重复 padding-top */
   .ea-doc .VPSidebar {
     top: var(--vp-nav-height);
@@ -320,9 +321,7 @@ body {
 .ea-doc .aside-container {
   height: auto;
   bottom: var(--ea-stats-footer-height, 2.75rem);
-  max-height: calc(
-    100vh - var(--vp-nav-height) - var(--ea-stats-footer-height, 2.75rem)
-  );
+  max-height: calc(100vh - var(--vp-nav-height) - var(--ea-stats-footer-height, 2.75rem));
 }
 
 .ea-doc .aside-content {
@@ -359,14 +358,14 @@ body {
     color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.VPSidebarItem.is-active > .item {
- 
+.VPSidebarItem.is-active>.item {
+
   background: rgba(128, 82, 228, 0.12) !important;
   color: var(--vp-c-text-1) !important;
   box-shadow: inset 2px 0 0 0 #8052e4;
 }
 
-.VPSidebarItem:not(.is-active) > .item:hover {
+.VPSidebarItem:not(.is-active)>.item:hover {
   background: var(--ea-nav-hover);
 }
 
@@ -383,7 +382,7 @@ div[class*='language-'] {
   border: 1px solid var(--ea-border);
 }
 
-.vp-doc :not(pre) > code {
+.vp-doc :not(pre)>code {
   border: 1px solid var(--ea-border);
   background: var(--ea-nav-btn-bg) !important;
 }
@@ -731,7 +730,7 @@ div[class*='language-'] {
     box-shadow: none;
   }
 
-  .ea-site-nav .ea-doc-search .DocSearch-Button-Key + .DocSearch-Button-Key {
+  .ea-site-nav .ea-doc-search .DocSearch-Button-Key+.DocSearch-Button-Key {
     border: 1px solid var(--ea-border-strong) !important;
     border-radius: 6px !important;
     padding: 0 6px !important;
@@ -816,4 +815,24 @@ div[class*='language-'] {
   border-color: rgba(128, 82, 228, 0.5);
   background: var(--ea-nav-btn-hover-bg);
   color: var(--ea-fg);
+}
+
+/* NProgress 顶栏进度条（覆盖 nprogress-v2 默认 #29d） */
+.nprogress {
+  --ea-nprogress: #7353d2;
+}
+
+.nprogress .bar {
+  background: var(--ea-nprogress);
+}
+
+.nprogress .peg {
+  box-shadow:
+    0 0 10px var(--ea-nprogress),
+    0 0 5px var(--ea-nprogress);
+}
+
+.nprogress .spinner-icon {
+  border-top-color: var(--ea-nprogress);
+  border-left-color: var(--ea-nprogress);
 }

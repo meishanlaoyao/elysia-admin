@@ -13,7 +13,7 @@ head:
 
 ## 文档索引（llms.txt）
 
-本站构建时自动生成符合 [llmstxt.org](https://llmstxt.org/) 的索引文件，便于 Cursor、Claude 等一次性加载全站目录或全文。
+本站提供符合 [llmstxt.org](https://llmstxt.org/) 的索引文件，便于 Cursor、Claude 等一次性加载全站目录或全文。
 
 <EaLlmsDownload />
 
@@ -78,6 +78,8 @@ Kiro 中也可在仓库根使用 [AGENTS.md](https://agents.md/) 标准；本仓
 - 无需定时任务
 ```
 
+若需要 BullMQ 定时/队列任务：在模块 `task.ts` 定义函数，在 `server/src/worker-sandbox/` 注册（勿在 `processor.ts` 内直接 `import '@/modules/...'`），详见 [定时任务](./cron.md) 与 [队列](./queue.md)。
+
 AI 通常会：
 
 1. 列出要创建的文件（`dto.ts` / `handle.ts` / `route.ts` / `task.ts`）
@@ -130,9 +132,11 @@ AI 通常会：
 ## 目录结构
 server/src/modules/{group}-{name}/
     dto.ts      ← 验证层，只定义 schema
-    handle.ts   ← 业务层，只用 repository 函数
+    handle.ts   ← 业务层，只用 repository 函数（参数类型 AppContext）
     route.ts    ← HTTP 映射层，薄层，只绑定 dto+handle
-    task.ts     ← 定时任务函数
+    task.ts     ← BullMQ 沙箱可调用的导出函数（按需）
+
+队列/定时：在 server/src/worker-sandbox/*-tasks.ts 注册，processor 只 import worker-sandbox
 
 ## dto.ts 模板
 import { t } from 'elysia';
@@ -146,16 +150,16 @@ export const ListDto = CrudDto.list(SelectXxx, {
 });
 
 ## handle.ts 模板
-import { Context } from 'elysia';
+import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { InsertOne, FindPage, FindOneByKey, UpdateByKey, SoftDeleteByKeys, CreateQueryBuilder } from '@/core/database/repository';
 import { xxxSchema } from '@database/schema/xxx';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try { await InsertOne(xxxSchema, ctx); return BaseResultData.ok(); }
     catch (error) { return BaseResultData.fail(500, error); }
 }
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const { pageNum = 1, pageSize = 10, orderByColumn = 'createTime', sortRule = 'desc', startTime, endTime, field1 } = ctx.query;
         const whereCondition = CreateQueryBuilder(xxxSchema).eq('delFlag', false).like('field1', field1).dateRange('createTime', startTime, endTime).build();
@@ -163,7 +167,7 @@ export async function findList(ctx: Context) {
         return BaseResultData.ok(res);
     } catch (error) { return BaseResultData.fail(500, error); }
 }
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = Number(ctx.params.id);
         const data = await FindOneByKey(xxxSchema, 'xxxId', id);
@@ -171,11 +175,11 @@ export async function findOne(ctx: Context) {
         return BaseResultData.ok(data);
     } catch (error) { return BaseResultData.fail(500, error); }
 }
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try { await UpdateByKey(xxxSchema, 'xxxId', ctx); return BaseResultData.ok(); }
     catch (error) { return BaseResultData.fail(500, error); }
 }
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try { await SoftDeleteByKeys(xxxSchema, 'xxxId', ctx); return BaseResultData.ok(); }
     catch (error) { return BaseResultData.fail(500, error); }
 }

@@ -9,7 +9,7 @@ inclusion: always
 ## 典型开发任务
 
 - **新列表页 / CRUD 页**：在 `admin/src` 下按约定增加 `types/api`、`api`、`views` 分层，列表与表单与后端权限标识对齐。
-- **新后端业务模块**：在 `server/src/modules/{group}-{name}/` 下维护 `dto.ts`、`handle.ts`、`route.ts`、`task.ts` 四文件，路由启动时自动注册。
+- **新后端业务模块**：在 `server/src/modules/{group}-{name}/` 下维护 `dto.ts`、`handle.ts`、`route.ts`（必建）；**按需**增加 `task.ts`（队列/定时任务时在 `worker-sandbox/` 注册），路由启动时自动注册。
 
 ## 目标
 

@@ -20,8 +20,9 @@ modules → infrastructure
 
 core  ✗→ modules
 shared ✗→ modules
-infrastructure ✗→ modules
-shared ✗→ core/database
+infrastructure ✗→ modules   （沙箱 processor 通过 `server/src/worker-sandbox/` 注册任务，不在 `infrastructure` 内直接 import `modules`）
+
+shared ✗→ core/database       （定时器与 Redis 锁见 `server/src/infrastructure/cron/cron-scheduler.ts`）
 ```
 
 ## 生成与改动原则

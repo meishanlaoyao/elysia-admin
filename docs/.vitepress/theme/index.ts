@@ -17,12 +17,12 @@ import EaLlmsDownload from './components/EaLlmsDownload.vue'
 import { initEaTheme } from './composables/useEaTheme'
 import { registerEaScrollToTop } from './composables/useEaScrollToTop'
 
+import 'nprogress-v2/dist/index.css'
 import './style/theme-tokens.css'
 import './style/fonts.css'
 import './style/tailwind.css'
 import './style/index.css'
 import 'virtual:group-icons.css'
-import 'nprogress-v2/dist/index.css'
 import 'vitepress-markdown-timeline/dist/theme/index.css'
 
 import type { Theme } from 'vitepress'

@@ -209,19 +209,37 @@ export default queueManager.registerQueue({
 });
 ```
 
-### 2. 创建 Processor 文件
+### 2. 注册沙箱任务（worker-sandbox）
+
+`infrastructure` 层不直接依赖 `modules`。在 `server/src/worker-sandbox/email-notify-tasks.ts` 中组合业务逻辑并注册：
+
+```ts [ts]
+// server/src/worker-sandbox/email-notify-tasks.ts
+import type { TaskFn } from '@/infrastructure/queue/core/processor-utils';
+
+async function sendEmail(to: string, subject: string, body: string) {
+  console.log(`发送邮件到 ${to}: ${subject}`);
+}
+
+export function registerEmailNotifySandboxTasks(
+  register: (name: string, fn: TaskFn) => void,
+): void {
+  register('sendEmail', sendEmail as TaskFn);
+}
+```
+
+也可 `import` 模块 `handle.ts` 中已导出的函数，避免在沙箱层重复业务逻辑。
+
+### 3. 创建 Processor 文件
 
 ```ts [ts]
 // src/infrastructure/queue/queues/email-notify/processor.ts
 import type { SandboxedJob } from 'bullmq';
+import { registerEmailNotifySandboxTasks } from '@/worker-sandbox/email-notify-tasks';
 import { createTaskRegistry, parseArgs } from '../../core/processor-utils';
 
 const { register, get } = createTaskRegistry();
-
-register('sendEmail', async (to: string, subject: string, body: string) => {
-    // 可以直接使用数据库、SMTP 等工具
-    console.log(`发送邮件到 ${to}: ${subject}`);
-});
+registerEmailNotifySandboxTasks(register);
 
 export default async function processor(job: SandboxedJob) {
     const { taskName, jobArgs } = job.data;
@@ -234,7 +252,7 @@ export default async function processor(job: SandboxedJob) {
 
 > Processor 运行在独立子进程中，可以正常使用数据库、Redis 等所有工具，但无法访问主进程的内存单例（如已建立的连接对象）。子进程会自行初始化所需的连接。
 
-### 3. 创建 Worker 注册文件
+### 4. 创建 Worker 注册文件
 
 ```ts [ts]
 // src/infrastructure/queue/queues/email-notify/worker.ts
@@ -253,7 +271,7 @@ queueManager.registerWorker({
 });
 ```
 
-### 4. 注册到 runtime
+### 5. 注册到 runtime
 
 ```ts [ts]
 // src/infrastructure/queue/runtime/app.ts
@@ -263,7 +281,7 @@ import '../queues/email-notify/queue';  // 加这一行
 import '../queues/email-notify/worker'; // 加这一行
 ```
 
-### 5. 加入构建脚本
+### 6. 加入构建脚本
 
 在 `script/build-processors.ts` 和 `script/build.ts` 的 `processors` 数组中加入：
 
@@ -271,7 +289,7 @@ import '../queues/email-notify/worker'; // 加这一行
 { name: 'email-notify', entry: './src/infrastructure/queue/queues/email-notify/processor.ts' },
 ```
 
-### 6. 构建并使用
+### 7. 构建并使用
 
 ```bash [bun]
 bun build:processors
@@ -283,6 +301,11 @@ await queueManager.addJob('email-notify-queue', {
     jobArgs: JSON.stringify(['user@example.com', '验证码', '您的验证码是 123456']),
 });
 ```
+
+::: tip 队列任务数据格式
+- **system-cron-queue**：`job.data` 使用 `taskName` + `jobArgs`（JSON 字符串），与上文自定义队列示例一致。
+- **flow-buffer-queue**：按 **`job.name`** 分发任务，整包 `job.data` 作为参数传入（见 `flow-buffer/processor.ts` 与 `worker-sandbox/flow-buffer-tasks.ts`），勿与 system-cron 的 `taskName` 模式混用。
+:::
 
 ## 六、重试策略
 
@@ -387,7 +410,7 @@ await notifyQueue.add('sendEmail', { to: 'user@example.com' });
 
 ### 3. 修改后重新构建
 
-每次修改 `processor.ts` 后必须重新构建，否则子进程运行的仍是旧代码。
+每次修改 `processor.ts` 或 `worker-sandbox/*.ts` 后必须重新构建，否则子进程运行的仍是旧代码。
 
 ```bash [bun]
 bun build:processors

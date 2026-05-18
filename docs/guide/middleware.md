@@ -54,7 +54,7 @@ export function GlobalMiddleware(app: Elysia) {
 export function GlobalResponseMiddleware(app: Elysia) {
     // 记录请求开始时间
     app.onRequest((ctx) => {
-        (ctx as any).startTime = Date.now();
+        ctx.startTime = Date.now();
     });
 
     // 响应完成后执行
@@ -71,22 +71,24 @@ export function GlobalResponseMiddleware(app: Elysia) {
 
 ## 获取上下文数据
 
-在 Controller 层的请求处理函数中，你可以方便地从 `Context` 对象中获取由中间件注入的额外上下文信息：
+在 `handle.ts` 中请使用项目定义的 `AppContext`（`Context` 与中间件挂载字段的交集类型），直接访问 `user`、`routeInfo` 等，无需 `(ctx as any)`：
 
 ```ts [ts]
+import type { AppContext } from '@/types/app-context';
 import { GetClientIp } from '@/shared/ip';
+import { BaseResultData } from '@/core/result';
 
 /**
  * 示例业务处理函数
- * @param ctx 请求上下文
+ * @param ctx 请求上下文（含中间件注入字段）
  */
-export async function handleRequest(ctx: Context) {
+export async function handleRequest(ctx: AppContext) {
     try {
-        const startTime = (ctx as any)?.startTime; // 当前请求的开始时间
-        const user = (ctx as any)?.user;           // 当前请求的用户信息
-        const routeInfo = (ctx as any)?.routeInfo; // 当前匹配的路由详情
-        const routeKey = (ctx as any)?.routeKey;   // 当前路由的唯一键
-        const ip = GetClientIp(ctx);               // 当前请求的客户端 IP 地址
+        const startTime = ctx.startTime;   // onRequest 记录的开始时间
+        const user = ctx.user;             // 认证守卫注入的当前用户
+        const routeInfo = ctx.routeInfo;   // 路由分析器注入的 meta 等
+        const routeKey = ctx.routeKey;     // 路由唯一键
+        const ip = ctx.ip ?? GetClientIp(ctx); // IP 守卫会写入 ctx.ip
 
         // 执行后续业务逻辑...
     } catch (error) {

@@ -17,6 +17,8 @@ head:
 
 本章将介绍 `Elysia Admin` 中封装的常用 `PostgreSQL` 数据库操作方法，包括增删改查和事务管理。
 
+下文 `handle` 示例统一使用 `AppContext`（`import type { AppContext } from '@/types/app-context'`），与项目中间件注入字段一致。
+
 ## 插入数据
 
 本节介绍如何向数据库插入数据，包括不返回记录和返回记录两种方式。
@@ -37,7 +39,7 @@ InsertOne(schema, ctx, customData);
 ```ts [ts]
 import { InsertOne } from '@/core/database/repository';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         await InsertOne(businessMerchantSchema, ctx);
         return BaseResultData.ok();
@@ -63,7 +65,7 @@ InsertOneAndRes(schema, ctx, customData);
 ```ts [ts]
 import { InsertOneAndRes } from '@/core/database/repository';
 
-export async function create(ctx: Context) {
+export async function create(ctx: AppContext) {
     try {
         const res = await InsertOneAndRes(businessMerchantSchema, ctx);
         return BaseResultData.ok(res);
@@ -147,7 +149,7 @@ FindOneByKey(schema, keyColumnName, value);
 ```ts [ts]
 import { FindOneByKey } from '@/core/database/repository';
 
-export async function findOne(ctx: Context) {
+export async function findOne(ctx: AppContext) {
     try {
         const id = ctx.params.id;
         const res = await FindOneByKey(businessMerchantSchema, 'id', id);
@@ -165,7 +167,7 @@ export async function findOne(ctx: Context) {
 ```ts [ts]
 import { CreateQueryBuilder, FindAll } from '@/core/database/repository';
 
-export async function findAll(ctx: Context) {
+export async function findAll(ctx: AppContext) {
     try {
         const where = CreateQueryBuilder(systemDictTypeSchema)
             .eq('delFlag', false)
@@ -185,7 +187,7 @@ export async function findAll(ctx: Context) {
 import { eq } from 'drizzle-orm';
 import { CreateQueryBuilder, FindAllWithJoin } from '@/core/database/repository';
 
-export async function findTree(ctx: Context) {
+export async function findTree(ctx: AppContext) {
     try {
         const builder = CreateQueryBuilder(systemMenuSchema)
             .eq('delFlag', false)
@@ -220,7 +222,7 @@ export async function findTree(ctx: Context) {
 ```ts [ts]
 import { CreateQueryBuilder, FindPage } from '@/core/database/repository';
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -261,7 +263,7 @@ export async function findList(ctx: Context) {
 import { eq } from 'drizzle-orm';
 import { CreateQueryBuilder, FindPageWithJoin } from '@/core/database/repository';
 
-export async function findList(ctx: Context) {
+export async function findList(ctx: AppContext) {
     try {
         const {
             pageNum = 1,
@@ -323,7 +325,7 @@ UpdateByKey(schema, keyColumnName, ctx, customData);
 ```ts [ts]
 import { UpdateByKey } from '@/core/database/repository';
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         await UpdateByKey(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok();
@@ -350,7 +352,7 @@ UpdateByKeyAndRes(schema, keyColumnName, ctx, customData);
 ```ts [ts]
 import { UpdateByKeyAndRes } from '@/core/database/repository';
 
-export async function update(ctx: Context) {
+export async function update(ctx: AppContext) {
     try {
         const res = await UpdateByKeyAndRes(systemDeptSchema, 'deptId', ctx);
         return BaseResultData.ok(res);
@@ -381,7 +383,7 @@ SoftDeleteByKeys(schema, keyColumnName, ctx, customData);
 ```ts [ts]
 import { SoftDeleteByKeys } from '@/core/database/repository';
 
-export async function remove(ctx: Context) {
+export async function remove(ctx: AppContext) {
     try {
         await SoftDeleteByKeys(systemApiSchema, 'apiId', ctx);
         return BaseResultData.ok();
