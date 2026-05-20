@@ -1,7 +1,7 @@
 declare namespace Api {
     namespace MonitorOnline {
         interface OnlineListItem {
-            userId: number;
+            userId: string;
             username: string;
             email: string;
             phone: string;

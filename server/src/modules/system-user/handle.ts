@@ -80,7 +80,7 @@ export async function findList(ctx: AppContext) {
 
 export async function findPerm(ctx: AppContext) {
     try {
-        const userId = ctx?.user?.userId as number;
+        const userId = ctx?.user?.userId as string;
         const user = await Get(CacheEnum.ONLINE_USER + userId);
         if (!user) return BaseResultData.fail(404);
         const { loginLocation, ipaddr, userType, loginTime, ...rest } = user;
@@ -92,7 +92,7 @@ export async function findPerm(ctx: AppContext) {
 
 export async function findBasic(ctx: AppContext) {
     try {
-        const userId = ctx?.user?.userId as number;
+        const userId = ctx?.user?.userId as string;
         const res = await FindOneByKey(systemUserSchema, 'userId', userId);
         if (!res || res.delFlag) return BaseResultData.fail(404);
         const { password, ...item } = res;
@@ -106,7 +106,7 @@ export async function findBasic(ctx: AppContext) {
 
 export async function findOne(ctx: AppContext) {
     try {
-        const id = Number(ctx.params.id);
+        const id = ctx.params.id;
         const data = await FindOneByKey(systemUserSchema, 'userId', id);
         const roles = await GetUserRoleIds(id);
         if (!data || data.delFlag) return BaseResultData.fail(404);
@@ -139,7 +139,7 @@ export async function update(ctx: AppContext) {
 export async function updateBasic(ctx: AppContext) {
     try {
         const data = ctx.body as typeof systemUserSchema.$inferSelect;
-        const userId = ctx?.user?.userId as number;
+        const userId = ctx?.user?.userId as string;
         const { password, ...rest } = data;
         const user = rest as typeof systemUserSchema.$inferSelect;
         await UpdateByKey(systemUserSchema, 'userId', null, { ...user, userId });
@@ -152,7 +152,7 @@ export async function updateBasic(ctx: AppContext) {
 export async function updatePassword(ctx: AppContext) {
     try {
         const { oldPassword, newPassword } = ctx.body as any;
-        const userId = ctx?.user?.userId as number;
+        const userId = ctx?.user?.userId as string;
         const user = await GetUserBy('userId', userId);
         if (!user || user.delFlag) return BaseResultData.fail(404);
         const isSame = BcryptCompare(oldPassword, user.password);
@@ -207,7 +207,7 @@ export async function RegisterUser(username: string, password: string): Promise<
 };
 
 // 设置用户密码
-export async function SetUserPassword(userId: number, password: string): Promise<void> {
+export async function SetUserPassword(userId: string, password: string): Promise<void> {
     const hash = BcryptHash(password);
     const row = await UpdateByKeyAndRes(systemUserSchema, 'userId', null, { password: hash, userId });
     if (!row) {

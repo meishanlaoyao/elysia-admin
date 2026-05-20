@@ -13,11 +13,11 @@ export function fetchGetOnlineList(params: Api.MonitorOnline.OnlineSearchParams)
 /**
  * 强退
  */
-export function fetchForceLogout(ids: number | number[]) {
-    let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
+export function fetchForceLogout(ids: string | string[]) {
+    const str = Array.isArray(ids) ? ids.join(',') : ids
     return request.del({
         url: `/api/monitor/online/forceLogout/${str}`,
-        showSuccessMessage: true, // 显示成功消息
-        showErrorMessage: true // 显示错误消息
+        showSuccessMessage: true,
+        showErrorMessage: true
     })
 }

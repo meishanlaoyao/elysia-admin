@@ -5,9 +5,9 @@ declare namespace Api {
             ipAddress?: string;
             status?: boolean;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
         }

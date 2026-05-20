@@ -5,7 +5,7 @@ declare namespace Api {
 
         /** 用户列表项 */
         interface UserListItem {
-            userId?: number;
+            userId?: string;
             username?: string;
             password?: string;
             nickname?: string;
@@ -16,9 +16,9 @@ declare namespace Api {
             deptId?: number;
             status?: boolean;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
         }

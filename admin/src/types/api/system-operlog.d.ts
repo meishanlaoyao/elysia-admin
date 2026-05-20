@@ -6,7 +6,7 @@ declare namespace Api {
             action: string | null;
             requestMethod: string;
             operatorType: string | null;
-            userId: number | null;
+            userId: string | null;
             operName: string | null;
             operUrl: string | null;
             operIp: string | null;
@@ -16,9 +16,9 @@ declare namespace Api {
             costTime: number | null;
             status: boolean | null;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
         }

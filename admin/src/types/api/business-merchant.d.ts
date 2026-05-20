@@ -12,9 +12,9 @@ declare namespace Api {
             config?: Record<string, string> | string;
             status?: boolean;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
             [key: string]: any;
@@ -25,9 +25,9 @@ declare namespace Api {
             name: string;
             status?: boolean;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             configList?: MerchantConfigItem[];
             remark?: null | string;

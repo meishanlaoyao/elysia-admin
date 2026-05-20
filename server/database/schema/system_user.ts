@@ -1,4 +1,4 @@
-import { pgTable, bigserial, varchar, boolean, bigint } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, boolean, bigint } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
 import { BaseSchema } from '@database/base-schema';
 import { systemRoleSchema } from '@database/schema/system_role';
@@ -7,7 +7,7 @@ import { systemDeptSchema } from './system_dept';
 export const systemUserSchema = pgTable(
     'system_user',
     {
-        userId: bigserial('user_id', { mode: 'number' }).primaryKey(), // 用户ID
+        userId: uuid('user_id').primaryKey().defaultRandom(), // 用户ID
         username: varchar('username', { length: 64 }).notNull().unique(), // 用户名
         password: varchar('password', { length: 255 }).notNull(), // 密码
         nickname: varchar('nickname', { length: 64 }), // 昵称
@@ -27,7 +27,7 @@ export const systemUserRoleSchema = pgTable(
     'system_user_role',
     {
         roleId: bigint('role_id', { mode: 'number' }).references(() => systemRoleSchema.roleId), // 角色ID
-        userId: bigint('user_id', { mode: 'number' }).references(() => systemUserSchema.userId), // 用户ID
+        userId: uuid('user_id').references(() => systemUserSchema.userId), // 用户ID
     }
 );
 export const InsertSystemUserRole = createInsertSchema(systemUserRoleSchema);

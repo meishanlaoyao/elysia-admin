@@ -206,7 +206,7 @@ const deleteUser = (row: UserListItem): void => {
     cancelButtonText: '取消',
     type: 'error'
   }).then(() => {
-    fetchDeleteUser(row.userId as number).then(() => {
+    fetchDeleteUser(row.userId as string).then(() => {
       refreshData()
     })
   }).catch(() => {

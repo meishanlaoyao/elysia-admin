@@ -2,7 +2,6 @@ import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { Get, Keys, Del } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
-
 export async function findList(ctx: AppContext) {
     try {
         const {
@@ -31,8 +30,14 @@ export async function findList(ctx: AppContext) {
 
 export async function forceLogout(ctx: AppContext) {
     try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        if (ids?.length) await Del(ids.map(id => CacheEnum.ONLINE_USER + id));
+        const ids = ctx.params.ids.split(',').filter(Boolean);
+        if (!ids.length) return BaseResultData.ok();
+        for (const userId of ids) {
+            await Del(CacheEnum.ONLINE_USER + userId);
+            const refreshKeys = await Keys(CacheEnum.REFRESH_TOKEN + `${userId}:`);
+            if (refreshKeys.length) await Del(refreshKeys);
+            await Del(CacheEnum.ADMIN_MENU + userId);
+        }
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

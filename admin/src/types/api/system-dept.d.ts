@@ -7,9 +7,9 @@ declare namespace Api {
             parentId?: number;
             sort?: number;
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: number | null;
+            updateBy?: string | null;
             delFlag?: boolean;
             remark?: string | null;
             children?: DeptListItem[];

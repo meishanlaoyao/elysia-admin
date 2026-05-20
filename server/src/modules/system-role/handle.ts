@@ -158,7 +158,7 @@ export async function remove(ctx: AppContext) {
 };
 
 // 获取用户角色IDs
-export async function GetUserRoleIds(userId: number): Promise<number[]> {
+export async function GetUserRoleIds(userId: string): Promise<number[]> {
     if (!userId) return [];
     try {
         const userRoleWhere = CreateQueryBuilder(systemUserRoleSchema).eq('userId', userId).build();
@@ -172,7 +172,7 @@ export async function GetUserRoleIds(userId: number): Promise<number[]> {
 };
 
 // 获取用户角色和权限
-export async function GetUserRoleAndPermission(userId: number): Promise<{
+export async function GetUserRoleAndPermission(userId: string): Promise<{
     roles: string[];
     permissions: string[];
 }> {
@@ -196,7 +196,7 @@ export async function GetUserRoleAndPermission(userId: number): Promise<{
 };
 
 // 获取角色菜单Ids和按钮Ids
-export async function GetRoleMenuIdsAndBtnIds(userId: number) {
+export async function GetRoleMenuIdsAndBtnIds(userId: string) {
     try {
         const roleIds = await GetUserRoleIds(userId);
         if (roleIds.length === 0) return { menuIds: [], menuBtnIds: [] };

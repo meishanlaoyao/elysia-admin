@@ -2,7 +2,7 @@ import { t } from 'elysia';
 import { BaseResultListDto } from '@/types/dto';
 
 const OnlineUser = t.Object({
-    userId: t.Number({ description: "用户ID" }),
+    userId: t.String({ description: "用户ID" }),
     username: t.String({ description: "用户名" }),
     email: t.String({ description: "邮箱" }),
     phone: t.String({ description: "手机号" }),

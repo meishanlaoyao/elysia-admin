@@ -27,7 +27,7 @@ declare namespace Api {
         interface UserInfo {
             permissions: string[]
             roles: string[]
-            userId: number
+            userId: string
             username: string
             email: string
             avatar?: string
@@ -47,7 +47,7 @@ declare namespace Api {
         /** 重置密码参数 */
         interface ResetPasswordParams {
             token: string
-            uid: number
+            uid: string
             password: string
         }
     }

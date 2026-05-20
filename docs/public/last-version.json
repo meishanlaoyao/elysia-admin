@@ -1,7 +1,7 @@
 {
-    "version": "1.4.2",
-    "publishDate": "2026-05-18",
-    "description": "修复了菜单删除/禁用后仍显示的问题，并优化菜单管理页保存或删除后自动刷新侧边栏动态路由。",
+    "version": "1.4.3",
+    "publishDate": "2026-05-20",
+    "description": "系统用户 ID 改为 UUID，修复在线强退无效及强退自己后未登出问题。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

@@ -102,7 +102,7 @@ export async function create(ctx: AppContext) {
 
 export async function update(ctx: AppContext) {
     try {
-        const updateBy = ctx?.user?.userId as number || null;
+        const updateBy = ctx?.user?.userId || null;
         const { id, status, remark } = ctx.body as any;
         // 查询退款记录
         const refund = await FindOneByKey(businessRefundSchema, 'id', id);

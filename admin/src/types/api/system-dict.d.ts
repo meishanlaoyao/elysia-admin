@@ -9,9 +9,9 @@ declare namespace Api {
             dictType?: string;
             status?: boolean;
             createTime?: Date;
-            createBy?: null | number;
+            createBy?: null | string;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
         }
@@ -26,9 +26,9 @@ declare namespace Api {
             customClass?: string;
             status?: boolean;
             createTime?: Date;
-            createBy?: null | number;
+            createBy?: null | string;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
         }

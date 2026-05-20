@@ -40,7 +40,7 @@ export function fetchUpdateUserBasic(data: Api.SystemUser.UserListItem) {
 /**
  * 查询详情
  */
-export function fetchGetUserDetail(id: number) {
+export function fetchGetUserDetail(id: string) {
     return request.get<Api.SystemUser.UserListItem>({
         url: `/api/system/user/${id}`
     })
@@ -73,8 +73,8 @@ export function fetchUpdateUserPassword(data: { oldPassword: string, newPassword
 /**
  * 删除
  */
-export function fetchDeleteUser(ids: number | number[]) {
-    let str = Array.isArray(ids) ? ids.join(',') : ids.toString()
+export function fetchDeleteUser(ids: string | string[]) {
+    let str = Array.isArray(ids) ? ids.join(',') : ids
     return request.del({
         url: `/api/system/user/${str}`,
         showSuccessMessage: true, // 显示成功消息

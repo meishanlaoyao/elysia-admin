@@ -26,12 +26,14 @@ import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
 import { fetchGetOnlineList, fetchForceLogout } from '@/api/monitor/online'
-import { useDictStore } from '@/store/modules/dict';
+import { useDictStore } from '@/store/modules/dict'
+import { useUserStore } from '@/store/modules/user'
 
 defineOptions({ name: 'OnlineUser' })
 
 const dictStore = useDictStore()
 const auth = useAuth()
+const userStore = useUserStore()
 
 type OnlineListItem = Api.MonitorOnline.OnlineListItem
 
@@ -116,6 +118,14 @@ const handleSelectionChange = (selection: OnlineListItem[]): void => {
     selectedRows.value = selection
 }
 
+/** 强退后检查是否踢了自己，是则执行前端登出 */
+const checkSelfLogout = (ids: string[]) => {
+    const selfId = userStore.info?.userId
+    if (selfId && ids.includes(selfId)) {
+        userStore.logOut()
+    }
+}
+
 /**
  * 强退用户
  */
@@ -126,6 +136,7 @@ const forceLogout = (row: OnlineListItem): void => {
         type: 'warning'
     }).then(() => {
         fetchForceLogout(row.userId).then(() => {
+            checkSelfLogout([row.userId])
             refreshData()
         })
     })
@@ -147,6 +158,7 @@ const handleBatchForceLogout = (): void => {
     }).then(() => {
         const ids = selectedRows.value.map((item) => item.userId)
         fetchForceLogout(ids).then(() => {
+            checkSelfLogout(ids)
             refreshData()
         })
     })

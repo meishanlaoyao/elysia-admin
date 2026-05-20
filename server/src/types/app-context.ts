@@ -12,7 +12,7 @@ export interface RuntimeRouteInfo {
  * 在线用户（Redis 反序列化；字段以实际写入为准，可逐步收紧）
  */
 export type OnlineUser = {
-    userId?: number | string;
+    userId?: string;
     permissions?: string[];
     [key: string]: unknown;
 };

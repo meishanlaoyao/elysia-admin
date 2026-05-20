@@ -39,7 +39,7 @@ declare namespace Api {
             id: number;
             orderNo: string;
             status: string;
-            userId: number;
+            userId: string;
             merchantId: number;
             title: string;
             description: string;
@@ -58,7 +58,7 @@ declare namespace Api {
                     image?: string;
                 }[];
                 user?: {
-                    userId?: number;
+                    userId?: string;
                     nickname?: string;
                     phone?: string;
                     address?: string;
@@ -72,9 +72,9 @@ declare namespace Api {
                 };
             };
             createTime?: Date;
-            createBy?: number | null;
+            createBy?: string | null;
             updateTime?: null | Date;
-            updateBy?: null | number;
+            updateBy?: null | string;
             delFlag?: boolean;
             remark?: null | string;
             // 列表摘要（来自关联表批量查询）
