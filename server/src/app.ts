@@ -7,9 +7,6 @@ import { RegisterRoutes } from '@/modules';
 import { BaseResultData } from '@/core/result';
 import { staticPlugin } from '@elysiajs/static';
 import { BunAdapter } from 'elysia/adapter/bun';
-import { queues } from '@/infrastructure/queue';
-import { createBullBoard } from '@bull-board/api';
-import { ElysiaAdapter } from '@bull-board/elysia';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 
 /**
@@ -47,7 +44,7 @@ export async function CreateApp() {
     if (appEnv === 'development') await configureOpenAPI(app);
 
     // 配置 BullMQ UI (存在问题，正常接口会被拦住)
-    // await configureBullMQUI(app);
+    await configureBullMQUI(app);
 
     // 注册全局中间件
     GlobalMiddleware(app);
@@ -74,6 +71,9 @@ async function configureBullMQUI(app: Elysia) {
          * 修改 <base href="<%= basePath %>" />
          * 改成 <base href="你的app.prefix即可<%= basePath %>" />
          */
+        const { queues } = await import('@/infrastructure/queue');
+        const { createBullBoard } = await import('@bull-board/api');
+        const { ElysiaAdapter } = await import('@bull-board/elysia');
         const serverAdapter = new ElysiaAdapter('/bullmq');
         createBullBoard({
             queues,

@@ -17,6 +17,11 @@ head:
 
 ## v1
 
+::: timeline v1.4.4(2026-05-21)
+- 修复了在环境中同时存在 Node.js v24 时，`@bull-board/elysia` 顶层静态 import 触发 CJS `require()` 加载含 Top-Level Await 的 ESM 模块而报错的问题：将 `@bull-board/api`、`@bull-board/elysia` 及 `queues` 的 import 由顶层静态引入改为 `configureBullMQUI` 函数内部的动态 `await import()`。
+- 文档：补充了存储配置指南中各服务商（RustFS、COS、OSS、Kodo）的后端配置字段示例。
+:::
+
 ::: timeline v1.4.3(2026-05-20)
 - 将系统用户主键 `userId` 由自增数字改为 UUID 字符串，避免管理端与小程序等多套用户表在 Redis 在线会话、令牌等场景下 ID 冲突；同步调整 `createBy`/`updateBy` 及关联表、前后端类型定义。
 - 修复了在线用户强退无效的问题：强退接口不再将 UUID 转为数字，并同步清除刷新令牌与菜单缓存。

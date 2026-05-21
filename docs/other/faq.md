@@ -101,3 +101,14 @@ http {
 ## PayPal 为什么默认连接的是沙箱环境？
 
 `providers/paypal/base.ts` 中 API 根地址默认指向 `api-m.sandbox.paypal.com`（沙箱），便于本地开发调试。上线生产环境前，需将地址改为 `https://api-m.paypal.com`，并使用 **Live** 应用的 Client ID / Secret；沙箱与生产密钥**不可混用**，否则会导致鉴权失败。
+
+## 如何做路由拦截与接口中间件？
+
+路由注册与全局守卫分两处，按需求改对应文件即可：
+
+| 需求 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 路由拦截 / 注册策略 | [`server/src/modules/index.ts`](../../server/src/modules/index.ts) | `RegisterRoutes()` 自动加载各模块 `route.ts`，按 `meta.isAuth` 拆分为公共路由与需登录路由；需登录的路由统一走 `app.guard` 校验 `authorization` 请求头。若要调整**哪些路由需要登录、如何分组挂载**，在此修改。 |
+| 接口中间件（守卫链） | [`server/src/middleware/index.ts`](../../server/src/middleware/index.ts) | `GlobalMiddleware` 在 `onBeforeHandle` 中依次执行：IP 黑名单 → API 熔断 → 路由分析 → 登录认证 → IP 限流 → 权限校验；`GlobalResponseMiddleware` 负责请求日志与操作日志。新增或调整**请求进入业务前**的拦截，在此修改。 |
+
+`CreateApp()`（[`server/src/app.ts`](../../server/src/app.ts)）会先挂载全局中间件，再调用 `RegisterRoutes()` 注册业务路由。单条路由还可通过 `route.ts` 的 `meta`（如 `isAuth`、`permission`、`ipRateLimit`）配合守卫生效。

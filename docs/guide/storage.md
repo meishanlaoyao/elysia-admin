@@ -95,6 +95,80 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 
 ![存储配置表单](/guide/2.png)
 
+### 各服务商配置示例
+
+#### RustFS（本地自建）
+
+```json
+{
+  "name": "RustFS",
+  "region": "us-east-1",
+  "endpoint": "http://192.168.1.100:9000",
+  "bucket": "public",
+  "access_key": "rustfsadmin",
+  "secret_key": "rustfsadmin"
+}
+```
+
+> `region` 固定填写 `us-east-1`；
+> 
+>`endpoint` 为服务器 IP + API 端口（9000）；
+>
+>`access_key` / `secret_key` 与 Docker 启动参数保持一致。
+
+#### COS（腾讯云）
+
+```json
+{
+  "name": "COS",
+  "region": "ap-nanjing",
+  "endpoint": "cos.ap-nanjing.myqcloud.com",
+  "bucket": "my-bucket-1234567890",
+  "access_key": "AKIDxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "secret_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+> `endpoint` 格式为 `cos.<region>.myqcloud.com`；
+>
+>`bucket` 格式为 `<桶名>-<APPID>`；
+>
+>密钥在「访问管理 → API 密钥管理」中获取。
+
+#### OSS（阿里云）
+
+```json
+{
+  "name": "OSS",
+  "region": "cn-hangzhou",
+  "endpoint": "oss-cn-hangzhou.aliyuncs.com",
+  "bucket": "my-bucket",
+  "access_key": "LTAI5txxxxxxxxxxxxxxxxxx",
+  "secret_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+> `endpoint` 格式为 `oss-<region>.aliyuncs.com`，**不含桶名前缀**（代码内部会自动拼接为 `<bucket>.<endpoint>`）；
+>
+>密钥在「RAM 访问控制 → 用户 → AccessKey」中获取。
+
+#### Kodo（七牛云）
+
+```json
+{
+  "name": "Kodo",
+  "region": "",
+  "endpoint": "https://your-bucket.qiniudn.com",
+  "bucket": "my-kodo-bucket",
+  "access_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "secret_key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+
+> `endpoint` 填写存储桶的访问域名（控制台「空间概览」中的默认测试域名或自定义绑定域名）；
+>
+>`region` 可留空；密钥在「密钥管理」中获取。
+
 ## 文件上传流程
 
 系统采用 **预签名 URL（Presigned URL）** 方式实现文件直传，具有以下核心优势：

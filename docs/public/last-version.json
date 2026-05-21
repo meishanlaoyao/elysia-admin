@@ -1,7 +1,7 @@
 {
-    "version": "1.4.3",
-    "publishDate": "2026-05-20",
-    "description": "系统用户 ID 改为 UUID，修复在线强退无效及强退自己后未登出问题。",
+    "version": "1.4.4",
+    "publishDate": "2026-05-21",
+    "description": "修复 @bull-board 顶层 import 在 Node.js v24 环境下的 CJS/ESM 兼容报错；补充各存储服务商配置示例文档。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }
