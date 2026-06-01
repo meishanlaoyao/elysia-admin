@@ -55,11 +55,11 @@ export function hmacSha256(content: string, key: string): string {
 };
 
 /**
- * SHA256withRSA 签名（微信 v3 请求签名）
+ * SHA256withRSA 签名（微信 v3 请求签名；OpenSSL 算法名为 RSA-SHA256）
  */
 export function sha256WithRsa(content: string, privateKey: string): string {
-    const sign = crypto.createSign('SHA256withRSA');
-    sign.update(content);
+    const sign = crypto.createSign('RSA-SHA256');
+    sign.update(content, 'utf8');
     return sign.sign(privateKey, 'base64');
 };
 

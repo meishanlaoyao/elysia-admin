@@ -29,7 +29,7 @@ interface Props {
 
 interface Emits {
     (e: 'update:visible', value: boolean): void
-    (e: 'submit'): void
+    (e: 'submit', payload?: { oldDictType: string; newDictType: string }): void
 }
 
 const props = defineProps<Props>()
@@ -43,15 +43,21 @@ const dialogVisible = computed({
 
 const dialogType = computed(() => props.type)
 const loading = ref(false)
+const originalDictType = ref('')
 
 // 表单实例
 const formRef = ref()
 
+function getDefaultFormData() {
+    return {
+        dictId: undefined as number | undefined,
+        dictName: '',
+        dictType: '',
+    }
+}
+
 // 表单数据
-const formData = reactive({
-    dictName: '',
-    dictType: '',
-})
+const formData = reactive(getDefaultFormData())
 
 // 表单项配置
 const formItems: FormItem[] = [
@@ -89,11 +95,18 @@ const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
     const row = props.data
-    Object.assign(formData, {
-        ...row,
-        dictName: isEdit && row ? row.dictName || '' : '',
-        dictType: isEdit && row ? row.dictType || '' : '',
-    })
+    // 先重置为干净默认值，避免上次编辑字段（如 dictId、createTime）残留到新增请求
+    Object.assign(formData, getDefaultFormData())
+    if (isEdit && row) {
+        originalDictType.value = row.dictType || ''
+        Object.assign(formData, {
+            dictId: row.dictId,
+            dictName: row.dictName || '',
+            dictType: row.dictType || '',
+        })
+    } else {
+        originalDictType.value = ''
+    }
 }
 
 /**
@@ -121,11 +134,23 @@ const handleSubmit = async () => {
         try {
             loading.value = true
             if (dialogType.value == 'add') {
-                await fetchCreateDictType(formData)
+                await fetchCreateDictType({
+                    dictName: formData.dictName,
+                    dictType: formData.dictType,
+                })
             } else {
-                await fetchUpdateDictType(formData)
+                await fetchUpdateDictType({
+                    dictId: formData.dictId,
+                    dictName: formData.dictName,
+                    dictType: formData.dictType,
+                })
             }
-            emit('submit')
+            const payload = dialogType.value === 'edit'
+                && originalDictType.value
+                && originalDictType.value !== formData.dictType
+                ? { oldDictType: originalDictType.value, newDictType: formData.dictType }
+                : undefined
+            emit('submit', payload)
             dialogVisible.value = false
         } catch {
             loading.value = false
@@ -140,6 +165,7 @@ const handleSubmit = async () => {
  */
 const handleClosed = () => {
     formRef.value?.reset()
+    Object.assign(formData, getDefaultFormData())
 }
 </script>
 

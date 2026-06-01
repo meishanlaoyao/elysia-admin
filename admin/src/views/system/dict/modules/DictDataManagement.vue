@@ -47,6 +47,7 @@ type DictDataListItem = Api.SystemDict.DictDataListItem
 const props = defineProps<{
     cacheDictType: DictTypeListItem[]
     selectedDictType?: string
+    dictTypeRename?: { oldDictType: string; newDictType: string }
 }>()
 
 const auth = useAuth();
@@ -125,6 +126,16 @@ watch(() => props.selectedDictType, (newVal) => {
     if (newVal) {
         searchParamsData.dictType = newVal
         searchFormData.value.dictType = newVal as never
+        getDictData()
+    }
+})
+
+// 字典类型编码变更时，同步搜索条件并刷新列表
+watch(() => props.dictTypeRename, (payload) => {
+    if (!payload) return
+    if (searchParamsData.dictType === payload.oldDictType) {
+        searchParamsData.dictType = payload.newDictType
+        searchFormData.value.dictType = payload.newDictType as never
         getDictData()
     }
 })

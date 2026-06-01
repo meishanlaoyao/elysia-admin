@@ -1,4 +1,5 @@
 import type { AppContext } from '@/types/app-context';
+import { eq, and } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import { systemDictDataSchema, systemDictTypeSchema } from '@database/schema/system_dict';
 import {
@@ -10,8 +11,11 @@ import {
     FindPage,
     FindAll
 } from '@/core/database/repository';
+import { RunTransaction } from '@/core/database/transaction';
+import { Del } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
 import { WithCache } from '@/core/cache';
+import { ParseDateFields } from '@/types/dto';
 
 export async function createType(ctx: AppContext) {
     try {
@@ -145,7 +149,39 @@ export async function findOneType(ctx: AppContext) {
 
 export async function updateType(ctx: AppContext) {
     try {
-        await UpdateByKey(systemDictTypeSchema, 'dictId', ctx);
+        const data = ParseDateFields(ctx.body);
+        const dictId = Number(data.dictId);
+        const oldType = await FindOneByKey(systemDictTypeSchema, 'dictId', dictId);
+        if (!oldType || oldType.delFlag) return BaseResultData.fail(404);
+        const oldDictType = oldType.dictType;
+        const newDictType = data.dictType;
+        const updateBy = ctx?.user?.userId || null;
+        await RunTransaction(async (tx) => {
+            if (newDictType && oldDictType && newDictType !== oldDictType) {
+                await tx.update(systemDictDataSchema)
+                    .set({
+                        dictType: newDictType,
+                        updateTime: new Date(),
+                        ...(updateBy ? { updateBy } : {}),
+                    })
+                    .where(and(
+                        eq(systemDictDataSchema.dictType, oldDictType),
+                        eq(systemDictDataSchema.delFlag, false),
+                    ));
+            };
+            await tx.update(systemDictTypeSchema)
+                .set({
+                    ...data,
+                    ...(updateBy ? { updateBy } : {}),
+                    updateTime: new Date(),
+                })
+                .where(eq(systemDictTypeSchema.dictId, dictId));
+        });
+        await Del(CacheEnum.DICT_TYPE);
+        if (oldDictType) await Del(CacheEnum.DICT_DATA + oldDictType);
+        if (newDictType && newDictType !== oldDictType) {
+            await Del(CacheEnum.DICT_DATA + newDictType);
+        };
         return BaseResultData.ok();
     }
     catch (error) {

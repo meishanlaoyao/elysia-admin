@@ -1,7 +1,7 @@
 {
-    "version": "1.4.4",
-    "publishDate": "2026-05-21",
-    "description": "修复 @bull-board 顶层 import 在 Node.js v24 环境下的 CJS/ESM 兼容报错；补充各存储服务商配置示例文档。",
+    "version": "1.4.5",
+    "publishDate": "2026-06-01",
+    "description": "字典类型修复与级联同步；微信支付 v3 签名/下单 body/回调验签优化；接入 bun test 单元测试基线。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

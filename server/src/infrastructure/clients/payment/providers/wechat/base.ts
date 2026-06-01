@@ -111,11 +111,10 @@ export function buildWechatOrderBody(
     params: { title: string; description?: string; amount: string; notifyUrl: string; extra?: Record<string, any> },
 ): Record<string, any> {
     const extra = params.extra ?? {};
-    return {
-        ...extra,
+    const body: Record<string, any> = {
         appid: config.appId,
         mchid: config.mchId,
-        description: params.title,
+        description: params.description?.trim() || params.title,
         out_trade_no: paymentNo,
         notify_url: params.notifyUrl,
         amount: {
@@ -123,6 +122,11 @@ export function buildWechatOrderBody(
             currency: 'CNY',
         },
     };
+    // 仅透传微信文档允许的可选字段；勿展开 extra（如 openid/clientIp 由各自 provider 处理）
+    for (const key of ['attach', 'goods_tag', 'support_fapiao', 'time_expire', 'detail'] as const) {
+        if (extra[key] !== undefined) body[key] = extra[key];
+    }
+    return body;
 };
 
 /**
@@ -175,7 +179,7 @@ export function parseWechatNotify(config: MerchantConfig, params: NotifyParams):
         throw new Error('微信回调缺少验签所需请求头（wechatpay-timestamp / wechatpay-nonce / wechatpay-signature）');
     };
     const message = `${timestamp}\n${nonce}\n${raw}\n`;
-    const verify = crypto.createVerify('SHA256withRSA');
+    const verify = crypto.createVerify('RSA-SHA256');
     verify.update(message);
     const platformPublicKey = resolveWechatNotifyPublicKey(config, certSerial);
     if (!verify.verify(platformPublicKey, signature, 'base64')) {

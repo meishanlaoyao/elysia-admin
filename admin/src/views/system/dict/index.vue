@@ -2,10 +2,11 @@
     <ElRow class="dict-page" :gutter="20">
         <ElCol :span="12">
             <DictTypeManagement :cache-dict-type="cacheDictType" @refresh-cache="getCacheDictTypeList"
-                @choose-dict-type="handleChooseDictType" />
+                @choose-dict-type="handleChooseDictType" @dict-type-changed="handleDictTypeChanged" />
         </ElCol>
         <ElCol :span="12">
-            <DictDataManagement :cache-dict-type="cacheDictType" :selected-dict-type="selectedDictType" />
+            <DictDataManagement :cache-dict-type="cacheDictType" :selected-dict-type="selectedDictType"
+                :dict-type-rename="dictTypeRename" />
         </ElCol>
     </ElRow>
 </template>
@@ -19,6 +20,7 @@ type DictTypeListItem = Api.SystemDict.DictTypeListItem
 
 const cacheDictType = ref<DictTypeListItem[]>([])
 const selectedDictType = ref<string>()
+const dictTypeRename = ref<{ oldDictType: string; newDictType: string }>()
 
 function getCacheDictTypeList() {
     fetchGetCacheDictTypeList().then(res => {
@@ -28,6 +30,13 @@ function getCacheDictTypeList() {
 
 function handleChooseDictType(dictType: string) {
     selectedDictType.value = dictType
+}
+
+function handleDictTypeChanged(payload: { oldDictType: string; newDictType: string }) {
+    if (selectedDictType.value === payload.oldDictType) {
+        selectedDictType.value = payload.newDictType
+    }
+    dictTypeRename.value = payload
 }
 
 onMounted(() => {

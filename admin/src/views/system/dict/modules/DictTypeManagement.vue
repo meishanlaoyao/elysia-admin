@@ -51,6 +51,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     'refresh-cache': []
     'choose-dict-type': [dictType: string]
+    'dict-type-changed': [payload: { oldDictType: string; newDictType: string }]
 }>()
 
 // 弹窗相关
@@ -146,9 +147,12 @@ const handleSelectionChangeType = (selection: DictTypeListItem[]): void => {
 /**
  * 处理弹窗提交事件
  */
-const handleDialogSubmitType = () => {
+const handleDialogSubmitType = (payload?: { oldDictType: string; newDictType: string }) => {
     refreshDataType()
     emit('refresh-cache')
+    if (payload) {
+        emit('dict-type-changed', payload)
+    }
 }
 
 /**

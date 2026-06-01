@@ -17,6 +17,16 @@ head:
 
 ## v1
 
+::: timeline v1.4.5(2026-06-01)
+- 字典管理：修复字典类型弹窗在「编辑 → 新增」切换时表单未完整重置，偶发提交 400 的问题。
+- 字典管理：修改字典类型编码时，同步级联更新下属字典数据的 `dictType`，并清理类型/数据相关 Redis 缓存；前端同步刷新右侧字典值列表与当前选中类型。
+- 微信支付：新增 `sha256WithRsa`（`RSA-SHA256`）供 v3 请求签名与 JSAPI 调起签名使用，与 OpenSSL 算法名对齐。
+- 微信支付：优化 `buildWechatOrderBody`，仅白名单透传 `attach`、`goods_tag`、`time_expire` 等文档允许的可选字段，避免将 `openid`、`clientIp` 等由各渠道自行处理的字段误写入通用下单 body。
+- 微信支付：回调验签统一使用 `RSA-SHA256`（`crypto.createVerify`），与微信 v3 平台证书验签规范一致。
+- 后端：接入 Bun 内置 `bun test`（`test` / `test:watch` / `test:coverage`），新增 `server/test/` 纯函数与 `QueryBuilder` 单元测试基线。
+- 文档：架构文档补充测试命令说明（[内置命令 - 测试命令](/architecture/commands.html#测试命令)）。
+:::
+
 ::: timeline v1.4.4(2026-05-21)
 - 修复了在环境中同时存在 Node.js v24 时，`@bull-board/elysia` 顶层静态 import 触发 CJS `require()` 加载含 Top-Level Await 的 ESM 模块而报错的问题：将 `@bull-board/api`、`@bull-board/elysia` 及 `queues` 的 import 由顶层静态引入改为 `configureBullMQUI` 函数内部的动态 `await import()`。
 - 文档：补充了存储配置指南中各服务商（RustFS、COS、OSS、Kodo）的后端配置字段示例。
