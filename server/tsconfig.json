@@ -25,5 +25,6 @@
     "script/**/*.ts",
     "database/**/*.ts",
     "test/**/*.ts",
+    "database/**/*.ts"
   ]
 }
