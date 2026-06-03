@@ -1,5 +1,6 @@
 import type { AppContext } from '@/types/app-context';
-import { eq } from 'drizzle-orm';
+import pg from '@/core/database/pg';
+import { eq, inArray } from 'drizzle-orm';
 import { Get } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
@@ -10,7 +11,6 @@ import {
     FindOneByKey,
     UpdateByKey,
     UpdateByKeyAndRes,
-    SoftDeleteByKeys,
     CreateQueryBuilder,
     FindPage,
 } from '@/core/database/repository';
@@ -166,7 +166,12 @@ export async function updatePassword(ctx: AppContext) {
 
 export async function remove(ctx: AppContext) {
     try {
-        await SoftDeleteByKeys(systemUserSchema, 'userId', ctx);
+        let ids = ctx.params.ids.split(',');
+        await pg.update(systemUserSchema).set({
+            delFlag: true,
+            updateTime: new Date(),
+            updateBy: ctx?.user?.userId,
+        }).where(inArray(systemUserSchema.userId, ids));
         return BaseResultData.ok();
     } catch (error) {
         return BaseResultData.fail(500, error);

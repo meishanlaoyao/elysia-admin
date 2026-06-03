@@ -1,8 +1,8 @@
 <template>
   <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加用户' : '编辑用户'" width="800px" align-center
     @closed="handleClosed">
-    <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="12" label-width="80px"
-      :show-reset="false" :show-submit="false" />
+    <ArtForm :key="dialogType" ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="12"
+      label-width="80px" :show-reset="false" :show-submit="false" />
     <template #footer>
       <div class="dialog-footer">
         <ElButton @click="dialogVisible = false">取消</ElButton>
@@ -57,8 +57,7 @@ const deptTree = ref<Api.SystemDept.DeptListItem[]>([])
 // 角色列表数据
 const roleList = ref<Api.SystemRole.RoleListItem[]>([])
 
-// 表单数据
-const formData = reactive({
+const getDefaultFormData = () => ({
   userId: undefined,
   username: '',
   password: '',
@@ -72,6 +71,9 @@ const formData = reactive({
   remark: '',
   avatar: ''
 })
+
+// 表单数据
+const formData = reactive(getDefaultFormData())
 
 // 级联选择器配置
 const cascaderProps = {
@@ -227,11 +229,13 @@ const handleGetDeptOptions = async () => {
  */
 const initFormData = () => {
   loading.value = false
-  const isEdit = props.type === 'edit' && props.data
-  const row = props.data || {}
-  if (isEdit && row.userId) {
-    fetchGetUserDetail(row.userId).then(res => {
-      if (res) Object.assign(formData, res)
+  Object.assign(formData, getDefaultFormData())
+  if (props.type === 'edit' && props.data?.userId) {
+    const userId = props.data.userId
+    fetchGetUserDetail(userId).then(res => {
+      if (props.visible && props.type === 'edit' && props.data?.userId === userId && res) {
+        Object.assign(formData, res)
+      }
     })
   }
 }
