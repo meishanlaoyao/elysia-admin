@@ -18,17 +18,22 @@ head:
 ## v1
 
 ::: timeline v1.4.6(2026-06-08)
-- 队列 Worker：修复 PM2 生产部署下沙箱 processor 子进程 `CONFIG_PATH` 误解析为 `dist/dist/production.yaml` 导致 ENOENT 的问题；production 下 PM2 工作目录即为 `dist/`，改为直接使用 `process.cwd()` 定位同级 `production.yaml`。
+- 新增了启动期 Zod strict 校验 `*.yaml` 配置，缺字段、类型错误或未知 key 时 fail-fast 并输出可读错误。
+- 修复了 PostgreSQL 连接池 `connect_timeout` 配置未生效（原误读 `connection_timeout`）。
+- 修复了 PM2 生产部署下队列 Worker 沙箱 processor 子进程找不到 `production.yaml` 的问题（`CONFIG_PATH` 误解析为 `dist/dist/` 路径）。
+- 修复了用户管理删除用户失败的问题。
+- 修复了用户弹窗「编辑 → 新增」切换时表单未完整重置、异步详情回填错乱的问题（Gitee IJRSXJ）。
+- 修复了登录后菜单/权限数据为空时路由初始化失败，500 页无法返回登录页的问题；菜单校验失败时自动登出并提示，异常页支持「重新登录」兜底。
 :::
 
 ::: timeline v1.4.5(2026-06-01)
-- 字典管理：修复字典类型弹窗在「编辑 → 新增」切换时表单未完整重置，偶发提交 400 的问题。
-- 字典管理：修改字典类型编码时，同步级联更新下属字典数据的 `dictType`，并清理类型/数据相关 Redis 缓存；前端同步刷新右侧字典值列表与当前选中类型。
-- 微信支付：新增 `sha256WithRsa`（`RSA-SHA256`）供 v3 请求签名与 JSAPI 调起签名使用，与 OpenSSL 算法名对齐。
-- 微信支付：优化 `buildWechatOrderBody`，仅白名单透传 `attach`、`goods_tag`、`time_expire` 等文档允许的可选字段，避免将 `openid`、`clientIp` 等由各渠道自行处理的字段误写入通用下单 body。
-- 微信支付：回调验签统一使用 `RSA-SHA256`（`crypto.createVerify`），与微信 v3 平台证书验签规范一致。
-- 后端：接入 Bun 内置 `bun test`（`test` / `test:watch` / `test:coverage`），新增 `server/test/` 纯函数与 `QueryBuilder` 单元测试基线。
-- 文档：架构文档补充测试命令说明（[内置命令 - 测试命令](/architecture/commands.html#测试命令)）。
+- 修复了字典类型弹窗在「编辑 → 新增」切换时表单未完整重置，偶发提交 400 的问题。
+- 更新了字典类型编码修改逻辑：同步级联更新下属字典数据的 `dictType`，并清理类型/数据相关 Redis 缓存；前端同步刷新右侧字典值列表与当前选中类型。
+- 新增了 `sha256WithRsa`（`RSA-SHA256`）供 v3 请求签名与 JSAPI 调起签名使用，与 OpenSSL 算法名对齐。
+- 优化了 `buildWechatOrderBody`，仅白名单透传 `attach`、`goods_tag`、`time_expire` 等文档允许的可选字段，避免将 `openid`、`clientIp` 等由各渠道自行处理的字段误写入通用下单 body。
+- 更新了微信支付回调验签，统一使用 `RSA-SHA256`（`crypto.createVerify`），与微信 v3 平台证书验签规范一致。
+- 接入了 Bun 内置 `bun test`（`test` / `test:watch` / `test:coverage`），新增 `server/test/` 纯函数与 `QueryBuilder` 单元测试基线。
+- 补充了架构文档测试命令说明（[内置命令 - 测试命令](/architecture/commands.html#测试命令)）。
 :::
 
 ::: timeline v1.4.4(2026-05-21)

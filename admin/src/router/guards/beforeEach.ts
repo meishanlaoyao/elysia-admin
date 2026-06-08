@@ -48,6 +48,7 @@ import { staticRoutes } from '../routes/staticRoutes'
 import { loadingService } from '@/utils/ui'
 import { useCommon } from '@/hooks/core/useCommon'
 import { useWorktabStore } from '@/store/modules/worktab'
+import { ElMessage } from 'element-plus'
 import { fetchGetUserInfo } from '@/api/auth'
 import { ApiStatus } from '@/utils/http/status'
 import { isHttpError } from '@/utils/http/error'
@@ -158,11 +159,16 @@ async function handleRouteGuard(
 
   // 2. 检查路由初始化是否已失败（防止死循环）
   if (routeInitFailed) {
-    // 已经失败过，直接放行到错误页面，不再重试
-    if (to.matched.length > 0) {
+    // 允许回到登录页并重置状态，以便重新登录后再次尝试初始化
+    if (to.path === RoutesAlias.Login) {
+      resetRouteInitState()
+      next()
+      return
+    }
+    // 静态路由（异常页、认证页等）或未匹配到的动态路由
+    if (to.matched.length > 0 || isStaticRoute(to.path)) {
       next()
     } else {
-      // 未匹配到路由，跳转到 500 页面
       next({ name: 'Exception500', replace: true })
     }
     return
@@ -252,6 +258,7 @@ async function handleDynamicRoutes(
   next: NavigationGuardNext,
   router: Router
 ): Promise<void> {
+  const userStore = useUserStore()
   // 标记初始化进行中
   routeInitInProgress = true
   // 显示 loading
@@ -264,9 +271,14 @@ async function handleDynamicRoutes(
     // 2. 获取菜单数据
     const menuList = await menuProcessor.getMenuList()
 
-    // 3. 验证菜单数据
+    // 3. 验证菜单数据（菜单为空时登出并回到登录页，避免卡在 500）
     if (!menuProcessor.validateMenuList(menuList)) {
-      throw new Error('获取菜单列表失败，请重新登录')
+      closeLoading()
+      routeInitInProgress = false
+      ElMessage.error('获取菜单列表失败，请重新登录')
+      await userStore.logOut()
+      next(false)
+      return
     }
 
     // 4. 注册动态路由

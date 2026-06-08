@@ -1,7 +1,7 @@
 {
-    "version": "1.4.5",
-    "publishDate": "2026-06-01",
-    "description": "字典类型修复与级联同步；微信支付 v3 签名/下单 body/回调验签优化；接入 bun test 单元测试基线。",
+    "version": "1.4.6",
+    "publishDate": "2026-06-08",
+    "description": "启动期 YAML 配置 Zod strict 校验；修复 PG 连接超时、PM2 Worker 配置路径、用户删除与弹窗重置；登录菜单异常时支持重新登录兜底。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

@@ -251,7 +251,8 @@
     "403": "Sorry, you do not have permission to access this page",
     "404": "Sorry, the page you are trying to access does not exist",
     "500": "Sorry, there was an error on the server",
-    "gohome": "Go Home"
+    "gohome": "Go Home",
+    "relogin": "Sign In Again"
   },
   "menus": {
     "login": {
