@@ -17,6 +17,10 @@ head:
 
 ## v1
 
+::: timeline v1.4.6(2026-06-08)
+- 队列 Worker：修复 PM2 生产部署下沙箱 processor 子进程 `CONFIG_PATH` 误解析为 `dist/dist/production.yaml` 导致 ENOENT 的问题；production 下 PM2 工作目录即为 `dist/`，改为直接使用 `process.cwd()` 定位同级 `production.yaml`。
+:::
+
 ::: timeline v1.4.5(2026-06-01)
 - 字典管理：修复字典类型弹窗在「编辑 → 新增」切换时表单未完整重置，偶发提交 400 的问题。
 - 字典管理：修改字典类型编码时，同步级联更新下属字典数据的 `dictType`，并清理类型/数据相关 Redis 缓存；前端同步刷新右侧字典值列表与当前选中类型。

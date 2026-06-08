@@ -17,9 +17,7 @@ export function createWorker(config: WorkerConfig, appId: string): Worker {
     const isSandboxed = typeof processor === 'string';
     if (isSandboxed) {
         const appEnv = getQueueEnvConfig().appEnv;
-        const yamlDir = appEnv === 'production'
-            ? resolve(process.cwd(), 'dist')
-            : resolve(process.cwd(), 'src', 'config');
+        const yamlDir = appEnv === 'production'? process.cwd() : resolve(process.cwd(), 'src', 'config');
         const configPath = resolve(yamlDir, `${appEnv}.yaml`);
         process.env.CONFIG_PATH = configPath;
     };
