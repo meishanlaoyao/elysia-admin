@@ -7,7 +7,7 @@ import {
     FindPage,
 } from '@/core/database/repository';
 import { systemLoginLogSchema } from '@database/schema/system_login_log';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 
 
 // 插入登陆日志
@@ -15,45 +15,35 @@ export async function create(data: typeof systemLoginLogSchema.$inferInsert) {
     try {
         await InsertOne(systemLoginLogSchema, null, data);
     } catch (error) {
-        logger.error('插入登陆日志失败' + error);
+        logServerError('插入登陆日志失败', error);
     }
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(systemLoginLogSchema)
-            .eq('delFlag', false)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(systemLoginLogSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        return BaseResultData.ok(res);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = "createTime",
+        sortRule = "desc",
+        startTime,
+        endTime,
+    } = ctx.query;
+    const whereCondition = CreateQueryBuilder(systemLoginLogSchema)
+        .eq('delFlag', false)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(systemLoginLogSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule
+    });
+    return BaseResultData.ok(res);
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemLoginLogSchema, 'logId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemLoginLogSchema, 'logId', ctx);
+    return BaseResultData.ok();
 };
 
 /**
@@ -74,6 +64,6 @@ export async function AddLoginLog(ctx: AppContext) {
         });
     }
     catch (error) {
-        logger.error('添加登陆日志失败:' + error);
+        logServerError('添加登陆日志失败', error);
     }
 };

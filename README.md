@@ -132,6 +132,58 @@ elysia-admin/
 └── docs/           # 文档站（VitePress）
 ```
 
+## 开发目录建议
+
+日常做业务开发，**只需保留 `admin/` 与 `server/`** 即可跑通前后端。其余目录按工具链选用，不用可删。
+
+### 必须保留
+
+| 目录 / 文件 | 说明 |
+|-------------|------|
+| `admin/` | 前端源码与配置 |
+| `server/` | 后端源码、数据库 Schema、配置 |
+| `README.md`、`LICENSE` | 项目说明与许可证 |
+
+### 按需保留（不用可删）
+
+| 目录 / 文件 | 适用场景 | 删除影响 |
+|-------------|----------|----------|
+| `docs/` | 维护或本地预览 VitePress 文档站 | 不影响前后端开发与运行 |
+| `.vscode/`、`elysia-admin.code-workspace` | VS Code 一键任务、调试配置 | 不影响运行，仅失去 IDE 预设 |
+| `AGENTS.md` | Codex 及通用 AI 项目指引 | Codex 分层指令会缺失 |
+| `.ai/` | 任意 AI 辅助开发（模块 SOP、代码模板） | 不影响运行，AI 生成质量可能下降 |
+| `.cursor/` | Cursor 规则与 Skill | 仅 Cursor 失效 |
+| `.claude/` | Claude Code 规则 | 仅 Claude Code 失效 |
+| `.codex/` | OpenAI Codex 说明 | 仅 Codex 失效 |
+| `.kiro/` | Kiro Steering | 仅 Kiro 失效 |
+| `.trae/` | Trae 规则 | 仅 Trae 失效 |
+
+> 多个 AI IDE 配置语义一致，**只保留你正在用的那一套**即可；`.ai/` 是各工具共用的规范文档，用 AI 写模块时建议留着。
+
+### 可安全删除（会自动重新生成）
+
+| 路径 | 说明 |
+|------|------|
+| `admin/node_modules/`、`server/node_modules/`、`docs/node_modules/` | 依赖目录，`pnpm install` / `bun install` 可恢复 |
+| `admin/dist/` | 前端构建产物，`pnpm build` 生成 |
+| `server/dist/` | 后端构建产物，`bun run build` 生成 |
+| `server/database/drizzle/` | Drizzle 迁移快照，`bun db:push` 等命令可再生成 |
+| `docs/.vitepress/cache/`、`docs/.vitepress/dist/` | 文档站缓存与构建产物 |
+| `server/logs/` | 运行日志 |
+
+**精简示例**（只做业务、用 Cursor 开发）：
+
+```
+elysia-admin/
+├── admin/
+├── server/
+├── .ai/              # 可选，AI 写模块时推荐
+├── .cursor/          # 可选，Cursor 用户保留
+├── AGENTS.md         # 可选
+├── README.md
+└── LICENSE
+```
+
 ## 文件存储
 
 支持阿里云 OSS、腾讯云 COS、七牛云、MinIO、RustFS 等 S3 兼容存储。

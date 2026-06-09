@@ -17,6 +17,26 @@ head:
 
 ## v1
 
+::: timeline v1.4.7(2026-06-09)
+- 重构了后端错误处理：HTTP 路由 handler 移除重复的 `try/catch`，未捕获异常统一由全局 `onError` 收口；服务端日志保留完整 `stack`，客户端仍返回通用 500 文案。
+- 新增了 `server-error` 工具（`getHttpStatus` / `getPgErrorCode` / `logServerError`），支持业务 `httpStatus`（如 409）、PostgreSQL 唯一约束 `23505` 等在全局层映射。
+- 调整了 `BaseResultData.fail`：仅对业务主动返回的字符串 500 打日志，避免与 `onError` 重复记录异常对象。
+- 拆分了应用启动配置：`ConfigureErrorHandler` → `middleware/error-handler.ts`，`ConfigureOpenAPI` → `infrastructure/openapi.ts`，`ConfigureBullMQUI` → `infrastructure/queue/bull-board-ui.ts`，`app.ts` 仅保留 `CreateApp` 组装逻辑。
+- 更新了 AI 代码模板（`.ai/AI_CODE_EXAMPLES.md`）：标准 CRUD handler 不再生成通用 `try/catch`；补充 `useDictStore` 字典字段示例。
+- 新增了 AI 模块开发工作流（`.ai/AI_MODULE_WORKFLOW.md` 及 Schema / Handoff SQL / MCP / 页面排版子指南），Handoff SQL 统一输出至 `server/database/sql/{模块名}-init.sql`。
+- 新增了 Cursor 项目 Skill（`.cursor/skills/elysia-module-dev/`），9 步 checklist 对齐 Schema → 代码 → 字典 → 前端 → SQL 交付；AI 规范文档（`.ai/`、`.cursor/rules/`）面向 Agent 统一为英文。
+- 新增了 `.ai/AI_PAGE_QUALITY.md`（列表页 `art-full-height`、`useDictStore`、弹窗排版等整页质量规范）。
+- 同步更新了 Trae / Kiro steering 与 `.cursor/rules/general.mdc`（模块开发触发语、Git 只读、MCP 查库优先）。
+- 重写了 [AI 开发指南](/guide/ai-guide.html)：三档提示词（一句话 / 两句 / 结构化）、网页版短前缀指引，移除过时内联代码模板。
+- 新增了 OpenAI Codex 分层指令（根目录及 `server/`、`admin/` 的 `AGENTS.md`）与 `.codex/README.md`。
+- 新增了 Claude Code 配置（`.claude/CLAUDE.md`、`.claude/rules/`），规则语义与 Cursor / Trae 对齐。
+- 新增了 VS Code / Cursor 开发配置（`.vscode/`：settings、extensions、tasks、launch）及多根工作区 `elysia-admin.code-workspace`。
+- 新增了后端调试命令：`dev:debug`（IDE Attach 6499）、`dev:debug:browser`（推荐，配合 [debug.bun.sh](https://debug.bun.sh)）、`dev:debug:watch`（调试 + 热重载，默认不推荐）。
+- 新增了 `server/script/dev-debug.ts` 调试启动脚本，终端提示浏览器断点流程。
+- 调整了 `.vscode/launch.json`：改用内置 Node 调试器 Attach 6499，替代原 `type: bun`（Cursor / Trae 下扩展调试适配器常不可用）；`.vscode/tasks.json` 补充 `Server: dev:debug` 相关任务。
+- 补充了 [内置命令](/architecture/commands.html) 文档：独立「调试命令」「构建命令」章节，说明命令与编辑器 Tasks / Launch 配套用法。
+:::
+
 ::: timeline v1.4.6(2026-06-08)
 - 新增了启动期 Zod strict 校验 `*.yaml` 配置，缺字段、类型错误或未知 key 时 fail-fast 并输出可读错误。
 - 修复了 PostgreSQL 连接池 `connect_timeout` 配置未生效（原误读 `connection_timeout`）。

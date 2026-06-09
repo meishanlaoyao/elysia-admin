@@ -1,7 +1,7 @@
 {
-    "version": "1.4.6",
-    "publishDate": "2026-06-08",
-    "description": "启动期 YAML 配置 Zod strict 校验；修复 PG 连接超时、PM2 Worker 配置路径、用户删除与弹窗重置；登录菜单异常时支持重新登录兜底。",
+    "version": "1.4.7",
+    "publishDate": "2026-06-09",
+    "description": "重构后端错误处理由全局 onError 收口并新增 server-error 工具；拆分应用启动配置；新增 AI 模块工作流、Cursor Skill 与 VS Code 调试命令；同步 Codex / Claude Code 分层指令。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

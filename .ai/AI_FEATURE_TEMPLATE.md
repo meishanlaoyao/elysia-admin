@@ -1,5 +1,7 @@
 # AI Feature Development Protocol (STRICT)
 
+> **Migrated:** Full workflow in **[AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md)** (Schema, dict, handoff SQL, page quality, git read-only). This file kept for old links.
+
 When implementing a new feature or module,
 follow this exact workflow.
 

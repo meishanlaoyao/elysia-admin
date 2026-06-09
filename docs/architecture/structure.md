@@ -19,16 +19,22 @@ head:
 ## 整体结构
 
 ```
-elysia-admin
-├── .ai                         # AI 辅助（代码示例、上下文说明等）
-├── .cursor                     # Cursor 规则与编辑器配置
-├── .kiro                       # Kiro Steering 工程指引
-├── .trae                       # Trae 规则
-├── admin                       # 前端
-├── docs                        # 文档站点
-├── server                      # 后端
+elysia-admin/
+├── admin/                      # Vue 3 前端
+├── server/                     # Elysia + Bun 后端
+├── docs/                       # VitePress 文档站
+├── .ai/                        # AI 开发指南（模块 SOP、代码示例等）
+├── .cursor/                    # Cursor 规则与 Skill
+├── .claude/                    # Claude 规则
+├── .codex/                     # Codex 配置
+├── .kiro/                      # Kiro Steering
+├── .trae/                      # Trae 规则
+├── .vscode/                    # VS Code 工作区配置
+├── AGENTS.md                   # 项目级 AI 指引
+├── elysia-admin.code-workspace
 ├── LICENSE
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 ## 前端结构
@@ -242,243 +248,64 @@ elysia-admin
 
 后端采用 `Elysia.js` 框架构建，遵循分层架构设计。
 
-**依赖方向（简要）：**
-
-- `modules` → `core` / `shared` / `infrastructure`
-- `infrastructure/queue/**/processor.ts` → `worker-sandbox` → `modules`（Processor 不直接 import 业务模块）
-- `shared` 不依赖 `core/database`（进程内 Cron 与 Redis 锁见 `infrastructure/cron`）
-
-**路由加载：** 开发环境扫描 `modules/*/route.ts`，单模块格式错误或加载失败会 `warn` 并跳过；生产环境使用构建预生成的 `core/route-registry.generated.ts`。
-
 ```
-├── database                      # 数据库定义层目录
-│   ├── schema                    # 业务表 Schema 定义
-│   │   ├── business_merchant.ts  # 商户管理表 Schema
-│   │   ├── business_orders.ts    # 订单管理表 Schema
-│   │   ├── business_payments.ts  # 支付管理表 Schema
-│   │   ├── business_refund.ts    # 退款管理表 Schema
-│   │   ├── monitor_job.ts        # 定时任务表 Schema
-│   │   ├── system_api.ts         # API 接口表 Schema
-│   │   ├── system_dept.ts        # 部门管理表 Schema
-│   │   ├── system_dict.ts        # 字典管理表 Schema
-│   │   ├── system_ip_black.ts    # IP 黑名单表 Schema
-│   │   ├── system_login_log.ts   # 登录日志表 Schema
-│   │   ├── system_menu.ts        # 菜单管理表 Schema
-│   │   ├── system_oper_log.ts    # 操作日志表 Schema
-│   │   ├── system_role.ts        # 角色管理表 Schema
-│   │   ├── system_storage.ts     # 存储配置表 Schema
-│   │   └── system_user.ts        # 用户管理表 Schema
-│   ├── sql                       # 原始 SQL 脚本
-│   │   └── pg.sql                # PostgreSQL 初始化脚本
-│   └── base-schema.ts            # 基础字段定义
-├── public                        # 静态资源目录
-│   └── index.html                # 默认首页
-├── script                        # 脚本工具目录
-│   ├── build-processors.ts       # 构建 worker 脚本
-│   ├── build.ts                  # 构建脚本
-│   ├── generate-dbconfig.ts      # 数据库拉取推送脚本
-│   ├── generate-registry.ts      # 生成注册表脚本
-│   └── seed.ts                   # 数据库种子脚本
-├── src                           # 源代码目录
-│   ├── config                    # 配置文件目录
-│   │   ├── development.yaml      # 开发环境配置文件
-│   │   ├── production.yaml       # 生产环境配置文件
-│   │   └── index.ts              # 配置文件总入口
-│   ├── constants                 # 常量定义目录
-│   │   ├── base.ts               # 基础常量
-│   │   ├── dict.ts               # 字典常量
-│   │   └── enum.ts               # 枚举常量
-│   ├── core                      # 核心功能层
-│   │   ├── database              # 数据库操作层
-│   │   │   ├── pg.ts             # PostgreSQL 客户端实例（Drizzle）
-│   │   │   ├── redis-lock.ts     # Redis 锁实例
-│   │   │   ├── redis.ts          # Redis 客户端实例
-│   │   │   ├── repository.ts     # 数据访问层（Repository 模式，封装通用 CRUD 操作）
-│   │   │   └── transaction.ts    # 数据库事务管理
-│   │   ├── cache.ts              # 缓存管理层
-│   │   ├── check.ts              # 常用校验函数
-│   │   ├── function.ts           # 通用函数层
-│   │   ├── result.ts             # 结果处理层
-│   │   ├── route-registry.ts     # 路由注册层（开发扫描 / 生产读预生成文件）
-│   │   └── task-registry.ts      # 启动时从 DB 恢复 BullMQ repeat 定时任务
-│   ├── infrastructure            # 基础设施层
-│   │   ├── cron                  # 进程内 Croner + Redis 分布式锁（优雅关闭用）
-│   │   │   └── cron-scheduler.ts # 业务定时以 BullMQ system-cron-queue 为准
-│   │   ├── clients               # 客户端层
-│   │   │   ├── payment           # 支付客户端层
-│   │   │   │   ├── providers     # 支付提供商层
-│   │   │   │   │   ├── alipay    # 支付宝支付
-│   │   │   │   │   │   ├── app.ts      # APP 支付
-│   │   │   │   │   │   ├── base.ts     # 基础实现
-│   │   │   │   │   │   ├── h5.ts       # H5 支付
-│   │   │   │   │   │   ├── index.ts    # 入口文件
-│   │   │   │   │   │   ├── mini.ts     # 小程序支付
-│   │   │   │   │   │   └── pc.ts       # PC 网站支付
-│   │   │   │   │   ├── paypal          # PayPal 支付
-│   │   │   │   │   │   ├── base.ts     # 基础实现
-│   │   │   │   │   │   ├── h5.ts       # H5 支付
-│   │   │   │   │   │   ├── index.ts    # 入口文件
-│   │   │   │   │   │   └── pc.ts       # PC 支付
-│   │   │   │   │   ├── wechat          # 微信支付
-│   │   │   │   │   │   ├── app.ts      # APP 支付
-│   │   │   │   │   │   ├── base.ts     # 基础实现
-│   │   │   │   │   │   ├── h5.ts       # H5 支付
-│   │   │   │   │   │   ├── index.ts    # 入口文件
-│   │   │   │   │   │   ├── mini.ts     # 小程序支付
-│   │   │   │   │   │   └── pc.ts       # PC 支付
-│   │   │   │   │   └── crypto.ts       # 加密货币支付
-│   │   │   │   └── index.ts            # 支付客户端入口
-│   │   │   └── smtp.ts           # SMTP 客户端实例
-│   │   ├── queue                 # 队列
-│   │   │   ├── config            # 队列配置层
-│   │   │   │   └── env.ts        # 队列环境配置文件
-│   │   │   ├── core              # 队列核心层
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── manager.ts
-│   │   │   │   ├── processor-utils.ts
-│   │   │   │   ├── queue.ts
-│   │   │   │   ├── rate-limit.ts
-│   │   │   │   ├── retry.ts
-│   │   │   │   ├── scheduler.ts
-│   │   │   │   ├── types.ts
-│   │   │   │   └── worker.ts
-│   │   │   ├── queues                  # 队列实现层
-│   │   │   │   ├── flow-buffer         # 流量缓冲队列
-│   │   │   │   │   ├── processor.ts    # 处理器
-│   │   │   │   │   ├── queue.ts        # 队列定义
-│   │   │   │   │   └── worker.ts       # 工作器
-│   │   │   │   ├── system-cron         # 系统定时任务队列
-│   │   │   │   │   ├── processor.ts    # 处理器
-│   │   │   │   │   ├── queue.ts        # 队列定义
-│   │   │   │   │   └── worker.ts       # 工作器
-│   │   │   │   └── trade-order         # 交易订单队列
-│   │   │   │       ├── processor.ts    # 处理器
-│   │   │   │       ├── queue.ts        # 队列定义
-│   │   │   │       └── worker.ts       # 工作器
+├── database                      # 数据库定义
+│   ├── schema                    # 业务表 Schema
+│   ├── sql                       # 初始化 SQL、模块 handoff SQL
+│   └── base-schema.ts            # 公共字段定义
+├── script                        # 构建 / 注册表 / 种子脚本
+├── test                          # 单元测试
+│   ├── core
+│   ├── shared
+│   └── types
+├── public                        # 静态资源
+├── src
+│   ├── config                    # 环境配置
+│   ├── constants                 # 枚举与字典常量
+│   ├── core                      # 核心基础设施
+│   │   └── database              # PG / Redis / Repository / 事务
+│   ├── infrastructure            # 外部集成
+│   │   ├── clients               # 第三方客户端
+│   │   │   └── payment           # 支付客户端
+│   │   │       └── providers     # alipay / paypal / wechat / crypto
+│   │   ├── cron                  # 进程内定时任务
+│   │   ├── queue                 # BullMQ 队列
+│   │   │   ├── config
+│   │   │   ├── core
 │   │   │   ├── runtime
-│   │   │   │   ├── app.ts
-│   │   │   │   └── worker.ts
-│   │   │   └── index.ts
-│   │   └── storage               # 存储层
-│   │       ├── providers         # 存储提供层
-│   │       │   ├── cos.ts        # COS 存储提供层
-│   │       │   ├── kodo.ts       # Kodo 存储提供层
-│   │       │   ├── oss.ts        # OSS 存储提供层
-│   │       │   └── rustfs.ts     # RustFS 存储提供层
-│   │       ├── index.ts          # 存储提供层总入口
-│   │       └── types.ts          # 存储提供层类型定义文件
-│   ├── middleware                # 中间件层
-│   │   ├── guards                # 守卫层
-│   │   │   ├── api.ts            # API 开关
-│   │   │   ├── auth.ts           # 认证守卫
-│   │   │   ├── ipblack.ts        # IP 黑名单守卫
-│   │   │   ├── ipratelimit.ts    # IP 限流守卫
-│   │   │   └── permission.ts     # 权限守卫
-│   │   ├── analysis.ts           # 分析中间件
-│   │   └── index.ts              # 中间件层总入口
-│   ├── modules                   # 模块层
-│   │   ├── auth                  # 认证模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── business-merchant     # 商户管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── business-orders       # 订单管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── business-payments     # 支付管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── business-refund       # 退款管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── monitor-cache         # 缓存监控模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── monitor-job           # 任务监控模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   ├── route.ts          # 路由层定义
-│   │   │   └── task.ts           # 任务层定义
-│   │   ├── monitor-online        # 在线用户监控模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-api            # API 接口管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-dept           # 部门管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-dict           # 字典管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-ip-black       # IP 黑名单模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-login-log      # 登录日志模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-menu           # 菜单管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-oper-log       # 操作日志模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-role           # 角色管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-storage        # 存储配置模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   ├── system-user           # 用户管理模块
-│   │   │   ├── dto.ts            # 校验层定义
-│   │   │   ├── handle.ts         # 处理层定义
-│   │   │   └── route.ts          # 路由层定义
-│   │   └── index.ts              # 模块层入口（路由挂载与 RouteMap）
-│   ├── worker-sandbox            # 沙箱 Worker 任务注册（可 import modules）
-│   │   ├── system-cron-tasks.ts  # system-cron-queue 任务组合
-│   │   └── flow-buffer-tasks.ts  # flow-buffer-queue 任务组合
-│   ├── shared                    # 共享工具函数目录
-│   │   ├── bcrypt.ts             # 加密工具函数
-│   │   ├── color.ts              # 颜色工具函数
-│   │   ├── htmltemplate.ts       # HTML 模板工具函数
-│   │   ├── ip.ts                 # IP 工具函数
-│   │   ├── jwt.ts                # JWT 工具函数
-│   │   ├── logger.ts             # 日志工具函数
-│   │   ├── rescode.ts            # 结果码工具函数
-│   │   ├── time.ts               # 时间工具函数
-│   │   └── uuid.ts               # UUID 工具函数
-│   ├── types                     # 类型定义目录
-│   │   ├── app-context.ts        # 请求上下文（user、routeInfo 等）
-│   │   ├── common.ts             # 公共类型定义文件
-│   │   ├── dto.ts                # 校验层类型定义文件
-│   │   ├── last-version.ts       # 版本信息类型
-│   │   ├── pay.ts                # 支付相关类型定义文件
-│   │   ├── route.ts              # 路由层类型定义文件
-│   │   └── task.ts               # 任务层类型定义文件
-│   ├── app.ts                    # 应用层入口文件
-│   └── index.ts                  # 应用层总入口文件
-├── .gitignore                    # Git 忽略文件
-├── bun.lock                      # Bun 依赖锁定文件
-├── Dockerfile                    # Docker 镜像构建配置
-├── drizzle.config.ts             # Drizzle ORM 配置文件（自动生成）
-├── package.json                  # 项目依赖配置文件
-├── README.md                     # 项目说明文档
-└── tsconfig.json                 # TypeScript 配置文件
+│   │   │   └── queues            # flow-buffer / system-cron / trade-order
+│   │   └── storage               # 对象存储
+│   │       └── providers         # cos / kodo / oss / rustfs
+│   ├── middleware                # 中间件
+│   │   └── guards                # 认证 / 权限 / IP 黑名单 / 限流
+│   ├── modules                   # 业务模块
+│   │   ├── auth                  # 认证
+│   │   ├── business-merchant     # 商户管理
+│   │   ├── business-orders       # 订单管理
+│   │   ├── business-payments     # 支付管理
+│   │   ├── business-refund       # 退款管理
+│   │   ├── monitor-cache         # 缓存监控
+│   │   ├── monitor-job           # 定时任务监控
+│   │   ├── monitor-online        # 在线用户监控
+│   │   ├── system-api            # API 接口管理
+│   │   ├── system-dept           # 部门管理
+│   │   ├── system-dict           # 字典管理
+│   │   ├── system-ip-black       # IP 黑名单
+│   │   ├── system-login-log      # 登录日志
+│   │   ├── system-menu           # 菜单管理
+│   │   ├── system-oper-log       # 操作日志
+│   │   ├── system-role           # 角色管理
+│   │   ├── system-storage        # 存储配置
+│   │   └── system-user           # 用户管理
+│   ├── worker-sandbox            # 队列沙箱任务注册
+│   ├── shared                    # 共享工具函数
+│   ├── types                     # 类型定义
+│   ├── app.ts                    # 应用入口
+│   └── index.ts                  # 总入口
+├── Dockerfile
+├── drizzle.config.ts
+├── package.json
+├── bun.lock
+├── tsconfig.json
+└── README.md
 ```

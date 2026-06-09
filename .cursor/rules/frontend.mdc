@@ -1,5 +1,5 @@
 ---
-description: 前端模块规范（Vue 3 + TypeScript），包含文件结构、useTable 用法和完整代码模式
+description: Frontend module rules (Vue 3 + TypeScript) — file structure, useTable, code patterns, page quality
 globs:
   - admin/src/**/*.vue
   - admin/src/**/*.ts
@@ -200,6 +200,18 @@ const handleClosed = () => formRef.value?.reset()
 | API functions | `fetch{Action}{Name}` | `fetchCreateGoods` |
 | Page component | `defineOptions({ name: '{PascalName}' })` | `defineOptions({ name: 'Goods' })` |
 | Permission | `{group}:{name}:{action}` | `business:goods:create` |
+
+---
+
+# Page Quality — MUST for new CRUD pages
+
+See `.ai/AI_PAGE_QUALITY.md` and `.ai/AI_UI_LAYOUT.md`.
+
+- Page shell: `art-full-height` + `ElCard.art-table-card shadow="never"`
+- `ArtTableHeader`: actions in `#left` (`ElSpace wrap`); refresh on header
+- Operation column: `fixed: 'right'`, `width: 120`–`160`
+- Business enums: **NEVER** hardcode — use `useDictStore` + `getDictData` / `getDictLabel`
+- Dialog: `align-center`, `:span="12"`, balanced width (600–800px)
 
 ---
 

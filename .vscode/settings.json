@@ -1,0 +1,57 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/dist-ssr": true,
+    "**/.vitepress/.temp": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/dist-ssr": true,
+    "**/.vitepress/.temp": true,
+    "**/coverage": true
+  },
+  "prettier.configPath": "admin/.prettierrc",
+  "eslint.workingDirectories": [
+    {
+      "directory": "admin",
+      "changeProcessCWD": true
+    }
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue"
+  ],
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.tsdk": "admin/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "stylelint.validate": ["css", "scss", "vue"],
+  "stylelint.configBasedir": "admin",
+  "debug.javascript.suggestPrettyPrinting": false,
+  "debug.javascript.enableSourceMapDictionaries": false,
+  "debug.javascript.breakOnConditionalError": false,
+  "debug.showBreakpointsInOverviewRuler": false
+}

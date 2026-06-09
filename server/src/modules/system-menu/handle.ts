@@ -14,117 +14,79 @@ import { systemRoleMenuSchema } from '@database/schema/system_role';
 import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 import { Keys, Del, Set as RedisSet } from '@/core/database/redis';
 import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
 
 export async function createMenu(ctx: AppContext) {
-    try {
-        await InsertOne(systemMenuSchema, ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(systemMenuSchema, ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 export async function createMenuBtn(ctx: AppContext) {
-    try {
-        await InsertOne(systemMenuBtnSchema, ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(systemMenuBtnSchema, ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 export async function findSimple(ctx: AppContext) {
-    try {
-        const { userId } = (ctx as any)?.user;
-        const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => loadUserMenuTree(userId));
-        return BaseResultData.ok(data);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const { userId } = (ctx as any)?.user;
+    const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => loadUserMenuTree(userId));
+    return BaseResultData.ok(data);
 };
 
 export async function findTree(ctx: AppContext) {
-    try {
-        const {
-            title,
-            path,
-        } = ctx.query;
-        const builder = CreateQueryBuilder(systemMenuSchema)
-            .eq('delFlag', false)
-            .like('title', title)
-            .like('path', path)
-            .join({
-                joinSchema: systemMenuBtnSchema,
-                fieldName: 'authList',
-                foreignKey: 'menuId',
-                primaryKey: 'menuId',
-                defaultValue: [],
-                where: eq(systemMenuBtnSchema.delFlag, false),
-                multiple: true
-            });
-        const data = await FindAllWithJoin(systemMenuSchema, builder);
-        const tree = ListToTree(data, {
-            idKey: 'menuId',
-            parentKey: 'parentId',
-            childrenKey: 'children',
-            rootValue: 0,
-            sortKey: 'sort',
+    const {
+        title,
+        path,
+    } = ctx.query;
+    const builder = CreateQueryBuilder(systemMenuSchema)
+        .eq('delFlag', false)
+        .like('title', title)
+        .like('path', path)
+        .join({
+            joinSchema: systemMenuBtnSchema,
+            fieldName: 'authList',
+            foreignKey: 'menuId',
+            primaryKey: 'menuId',
+            defaultValue: [],
+            where: eq(systemMenuBtnSchema.delFlag, false),
+            multiple: true
         });
-        return BaseResultData.ok(tree);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = await FindAllWithJoin(systemMenuSchema, builder);
+    const tree = ListToTree(data, {
+        idKey: 'menuId',
+        parentKey: 'parentId',
+        childrenKey: 'children',
+        rootValue: 0,
+        sortKey: 'sort',
+    });
+    return BaseResultData.ok(tree);
 };
 
 export async function updateMenu(ctx: AppContext) {
-    try {
-        await UpdateByKey(systemMenuSchema, 'menuId', ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await UpdateByKey(systemMenuSchema, 'menuId', ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 export async function updateMenuBtn(ctx: AppContext) {
-    try {
-        await UpdateByKey(systemMenuBtnSchema, 'btnId', ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await UpdateByKey(systemMenuBtnSchema, 'btnId', ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 export async function removeMenu(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemMenuSchema, 'menuId', ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemMenuSchema, 'menuId', ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 export async function removeMenuBtn(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ctx);
-        await invalidateAdminMenuCache();
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemMenuBtnSchema, 'btnId', ctx);
+    await invalidateAdminMenuCache();
+    return BaseResultData.ok();
 };
 
 // 根据角色IDS获取菜单权限
@@ -141,7 +103,7 @@ export async function GetMenuPermissionByRoleIds(roleIds: number[]): Promise<str
         return [];
     }
     catch (error) {
-        logger.error('根据角色IDS获取菜单权限失败:' + error);
+        logServerError('根据角色IDS获取菜单权限失败', error);
         return [];
     }
 };
@@ -215,18 +177,18 @@ export function handleMenuListToTree(
 };
 
 // 刷新缓存菜单树
-export async function RefreshRoutes(userId: number) {
+export async function RefreshRoutes(userId: string) {
     try {
         const data = await loadUserMenuTree(userId);
         await RedisSet(CacheEnum.ADMIN_MENU + userId, data);
     } catch (error) {
-        logger.error('刷新缓存菜单树失败:' + error);
+        logServerError('刷新缓存菜单树失败', error);
         throw error;
     }
 };
 
 /** 加载用户可见菜单树（未删除且已启用） */
-async function loadUserMenuTree(userId: number) {
+async function loadUserMenuTree(userId: string) {
     const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
     if (!menuIds.length) return [];
     const menuWhere = CreateQueryBuilder(systemMenuSchema)

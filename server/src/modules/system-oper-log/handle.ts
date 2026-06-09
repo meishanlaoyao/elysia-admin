@@ -9,52 +9,42 @@ import {
 import { SYSTEM_API_METHOD } from '@/constants/dict';
 import { systemOperLogSchema } from '@database/schema/system_oper_log';
 import { SanitizeObject } from '@/core/function';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 import { SensitiveFields } from '@/constants/base';
 
 export async function create(data: typeof systemOperLogSchema.$inferInsert) {
     try {
         await InsertOne(systemOperLogSchema, null, data);
     } catch (error) {
-        logger.error('插入操作日志失败' + error);
+        logServerError('插入操作日志失败', error);
     }
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(systemOperLogSchema)
-            .eq('delFlag', false)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(systemOperLogSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        return BaseResultData.ok(res);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = "createTime",
+        sortRule = "desc",
+        startTime,
+        endTime,
+    } = ctx.query;
+    const whereCondition = CreateQueryBuilder(systemOperLogSchema)
+        .eq('delFlag', false)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(systemOperLogSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule
+    });
+    return BaseResultData.ok(res);
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemOperLogSchema, 'logId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemOperLogSchema, 'logId', ctx);
+    return BaseResultData.ok();
 };
 
 // 插入操作日志

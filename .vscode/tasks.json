@@ -1,0 +1,154 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Server: dev:debug (browser, 推荐)",
+      "type": "shell",
+      "command": "bun run dev:debug:browser",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "isBackground": false,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev",
+        "focus": true
+      }
+    },
+    {
+      "label": "Server: dev:debug",
+      "type": "shell",
+      "command": "bun run dev:debug",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "bun",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Bun Inspector|启动成功"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Server: dev",
+      "type": "shell",
+      "command": "bun run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "bun",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Elysia-Admin 启动成功|listening|started"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Server: dev:all",
+      "type": "shell",
+      "command": "bun run dev:all",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "bun",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Elysia-Admin 启动成功|listening|started"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Server: test",
+      "type": "shell",
+      "command": "bun test",
+      "options": {
+        "cwd": "${workspaceFolder}/server"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Admin: dev",
+      "type": "shell",
+      "command": "pnpm dev",
+      "options": {
+        "cwd": "${workspaceFolder}/admin"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": "^$" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:|ready in"
+        }
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "group": "dev"
+      }
+    },
+    {
+      "label": "Admin: lint",
+      "type": "shell",
+      "command": "pnpm lint",
+      "options": {
+        "cwd": "${workspaceFolder}/admin"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Dev: Full Stack",
+      "dependsOn": ["Server: dev", "Admin: dev"],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

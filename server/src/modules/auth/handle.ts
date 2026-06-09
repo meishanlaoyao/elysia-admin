@@ -23,7 +23,6 @@ function isPublicRegisterAllowed(): boolean {
 };
 
 export async function accountPasswordLogin(ctx: AppContext) {
-    try {
         const { username, password } = ctx.body as any;
         const user = await GetUserBy('username', username);
         if (!user) return BaseResultData.fail(404, '用户不存在');
@@ -64,13 +63,9 @@ export async function accountPasswordLogin(ctx: AppContext) {
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
         ctx.user = userInfo;
         return BaseResultData.ok(tokens);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
 };
 
 export async function refreshToken(ctx: AppContext) {
-    try {
         const { refreshToken } = ctx.body as any;
         if (!refreshToken) return BaseResultData.fail(404, '刷新令牌不存在');
         const payload = await VerifyToken('refreshToken', refreshToken);
@@ -83,60 +78,47 @@ export async function refreshToken(ctx: AppContext) {
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
         return BaseResultData.ok(tokens);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
 };
 
 export async function registerUser(ctx: AppContext) {
-    try {
         if (!isPublicRegisterAllowed()) return BaseResultData.fail(403, '公开注册已关闭');
         const { username, password } = ctx.body as any;
         await RegisterUser(username, password);
         return BaseResultData.ok();
-    } catch (error: any) {
-        if (error?.httpStatus === 409) return BaseResultData.fail(409, error.message);
-        return BaseResultData.fail(500, error);
-    }
 };
 
 export async function forgetPassword(ctx: AppContext) {
-    try {
-        const { email } = ctx.body as any;
-        const user = await GetUserBy('email', email);
-        if (user?.email && user?.status && !user?.delFlag) {
-            const key = CacheEnum.FORGET_PASSWORD + user.userId;
-            const oldKeys = await Keys(`${key}:*`);
-            if (oldKeys.length) await Del(oldKeys);
-            const uuid = GenerateUUID();
-            const cacheKey = `${key}:${uuid}`;
-            const isSet = await Set(cacheKey, { userId: user.userId }, config.app.forgetPasswordExpiresIn);
-            if (!isSet) return BaseResultData.fail(500);
-            try {
-                const resetUrl = `${config.app.forgetPasswordUrl}?token=${uuid}&uid=${user.userId}`;
-                const html = GenerateForgetPasswordHtmlTemplate(resetUrl, user?.nickname || '');
-                const isSend = await SendMail({
-                    to: email,
-                    subject: `[${config.app.id}] - 重置密码`,
-                    html,
-                });
-                if (!isSend) {
-                    await Del(cacheKey);
-                    return BaseResultData.fail(500);
-                }
-            } catch (mailError) {
+    const { email } = ctx.body as any;
+    const user = await GetUserBy('email', email);
+    if (user?.email && user?.status && !user?.delFlag) {
+        const key = CacheEnum.FORGET_PASSWORD + user.userId;
+        const oldKeys = await Keys(`${key}:*`);
+        if (oldKeys.length) await Del(oldKeys);
+        const uuid = GenerateUUID();
+        const cacheKey = `${key}:${uuid}`;
+        const isSet = await Set(cacheKey, { userId: user.userId }, config.app.forgetPasswordExpiresIn);
+        if (!isSet) return BaseResultData.fail(500);
+        try {
+            const resetUrl = `${config.app.forgetPasswordUrl}?token=${uuid}&uid=${user.userId}`;
+            const html = GenerateForgetPasswordHtmlTemplate(resetUrl, user?.nickname || '');
+            const isSend = await SendMail({
+                to: email,
+                subject: `[${config.app.id}] - 重置密码`,
+                html,
+            });
+            if (!isSend) {
                 await Del(cacheKey);
-                return BaseResultData.fail(500, mailError);
+                return BaseResultData.fail(500);
             }
-        };
-        return BaseResultData.ok(null, '如果该邮箱存在，我们已发送重置邮件');
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+        } catch (mailError) {
+            await Del(cacheKey);
+            return BaseResultData.fail(500, mailError);
+        }
+    };
+    return BaseResultData.ok(null, '如果该邮箱存在，我们已发送重置邮件');
 };
 
 export async function resetPassword(ctx: AppContext) {
-    try {
         const { uid, token, password } = ctx.body as any;
         const key = CacheEnum.FORGET_PASSWORD + uid + ':' + token;
         const payload = await Get(key);
@@ -145,13 +127,9 @@ export async function resetPassword(ctx: AppContext) {
         const isDel = await Del(key);
         if (!isDel) return BaseResultData.fail(500, '重置令牌删除失败');
         return BaseResultData.ok(null, '密码重置成功');
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
 };
 
 export async function logout(ctx: AppContext) {
-    try {
         const userId = ctx?.user?.userId;
         // 刷新token
         const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
@@ -162,9 +140,6 @@ export async function logout(ctx: AppContext) {
         const menuKey = CacheEnum.ADMIN_MENU + `${userId}`;
         await Del([...oldKeys, onlineKey, menuKey]);
         return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
 };
 
 // 生成并存储令牌

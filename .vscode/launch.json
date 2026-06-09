@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Debug Server (IDE, 较慢)",
+      "port": 6499,
+      "address": "127.0.0.1",
+      "localRoot": "${workspaceFolder}/server",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "showAsyncStacks": false,
+      "smartStep": false,
+      "preLaunchTask": "Server: dev:debug"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach Server (6499)",
+      "port": 6499,
+      "address": "127.0.0.1",
+      "localRoot": "${workspaceFolder}/server",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "showAsyncStacks": false,
+      "smartStep": false
+    }
+  ]
+}

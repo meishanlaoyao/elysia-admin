@@ -9,70 +9,50 @@ import {
     FindAll,
 } from '@/core/database/repository';
 import { RunTransaction } from '@/core/database/transaction';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 import { systemIpBlackSchema } from '@database/schema/system_ip_black';
 import { IsIpAddress } from '@/core/check';
 import { CacheEnum } from '@/constants/enum';
 import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
 
 export async function create(ctx: AppContext) {
-    try {
-        const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
-        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
-        await InsertIpBlack(data);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
+    if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
+    await InsertIpBlack(data);
+    return BaseResultData.ok();
 };
 
 export async function findAll(ctx: AppContext) {
-    try {
-        const {
-            ipAddress,
-            status,
-        } = ctx.query;
-        let bStatus = undefined;
-        if (status) {
-            bStatus = status === 'true' ? true : false;
-        };
-        const where = CreateQueryBuilder(systemIpBlackSchema)
-            .eq('delFlag', false)
-            .like('ipAddress', ipAddress)
-            .eq('status', bStatus)
-            .build();
-        const data = await FindAll(systemIpBlackSchema, where);
-        return BaseResultData.ok(data);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        ipAddress,
+        status,
+    } = ctx.query;
+    let bStatus = undefined;
+    if (status) {
+        bStatus = status === 'true' ? true : false;
+    };
+    const where = CreateQueryBuilder(systemIpBlackSchema)
+        .eq('delFlag', false)
+        .like('ipAddress', ipAddress)
+        .eq('status', bStatus)
+        .build();
+    const data = await FindAll(systemIpBlackSchema, where);
+    return BaseResultData.ok(data);
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
-        if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
-        const res = await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', ctx, data);
-        config.guard.ipBlacklist && await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
+    if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
+    const res = await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', ctx, data);
+    config.guard.ipBlacklist && await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res);
+    return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ctx);
-        config.guard.ipBlacklist && await CacheDelete(CacheEnum.IP_BLACK, 'ipBlackId', ids);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const ids = ctx.params.ids.split(',').map(Number) as number[];
+    await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ctx);
+    config.guard.ipBlacklist && await CacheDelete(CacheEnum.IP_BLACK, 'ipBlackId', ids);
+    return BaseResultData.ok();
 };
 
 // 获取缓存黑名单ip，已启用的数据
@@ -112,6 +92,6 @@ export async function InsertIpBlack(data: typeof systemIpBlackSchema.$inferInser
         });
     }
     catch (error) {
-        logger.error('插入IP黑名单失败' + error);
+        logServerError('插入IP黑名单失败', error);
     }
 };

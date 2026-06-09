@@ -23,105 +23,89 @@ function getCronQueue() {
 };
 
 export async function create(ctx: AppContext) {
-    try {
-        const data = ctx.body as typeof monitorJobSchema.$inferInsert;
-        if (data.status && data.jobName && data.jobCron) {
-            await schedule(
-                getCronQueue(),
-                data.jobName,
-                {
-                    cron: data.jobCron,
-                    data: {
-                        taskName: data.jobName,
-                        jobArgs: data.jobArgs ?? '',
-                    },
-                }
-            );
-        };
-        await InsertOne(monitorJobSchema, ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = ctx.body as typeof monitorJobSchema.$inferInsert;
+    if (data.status && data.jobName && data.jobCron) {
+        await schedule(
+            getCronQueue(),
+            data.jobName,
+            {
+                cron: data.jobCron,
+                data: {
+                    taskName: data.jobName,
+                    jobArgs: data.jobArgs ?? '',
+                },
+            }
+        );
+    };
+    await InsertOne(monitorJobSchema, ctx);
+    return BaseResultData.ok();
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = 'createTime',
-            sortRule = 'desc',
-            startTime,
-            endTime,
-            jobName,
-            jobCron,
-            status,
-        } = ctx.query;
-        let newStatus = undefined;
-        if (status !== undefined) newStatus = status === 'true' ? true : false;
-        const whereCondition = CreateQueryBuilder(monitorJobSchema)
-            .eq('delFlag', false)
-            .like('jobName', jobName)
-            .eq('jobCron', jobCron)
-            .eq('status', newStatus)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(monitorJobSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule,
-        });
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = 'createTime',
+        sortRule = 'desc',
+        startTime,
+        endTime,
+        jobName,
+        jobCron,
+        status,
+    } = ctx.query;
+    let newStatus = undefined;
+    if (status !== undefined) newStatus = status === 'true' ? true : false;
+    const whereCondition = CreateQueryBuilder(monitorJobSchema)
+        .eq('delFlag', false)
+        .like('jobName', jobName)
+        .eq('jobCron', jobCron)
+        .eq('status', newStatus)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(monitorJobSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule,
+    });
+    return BaseResultData.ok(res);
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        const data = ctx.body as typeof monitorJobSchema.$inferSelect;
-        const jobId = data.jobId;
-        const oldJob = await FindOneByKey(monitorJobSchema, 'jobId', jobId);
-        const queue = getCronQueue();
-        if (oldJob && data.jobName) {
-            const oldJobName = String(oldJob.jobName);
-            const oldJobCron = String(oldJob.jobCron);
-            const newJobName = String(data.jobName);
-            // 先移除旧的 repeatable job
-            await removeSchedule(queue, oldJobName, oldJobCron);
-            // 如果新状态是启用，重新注册
-            if (data.status !== false && data.jobCron) {
-                await schedule(queue, newJobName, {
-                    cron: String(data.jobCron),
-                    data: {
-                        taskName: newJobName,
-                        jobArgs: data.jobArgs ?? '',
-                    },
-                });
-            };
+    const data = ctx.body as typeof monitorJobSchema.$inferSelect;
+    const jobId = data.jobId;
+    const oldJob = await FindOneByKey(monitorJobSchema, 'jobId', jobId);
+    const queue = getCronQueue();
+    if (oldJob && data.jobName) {
+        const oldJobName = String(oldJob.jobName);
+        const oldJobCron = String(oldJob.jobCron);
+        const newJobName = String(data.jobName);
+        // 先移除旧的 repeatable job
+        await removeSchedule(queue, oldJobName, oldJobCron);
+        // 如果新状态是启用，重新注册
+        if (data.status !== false && data.jobCron) {
+            await schedule(queue, newJobName, {
+                cron: String(data.jobCron),
+                data: {
+                    taskName: newJobName,
+                    jobArgs: data.jobArgs ?? '',
+                },
+            });
         };
-        await UpdateByKey(monitorJobSchema, 'jobId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    };
+    await UpdateByKey(monitorJobSchema, 'jobId', ctx);
+    return BaseResultData.ok();
 };
 
 export async function remote(ctx: AppContext) {
-    try {
-        const ids = ctx.params.ids.split(',').map(Number) as number[];
-        const jobs = await FindAll(monitorJobSchema, inArray(monitorJobSchema.jobId, ids));
-        const queue = getCronQueue();
-        if (jobs?.length) {
-            for (const job of jobs) {
-                await removeSchedule(queue, String(job.jobName), String(job.jobCron));
-            };
+    const ids = ctx.params.ids.split(',').map(Number) as number[];
+    const jobs = await FindAll(monitorJobSchema, inArray(monitorJobSchema.jobId, ids));
+    const queue = getCronQueue();
+    if (jobs?.length) {
+        for (const job of jobs) {
+            await removeSchedule(queue, String(job.jobName), String(job.jobCron));
         };
-        await SoftDeleteByKeys(monitorJobSchema, 'jobId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    };
+    await SoftDeleteByKeys(monitorJobSchema, 'jobId', ctx);
+    return BaseResultData.ok();
 };

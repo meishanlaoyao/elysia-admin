@@ -1,5 +1,5 @@
 ---
-description: 后端模块规范（Elysia + Bun），包含文件结构、repository 用法和完整代码模式
+description: Backend module rules (Elysia + Bun) — file structure, repository usage, code patterns
 globs:
   - server/src/**/*.ts
 alwaysApply: false
@@ -11,17 +11,17 @@ Every module under `server/src/modules/{group}-{name}/` should contain:
 
 ```
 modules/{group}-{name}/
-    dto.ts      ← Elysia 校验 + 路由片段（body/query/response 等）；必要时可含 `afterHandle` 等 hook
+    dto.ts      ← Elysia validation + route DTO fragments; optional afterHandle hooks
     handle.ts   ← business logic only
     route.ts    ← HTTP mapping only
-    task.ts     ← 供 BullMQ / 沙箱 worker 调度的导出函数（按需添加；无任务可不建此文件）
+    task.ts     ← BullMQ / sandbox worker exports (optional; omit if no tasks)
 ```
 
-No extra files. No renaming. Route auto-registers on startup.
+No extra files. No renaming. Routes auto-register on startup.
 
-**`task.ts`**：仅当模块需要向 `server/src/worker-sandbox/` 注册队列/定时任务时添加。
+**`task.ts`:** add only when registering queue/cron jobs in `server/src/worker-sandbox/`.
 
-**跨模块 `handle`**：系统域（auth / user / role / menu / dept 等）允许 `handle` 之间互相 `import` 已导出的查询或命令；新业务模块优先单模块内聚，避免网状依赖。
+**Cross-module `handle`:** system domain (auth, user, role, menu, dept) may import exported functions from each other; new business modules should stay self-contained.
 
 ---
 
@@ -29,10 +29,10 @@ No extra files. No renaming. Route auto-registers on startup.
 
 | File | Allowed | Forbidden |
 |---|---|---|
-| `dto.ts` | Elysia schema、响应 DTO、可选 `afterHandle` 等 hook | 复杂业务编排、直接 DB |
-| `handle.ts` | repository、QueryBuilder、shared、infrastructure；系统域可调其他模块已导出函数 | raw SQL、直连 pg、在 handle 里 new Elysia |
+| `dto.ts` | Elysia schema, response DTO, optional hooks | complex orchestration, direct DB |
+| `handle.ts` | repository, QueryBuilder, shared, infrastructure; system domain cross-imports | raw SQL, direct pg, new Elysia in handle |
 | `route.ts` | bind dto+handle, return result | business logic, DB access |
-| `task.ts` | export plain functions, call handle functions | duplicate business logic, direct DB access |
+| `task.ts` | export plain functions, call handle | duplicate business logic, direct DB |
 
 ---
 

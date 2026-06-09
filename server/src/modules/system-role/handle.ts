@@ -10,7 +10,7 @@ import {
     FindPage,
     FindAll,
 } from '@/core/database/repository';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { RunTransaction } from '@/core/database/transaction';
@@ -21,140 +21,101 @@ import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
 import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
 
 export async function create(ctx: AppContext) {
-    try {
-        await InsertOne(systemRoleSchema, ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(systemRoleSchema, ctx);
+    return BaseResultData.ok();
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "sort",
-            sortRule = "asc",
-            startTime,
-            endTime,
-            roleName,
-            roleCode,
-            status,
-        } = ctx.query;
-        let Zstatus = undefined;
-        if (status) {
-            Zstatus = status === 'false' ? false : true;
-        }
-        const whereCondition = CreateQueryBuilder(systemRoleSchema)
-            .eq('delFlag', false)
-            .eq('status', Zstatus)
-            .like('roleName', roleName)
-            .like('roleCode', roleCode)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(systemRoleSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = "sort",
+        sortRule = "asc",
+        startTime,
+        endTime,
+        roleName,
+        roleCode,
+        status,
+    } = ctx.query;
+    let Zstatus = undefined;
+    if (status) {
+        Zstatus = status === 'false' ? false : true;
     }
+    const whereCondition = CreateQueryBuilder(systemRoleSchema)
+        .eq('delFlag', false)
+        .eq('status', Zstatus)
+        .like('roleName', roleName)
+        .like('roleCode', roleCode)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(systemRoleSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule
+    });
+    return BaseResultData.ok(res);
 };
 
 export async function findOptions() {
-    try {
-        const data = await WithCache(
-            CacheEnum.BASE_OPTIONS + 'systemRole',
-            async () => {
-                const where = CreateQueryBuilder(systemRoleSchema).eq('delFlag', false).build();
-                return await FindAll(systemRoleSchema, where);
-            }
-        );
-        return BaseResultData.ok(data);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = await WithCache(
+        CacheEnum.BASE_OPTIONS + 'systemRole',
+        async () => {
+            const where = CreateQueryBuilder(systemRoleSchema).eq('delFlag', false).build();
+            return await FindAll(systemRoleSchema, where);
+        }
+    );
+    return BaseResultData.ok(data);
 };
 
 export async function findOnePermission(ctx: AppContext) {
-    try {
-        const id = Number(ctx.params.id);
-        const where = CreateQueryBuilder(systemRoleMenuSchema)
-            .eq('roleId', id)
-            .build();
-        const data = await FindAll(systemRoleMenuSchema, where);
-        return BaseResultData.ok(data);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const id = Number(ctx.params.id);
+    const where = CreateQueryBuilder(systemRoleMenuSchema)
+        .eq('roleId', id)
+        .build();
+    const data = await FindAll(systemRoleMenuSchema, where);
+    return BaseResultData.ok(data);
 };
 
 export async function findOne(ctx: AppContext) {
-    try {
-        const id = Number(ctx.params.id);
-        const data = await FindOneByKey(systemRoleSchema, 'roleId', id);
-        if (!data || data.delFlag) return BaseResultData.fail(404);
-        return BaseResultData.ok(data);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const id = Number(ctx.params.id);
+    const data = await FindOneByKey(systemRoleSchema, 'roleId', id);
+    if (!data || data.delFlag) return BaseResultData.fail(404);
+    return BaseResultData.ok(data);
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        await UpdateByKey(systemRoleSchema, 'roleId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await UpdateByKey(systemRoleSchema, 'roleId', ctx);
+    return BaseResultData.ok();
 };
 
 export async function updatePermission(ctx: AppContext) {
-    try {
-        const { roleId, permissions } = ctx.body as {
-            roleId: number;
-            permissions: Array<{ menuId: number; menuBtnId?: number }>
-        };
-        await RunTransaction(async (tx) => {
-            // 删除该角色的所有权限关联（硬删除）
-            await tx.delete(systemRoleMenuSchema).where(eq(systemRoleMenuSchema.roleId, roleId));
-            // 批量插入新的权限关联
-            if (permissions && permissions.length > 0) {
-                const createBy = ctx?.user?.userId || null;
-                const insertData = permissions.map(perm => ({
-                    roleId,
-                    menuId: perm.menuId,
-                    menuBtnId: perm.menuBtnId || null,
-                    ...(createBy ? { createBy } : {})
-                }));
-                await tx.insert(systemRoleMenuSchema).values(insertData);
-            }
-        });
-        await updateUserPermission(roleId);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const { roleId, permissions } = ctx.body as {
+        roleId: number;
+        permissions: Array<{ menuId: number; menuBtnId?: number }>
+    };
+    await RunTransaction(async (tx) => {
+        // 删除该角色的所有权限关联（硬删除）
+        await tx.delete(systemRoleMenuSchema).where(eq(systemRoleMenuSchema.roleId, roleId));
+        // 批量插入新的权限关联
+        if (permissions && permissions.length > 0) {
+            const createBy = ctx?.user?.userId || null;
+            const insertData = permissions.map(perm => ({
+                roleId,
+                menuId: perm.menuId,
+                menuBtnId: perm.menuBtnId || null,
+                ...(createBy ? { createBy } : {})
+            }));
+            await tx.insert(systemRoleMenuSchema).values(insertData);
+        }
+    });
+    await updateUserPermission(roleId);
+    return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemRoleSchema, 'roleId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemRoleSchema, 'roleId', ctx);
+    return BaseResultData.ok();
 };
 
 // 获取用户角色IDs
@@ -166,7 +127,7 @@ export async function GetUserRoleIds(userId: string): Promise<number[]> {
         const roleIds = userRoleData.map(item => item.roleId).filter(Boolean) as number[];
         return roleIds;
     } catch (error) {
-        logger.error('获取用户角色IDs失败:' + error);
+        logServerError('获取用户角色IDs失败', error);
         return [];
     }
 };
@@ -190,7 +151,7 @@ export async function GetUserRoleAndPermission(userId: string): Promise<{
         backData.permissions = await GetMenuPermissionByRoleIds(roleIds);
         return backData;
     } catch (error) {
-        logger.error('获取用户角色和权限失败:' + error);
+        logServerError('获取用户角色和权限失败', error);
         return backData;
     }
 };
@@ -209,7 +170,7 @@ export async function GetRoleMenuIdsAndBtnIds(userId: string) {
             menuBtnIds: [...menuBtnIds],
         };
     } catch (error) {
-        logger.error('获取角色菜单Ids失败:' + error);
+        logServerError('获取角色菜单Ids失败', error);
         return {
             menuIds: [],
             menuBtnIds: [],
@@ -235,7 +196,7 @@ async function updateUserPermission(roleId: number) {
             await RefreshRoutes(userInfo?.userId);
         }
     } catch (error) {
-        logger.error('批量更新在线用户的权限失败:' + error);
+        logServerError('批量更新在线用户的权限失败', error);
         throw error;
     }
 };

@@ -1,0 +1,37 @@
+{
+  "folders": [
+    {
+      "name": "elysia-admin (root)",
+      "path": "."
+    },
+    {
+      "name": "admin",
+      "path": "admin"
+    },
+    {
+      "name": "server",
+      "path": "server"
+    },
+    {
+      "name": "docs",
+      "path": "docs"
+    }
+  ],
+  "settings": {
+    "eslint.workingDirectories": [
+      {
+        "directory": "admin",
+        "changeProcessCWD": true
+      }
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "Vue.volar",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "stylelint.vscode-stylelint",
+      "oven.bun-vscode"
+    ]
+  }
+}

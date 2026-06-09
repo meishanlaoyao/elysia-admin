@@ -14,82 +14,58 @@ import { systemStorageSchema } from '@database/schema/system_storage';
 import { StorageService, type StorageProviderType } from '@/infrastructure/storage';
 
 export async function create(ctx: AppContext) {
-    try {
-        await InsertOne(systemStorageSchema, ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(systemStorageSchema, ctx);
+    return BaseResultData.ok();
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            name,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(systemStorageSchema)
-            .eq('delFlag', false)
-            .like('name', name)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(systemStorageSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        return BaseResultData.ok(res);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = "createTime",
+        sortRule = "desc",
+        startTime,
+        endTime,
+        name,
+    } = ctx.query;
+    const whereCondition = CreateQueryBuilder(systemStorageSchema)
+        .eq('delFlag', false)
+        .like('name', name)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(systemStorageSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule
+    });
+    return BaseResultData.ok(res);
 };
 
 export async function generatePresign(ctx: AppContext) {
-    try {
-        const { fileName } = ctx.query;
-        const storage = await FindOneByKey(systemStorageSchema, 'status', true);
-        if (!storage) return BaseResultData.fail(404, '未找到可用的存储配置');
-        const { region, endpoint, bucket, accessKey, secretKey } = storage;
-        if (!endpoint || !bucket || !accessKey || !secretKey) return BaseResultData.fail(400, '存储配置不完整');
-        const config = { region: region || '', endpoint, bucket, accessKey, secretKey, };
-        const storageService = new StorageService(storage.name as StorageProviderType, config);
-        const presignedUrl = await storageService.getPresignedUrl({ key: fileName, method: 'put' });
-        return BaseResultData.ok(presignedUrl);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const { fileName } = ctx.query;
+    const storage = await FindOneByKey(systemStorageSchema, 'status', true);
+    if (!storage) return BaseResultData.fail(404, '未找到可用的存储配置');
+    const { region, endpoint, bucket, accessKey, secretKey } = storage;
+    if (!endpoint || !bucket || !accessKey || !secretKey) return BaseResultData.fail(400, '存储配置不完整');
+    const config = { region: region || '', endpoint, bucket, accessKey, secretKey, };
+    const storageService = new StorageService(storage.name as StorageProviderType, config);
+    const presignedUrl = await storageService.getPresignedUrl({ key: fileName, method: 'put' });
+    return BaseResultData.ok(presignedUrl);
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        const data = ParseDateFields(ctx.body);
-        await RunTransaction(async (tx) => {
-            if (data?.status) {
-                await tx.update(systemStorageSchema).set({ status: false }).where(eq(systemStorageSchema.delFlag, false));
-            };
-            await tx.update(systemStorageSchema).set(data).where(eq(systemStorageSchema.storageId, data.storageId));
-        });
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = ParseDateFields(ctx.body);
+    await RunTransaction(async (tx) => {
+        if (data?.status) {
+            await tx.update(systemStorageSchema).set({ status: false }).where(eq(systemStorageSchema.delFlag, false));
+        };
+        await tx.update(systemStorageSchema).set(data).where(eq(systemStorageSchema.storageId, data.storageId));
+    });
+    return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemStorageSchema, 'storageId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemStorageSchema, 'storageId', ctx);
+    return BaseResultData.ok();
 };

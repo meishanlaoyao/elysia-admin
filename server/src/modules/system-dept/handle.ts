@@ -14,83 +14,56 @@ import { systemDeptSchema } from '@database/schema/system_dept';
 import { ListToTree } from '@/core/function';
 
 export async function create(ctx: AppContext) {
-    try {
-        await InsertOne(systemDeptSchema, ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(systemDeptSchema, ctx);
+    return BaseResultData.ok();
 };
 
 export async function findTree(ctx: AppContext) {
-    try {
-        const {
-            deptName,
-        } = ctx.query;
-        const where = CreateQueryBuilder(systemDeptSchema)
-            .eq('delFlag', false)
-            .like('deptName', deptName)
-            .build();
-        const data = await FindAll(systemDeptSchema, where);
-        const tree = ListToTree(data, {
-            idKey: 'deptId',
-            parentKey: 'parentId',
-            childrenKey: 'children',
-            rootValue: 0,
-            sortKey: 'sort',
-        });
-        return BaseResultData.ok(tree);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const { deptName, } = ctx.query;
+    const where = CreateQueryBuilder(systemDeptSchema)
+        .eq('delFlag', false)
+        .like('deptName', deptName)
+        .build();
+    const data = await FindAll(systemDeptSchema, where);
+    const tree = ListToTree(data, {
+        idKey: 'deptId',
+        parentKey: 'parentId',
+        childrenKey: 'children',
+        rootValue: 0,
+        sortKey: 'sort',
+    });
+    return BaseResultData.ok(tree);
 };
 
 export async function findOptions() {
-    try {
-        const data = await WithCache(
-            CacheEnum.BASE_OPTIONS + 'systemDeptTree',
-            async () => {
-                const where = CreateQueryBuilder(systemDeptSchema)
-                    .eq('delFlag', false)
-                    .build();
-                const list = await FindAll(systemDeptSchema, where);
-                const tree = ListToTree(list, {
-                    idKey: 'deptId',
-                    parentKey: 'parentId',
-                    childrenKey: 'children',
-                    rootValue: 0,
-                    sortKey: 'sort',
-                });
-                return tree;
-            }
-        );
-        return BaseResultData.ok(data);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const data = await WithCache(
+        CacheEnum.BASE_OPTIONS + 'systemDeptTree',
+        async () => {
+            const where = CreateQueryBuilder(systemDeptSchema)
+                .eq('delFlag', false)
+                .build();
+            const list = await FindAll(systemDeptSchema, where);
+            const tree = ListToTree(list, {
+                idKey: 'deptId',
+                parentKey: 'parentId',
+                childrenKey: 'children',
+                rootValue: 0,
+                sortKey: 'sort',
+            });
+            return tree;
+        }
+    );
+    return BaseResultData.ok(data);
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        await UpdateByKey(systemDeptSchema, 'deptId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await UpdateByKey(systemDeptSchema, 'deptId', ctx);
+    return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemDeptSchema, 'deptId', ctx);
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemDeptSchema, 'deptId', ctx);
+    return BaseResultData.ok();
 };
 
 // 根据部门ID查询部门信息

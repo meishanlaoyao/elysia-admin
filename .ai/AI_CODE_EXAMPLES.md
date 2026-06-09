@@ -5,6 +5,8 @@ AI must copy these patterns exactly. Do NOT invent new patterns.
 
 Ops/tooling notes (built-in UI index, MCP read-only, hand-off SQL, dict & menu checklists): see `.ai/AI_CONTEXT_CAPSULE.md` — load only when relevant; does not replace the templates below.
 
+**New business module:** follow `.ai/AI_MODULE_WORKFLOW.md` (or Cursor skill `.cursor/skills/elysia-module-dev/`). **Page quality:** `.ai/AI_PAGE_QUALITY.md`.
+
 ---
 
 # Backend Examples
@@ -64,6 +66,8 @@ export const ListDto = {
 
 ## handle.ts — Standard CRUD
 
+> 未捕获异常由全局 `app.onError` 统一记录 stack 并返回 500；业务错误直接 `return BaseResultData.fail(4xx, msg)`，不要在路由 handler 里写通用 try/catch。
+
 ```ts
 import { Context } from 'elysia';
 import { BaseResultData } from '@/core/result';
@@ -79,71 +83,51 @@ import {
 import { xxxSchema } from '@database/schema/xxx';
 
 export async function create(ctx: Context) {
-    try {
-        await InsertOne(xxxSchema, ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await InsertOne(xxxSchema, ctx);
+    return BaseResultData.ok();
 }
 
 export async function findList(ctx: Context) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = 'createTime',
-            sortRule = 'desc',
-            startTime,
-            endTime,
-            fieldA,
-            fieldB,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(xxxSchema)
-            .eq('delFlag', false)
-            .like('fieldA', fieldA)
-            .eq('fieldB', fieldB)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(xxxSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule,
-        });
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = 'createTime',
+        sortRule = 'desc',
+        startTime,
+        endTime,
+        fieldA,
+        fieldB,
+    } = ctx.query;
+    const whereCondition = CreateQueryBuilder(xxxSchema)
+        .eq('delFlag', false)
+        .like('fieldA', fieldA)
+        .eq('fieldB', fieldB)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(xxxSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule,
+    });
+    return BaseResultData.ok(res);
 }
 
 export async function findOne(ctx: Context) {
-    try {
-        const id = Number(ctx.params.id);
-        const data = await FindOneByKey(xxxSchema, 'xxxId', id);
-        if (!data || data.delFlag) return BaseResultData.fail(404);
-        return BaseResultData.ok(data);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const id = Number(ctx.params.id);
+    const data = await FindOneByKey(xxxSchema, 'xxxId', id);
+    if (!data || data.delFlag) return BaseResultData.fail(404);
+    return BaseResultData.ok(data);
 }
 
 export async function update(ctx: Context) {
-    try {
-        await UpdateByKey(xxxSchema, 'xxxId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await UpdateByKey(xxxSchema, 'xxxId', ctx);
+    return BaseResultData.ok();
 }
 
 export async function remove(ctx: Context) {
-    try {
-        await SoftDeleteByKeys(xxxSchema, 'xxxId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(xxxSchema, 'xxxId', ctx);
+    return BaseResultData.ok();
 }
 ```
 
@@ -320,6 +304,52 @@ export function fetchDeleteXxx(ids: number | string) {
     })
 }
 ```
+
+---
+
+## Frontend — useDictStore (dict-backed fields)
+
+Business status/type fields **MUST** use dict store — never hardcode enum options when `dict_type` exists in DB.
+
+### index.vue — table label
+
+```ts
+import { useDictStore } from '@/store/modules/dict'
+
+const dictStore = useDictStore()
+
+// inside columnsFactory:
+{
+  prop: 'status',
+  label: '状态',
+  formatter: (row) => dictStore.getDictLabel('business_goods_status', row.status)
+}
+```
+
+### xxx-search.vue / xxx-dialog.vue — select options
+
+```ts
+import { useDictStore } from '@/store/modules/dict'
+
+const dictStore = useDictStore()
+const { business_goods_status } = dictStore.getDictData(['business_goods_status'])
+
+// in formItems:
+{
+  label: '状态',
+  key: 'status',
+  type: 'select',
+  props: {
+    placeholder: '请选择状态',
+    options: business_goods_status.value.map((item) => ({
+      label: item.dictLabel,
+      value: item.dictValue
+    }))
+  }
+}
+```
+
+Add missing dict rows in `server/database/sql/{module}-init.sql`. See [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md).
 
 ---
 

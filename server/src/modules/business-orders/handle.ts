@@ -2,7 +2,7 @@ import type { AppContext } from '@/types/app-context';
 import config from '@/config';
 import { eq, and, count } from 'drizzle-orm';
 import pg from '@/core/database/pg';
-import { logger } from '@/shared/logger';
+import { logServerError } from '@/shared/server-error';
 import {
     InsertOne,
     UpdateByKey,
@@ -29,191 +29,166 @@ function getFlowBufferQueue() {
 };
 
 export async function create(ctx: AppContext) {
-    try {
-        const userId = ctx?.user?.userId as number;
-        // TODO: 这里自行处理创建订单逻辑，这里我用模拟数据来演示
-        const mockData = {
-            userId,
-            merchantId: 6,
-            title: 'DR钻戒-求婚系列',
-            description: '一生只送一人，真爱唯一的承诺',
-            amount: 25698.00,           // 订单总金额
-            currency: 'CNY',
-            extra: {
-                products: [             // 改为数组，支持多商品
-                    {
-                        productId: 101,
-                        productName: 'DR钻戒-心形1克拉',
-                        productPrice: 12899.00,
-                        productNum: 1,
-                        productTotal: 12899.00,
-                        specs: "圈口: 12号; 材质: 18K金; 主钻: 30分"
-                    },
-                    {
-                        productId: 102,
-                        productName: 'DR对戒-经典款',
-                        productPrice: 12799.00,
-                        productNum: 1,
-                        productTotal: 12799.00,
-                        specs: "圈口: 男15号/女12号; 材质: PT950铂金"
-                    }
-                ],
-                user: {
-                    userId: userId,
-                    nickname: "张三",
-                    phone: "13800138000",
-                    address: "北京市海淀区中关村软件园二期",
-                    postalCode: "100000"
+    const userId = ctx?.user?.userId;
+    // TODO: 这里自行处理创建订单逻辑，这里我用模拟数据来演示
+    const mockData = {
+        userId,
+        merchantId: 6,
+        title: 'DR钻戒-求婚系列',
+        description: '一生只送一人，真爱唯一的承诺',
+        amount: 25698.00,           // 订单总金额
+        currency: 'CNY',
+        extra: {
+            products: [             // 改为数组，支持多商品
+                {
+                    productId: 101,
+                    productName: 'DR钻戒-心形1克拉',
+                    productPrice: 12899.00,
+                    productNum: 1,
+                    productTotal: 12899.00,
+                    specs: "圈口: 12号; 材质: 18K金; 主钻: 30分"
                 },
-                marketing: {
-                    couponId: null, // 优惠券ID
-                    discountAmount: 0, // 优惠金额
-                    couponName: ""  // 扩展：优惠券名称
+                {
+                    productId: 102,
+                    productName: 'DR对戒-经典款',
+                    productPrice: 12799.00,
+                    productNum: 1,
+                    productTotal: 12799.00,
+                    specs: "圈口: 男15号/女12号; 材质: PT950铂金"
                 }
+            ],
+            user: {
+                userId: userId,
+                nickname: "张三",
+                phone: "13800138000",
+                address: "北京市海淀区中关村软件园二期",
+                postalCode: "100000"
+            },
+            marketing: {
+                couponId: null, // 优惠券ID
+                discountAmount: 0, // 优惠金额
+                couponName: ""  // 扩展：优惠券名称
             }
-        };
+        }
+    };
 
-        /**
-         * 创建订单之前，请遵循以下规则：
-         * 1. 商品数量与价格
-         *  - 数量：是大于 0 的整数。
-         *  - 价格：价格需要从数据库中获取，并重新计算总价。
-         * 2. 商品状态与库存
-         *  - 商品有效性：商品必须是有效状态，不能是已删除或已售罄。
-         *  - 库存校验（预占库存）：需要检查商品库存是否充足，如果库存不足，应直接拦截并提示用户。
-         * 3. 营销与优惠
-         *  - 优惠券有效性：必须校验该优惠券是否存在、是否属于当前用户、是否已过期、是否满足使用门槛（如满减条件）。
-         *  - 优惠金额计算：根据校验通过的优惠券规则，重新计算优惠金额，确保最终支付金额的准确性。
-         * 4. 用户与收货信息
-         *  - 用户身份：校验 userId 是否有效，确保是当前登录用户。
-         *  - 收货地址：校验地址信息是否完整（省、市、区、详细地址），手机号格式是否正确。
-         * 
-         * 注意：校验逻辑作者并没有实现，需要根据实际情况自己实现。
-         */
+    /**
+     * 创建订单之前，请遵循以下规则：
+     * 1. 商品数量与价格
+     *  - 数量：是大于 0 的整数。
+     *  - 价格：价格需要从数据库中获取，并重新计算总价。
+     * 2. 商品状态与库存
+     *  - 商品有效性：商品必须是有效状态，不能是已删除或已售罄。
+     *  - 库存校验（预占库存）：需要检查商品库存是否充足，如果库存不足，应直接拦截并提示用户。
+     * 3. 营销与优惠
+     *  - 优惠券有效性：必须校验该优惠券是否存在、是否属于当前用户、是否已过期、是否满足使用门槛（如满减条件）。
+     *  - 优惠金额计算：根据校验通过的优惠券规则，重新计算优惠金额，确保最终支付金额的准确性。
+     * 4. 用户与收货信息
+     *  - 用户身份：校验 userId 是否有效，确保是当前登录用户。
+     *  - 收货地址：校验地址信息是否完整（省、市、区、详细地址），手机号格式是否正确。
+     * 
+     * 注意：校验逻辑作者并没有实现，需要根据实际情况自己实现。
+     */
 
-        const orderNo = await generateOrder(mockData);
-        return BaseResultData.ok(orderNo);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const orderNo = await generateOrder(mockData as any);
+    return BaseResultData.ok(orderNo);
 };
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            orderNo,
-            status,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(businessOrdersSchema)
-            .eq('delFlag', false)
-            .eq('orderNo', orderNo)
-            .eq('status', status)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(businessOrdersSchema, whereCondition, {
-            pageNum,
-            pageSize,
-            orderByColumn,
-            sortRule
-        });
-        if (res.list.length > 0) {
-            const orderNos = res.list.map((o: any) => o.orderNo);
-            const orderIds = res.list.map((o: any) => o.id);
-            const paymentWhere = CreateQueryBuilder(businessPaymentsSchema)
-                .in('orderNo', orderNos)
-                .eq('delFlag', false)
-                .build();
-            const payments = await FindAll(businessPaymentsSchema, paymentWhere);
-            const refundWhere = CreateQueryBuilder(businessRefundSchema)
-                .in('orderId', orderIds)
-                .eq('delFlag', false)
-                .build();
-            const refunds = await FindAll(businessRefundSchema, refundWhere);
-            const nowTime = new Date().getTime();
-            res.list = res.list.map((item: any) => {
-                if (!item.expireTime) {
-                    item.timeout = 0;
-                } else {
-                    let time = new Date(item.expireTime).getTime() - nowTime;
-                    if (time < 0) time = 0;
-                    item.timeout = (time / 1000).toFixed(2);
-                }
-                item.paymentSummary = (payments as any[]).find(p => p.orderNo === item.orderNo) ?? null;
-                item.refundSummary = (refunds as any[]).find(r => r.orderId === item.id) ?? null;
-                return item;
-            });
-        };
-        return BaseResultData.ok(res);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findStatusStats(_ctx: AppContext) {
-    try {
-        const rows = await pg
-            .select({ status: businessOrdersSchema.status, cnt: count(), })
-            .from(businessOrdersSchema)
-            .where(eq(businessOrdersSchema.delFlag, false))
-            .groupBy(businessOrdersSchema.status);
-        const byStatus: Record<string, number> = {};
-        for (const r of rows) {
-            const k = r.status == null || r.status === '' ? '' : String(r.status);
-            byStatus[k] = Number(r.cnt);
-        };
-        return BaseResultData.ok(byStatus);
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-};
-
-export async function findOne(ctx: AppContext) {
-    try {
-        const id = ctx.params.id;
-        const order = await FindOneByKey(businessOrdersSchema, 'id', id);
-        if (!order) return BaseResultData.fail(404);
+    const {
+        pageNum = 1,
+        pageSize = 10,
+        orderByColumn = "createTime",
+        sortRule = "desc",
+        startTime,
+        endTime,
+        orderNo,
+        status,
+    } = ctx.query;
+    const whereCondition = CreateQueryBuilder(businessOrdersSchema)
+        .eq('delFlag', false)
+        .eq('orderNo', orderNo)
+        .eq('status', status)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(businessOrdersSchema, whereCondition, {
+        pageNum,
+        pageSize,
+        orderByColumn,
+        sortRule
+    });
+    if (res.list.length > 0) {
+        const orderNos = res.list.map((o: any) => o.orderNo);
+        const orderIds = res.list.map((o: any) => o.id);
         const paymentWhere = CreateQueryBuilder(businessPaymentsSchema)
-            .eq('orderNo', order.orderNo)
+            .in('orderNo', orderNos)
             .eq('delFlag', false)
             .build();
         const payments = await FindAll(businessPaymentsSchema, paymentWhere);
         const refundWhere = CreateQueryBuilder(businessRefundSchema)
-            .eq('orderId', order.id)
+            .in('orderId', orderIds)
             .eq('delFlag', false)
             .build();
         const refunds = await FindAll(businessRefundSchema, refundWhere);
-        const paymentSummary = (payments as any[])[0] ?? null;
-        const refundSummary = (refunds as any[])[0] ?? null;
-        return BaseResultData.ok({ ...order, payments, refunds, paymentSummary, refundSummary });
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+        const nowTime = new Date().getTime();
+        res.list = res.list.map((item: any) => {
+            if (!item.expireTime) {
+                item.timeout = 0;
+            } else {
+                let time = new Date(item.expireTime).getTime() - nowTime;
+                if (time < 0) time = 0;
+                item.timeout = (time / 1000).toFixed(2);
+            }
+            item.paymentSummary = (payments as any[]).find(p => p.orderNo === item.orderNo) ?? null;
+            item.refundSummary = (refunds as any[]).find(r => r.orderId === item.id) ?? null;
+            return item;
+        });
+    };
+    return BaseResultData.ok(res);
+};
+
+export async function findStatusStats(_ctx: AppContext) {
+    const rows = await pg
+        .select({ status: businessOrdersSchema.status, cnt: count(), })
+        .from(businessOrdersSchema)
+        .where(eq(businessOrdersSchema.delFlag, false))
+        .groupBy(businessOrdersSchema.status);
+    const byStatus: Record<string, number> = {};
+    for (const r of rows) {
+        const k = r.status == null || r.status === '' ? '' : String(r.status);
+        byStatus[k] = Number(r.cnt);
+    };
+    return BaseResultData.ok(byStatus);
+};
+
+export async function findOne(ctx: AppContext) {
+    const id = ctx.params.id;
+    const order = await FindOneByKey(businessOrdersSchema, 'id', id);
+    if (!order) return BaseResultData.fail(404);
+    const paymentWhere = CreateQueryBuilder(businessPaymentsSchema)
+        .eq('orderNo', order.orderNo)
+        .eq('delFlag', false)
+        .build();
+    const payments = await FindAll(businessPaymentsSchema, paymentWhere);
+    const refundWhere = CreateQueryBuilder(businessRefundSchema)
+        .eq('orderId', order.id)
+        .eq('delFlag', false)
+        .build();
+    const refunds = await FindAll(businessRefundSchema, refundWhere);
+    const paymentSummary = (payments as any[])[0] ?? null;
+    const refundSummary = (refunds as any[])[0] ?? null;
+    return BaseResultData.ok({ ...order, payments, refunds, paymentSummary, refundSummary });
 };
 
 export async function update(ctx: AppContext) {
-    try {
-        const updateBy = ctx?.user?.userId as number || null;
-        const data = ctx.body as typeof businessOrdersSchema.$inferSelect;
-        await UpdateByKey(businessOrdersSchema, 'id', null, {
-            id: data.id,
-            remark: data.remark,
-            updateBy,
-        });
-        return BaseResultData.ok();
-    }
-    catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const updateBy = ctx?.user?.userId || null;
+    const data = ctx.body as typeof businessOrdersSchema.$inferSelect;
+    await UpdateByKey(businessOrdersSchema, 'id', null, {
+        id: data.id,
+        remark: data.remark,
+        updateBy,
+    });
+    return BaseResultData.ok();
 };
 
 /**
@@ -252,15 +227,11 @@ async function generateOrder(data: {
         createBy: data.userId,
         expireTime: new Date(Date.now() + 1000 * 60 + timeout),
     };
-    try {
-        // 使用事务，创建订单的同时，减库存 （这里只模拟订单创建）
-        await InsertOne(businessOrdersSchema, null, order);
-        const queue = getFlowBufferQueue();
-        await queue.add('订单超时处理', { orderNo }, { delay: timeout });
-        return orderNo;
-    } catch (error) {
-        throw error;
-    }
+    // 使用事务，创建订单的同时，减库存 （这里只模拟订单创建）
+    await InsertOne(businessOrdersSchema, null, order);
+    const queue = getFlowBufferQueue();
+    await queue.add('订单超时处理', { orderNo }, { delay: timeout });
+    return orderNo;
 };
 
 /**
@@ -288,6 +259,6 @@ export async function OrderTimeoutHandle(order: { orderNo: string }) {
             );
         });
     } catch (error) {
-        logger.error('订单超时处理失败：' + error);
+        logServerError('订单超时处理失败', error);
     }
 };
