@@ -17,7 +17,7 @@ head:
 
 本章将详细介绍如何在 `Elysia Admin` 项目中创建第一个 API 接口，包括接口定义、参数校验、响应处理等完整流程；下文按「模块目录 → 路由 → DTO → 处理函数 → 整合」的顺序编写，最后一节会用示意图归纳各文件的协作关系。
 
-## 一、创建业务模块
+## 创建业务模块
 
 首先，在 `/server/src/modules/` 目录下创建业务模块目录，例如： `/server/src/modules/business-goods/`。
 
@@ -25,7 +25,7 @@ head:
 - `business` 作为业务模块的前缀，用于区分不同类型的模块
 - `goods` 作为业务模块的具体名称，描述模块的业务领域
 
-## 二、定义接口路由
+## 定义接口路由
 
 在 `/server/src/modules/business-goods/` 目录下创建 `route.ts` 文件，用于定义接口路由配置。
 
@@ -58,7 +58,7 @@ export default BusinessGoodsModule;
 
 保存文件后，接口会自动注册到后端服务中。在开发环境下，API 文档也会实时更新。
 
-## 三、创建数据传输对象 (DTO)
+## 创建数据传输对象 (DTO)
 
 `DTO`（Data Transfer Object）用于校验前端传递的参数是否符合要求，以及确保后端响应的数据类型正确。若参数或响应数据不符合定义，系统会自动返回错误响应。
 
@@ -81,7 +81,7 @@ export const CreateDto = {
 };
 ```
 
-## 四、实现接口处理函数
+## 实现接口处理函数
 
 在 `/server/src/modules/business-goods/` 目录下创建 `handle.ts` 文件，用于实现接口的业务逻辑：
 
@@ -95,19 +95,14 @@ import { BaseResultData } from '@/core/result';
  * @returns 标准响应格式
  */
 export async function create(ctx: AppContext) {
-    try {
-        const data = ctx.body;
+    const data = ctx.body;
         // 这里可以实现具体的业务逻辑，如数据库保存操作
         
-        return BaseResultData.ok();
-    } catch (error) {
-        // 错误处理
-        return BaseResultData.fail(500, error);
-    }
+    return BaseResultData.ok();
 }
 ```
 
-## 五、整合代码
+## 整合代码
 
 将创建的文件进行整合，更新 `route.ts` 文件以引用 DTO 和处理函数：
 
@@ -161,18 +156,14 @@ import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 
 export async function create(ctx: AppContext) {
-    try {
-        const data = ctx.body;
+    const data = ctx.body;
         // 保存操作
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    return BaseResultData.ok();
 }
 ```
 :::
 
-## 六、模块文件协作
+## 模块文件协作
 
 完成以上五步后，`route.ts`、`dto.ts`、`handle.ts` 三个文件已在同一个模块目录中各司其职。约定在 `server/src/modules/` 下按领域建目录（如 `business-goods`）；`route.ts` 会被启动流程扫描并自动注册到应用（开发环境逐模块加载，失败会 warn 并跳过；生产环境使用预生成的 `route-registry.generated.ts`），因此不必手写「把路由挂到 app」的样板代码。下面的示意图归纳了「谁参与注册、谁负责校验与业务」的协作关系：
 

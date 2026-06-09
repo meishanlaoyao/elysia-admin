@@ -15,492 +15,429 @@ head:
 
 # 数据库设计
 
-本文档详细介绍 Elysia Admin 的数据库设计，包括表结构、字段说明、关系设计和最佳实践。
+本文介绍 Elysia Admin 的 PostgreSQL 表结构设计。Schema 源码在 `server/database/schema/`，以 Drizzle 定义为准；本文便于快速查阅表职责、字段含义和表间关系。
 
-## 数据库技术栈
+日常 CRUD 与查询写法见 [数据库操作](/guide/database-operation)；新建业务表规范可参考 `.ai/AI_SCHEMA_GUIDE.md`。
 
-- **数据库：** PostgreSQL 16+
-- **ORM：** Drizzle ORM
-- **缓存：** Redis 7+
-- **迁移工具：** Drizzle Kit
+## 技术栈
+
+| 组件 | 选型 |
+|------|------|
+| 数据库 | PostgreSQL 16+ |
+| ORM | Drizzle ORM |
+| 缓存 | Redis 7+ |
+| 迁移 | Drizzle Kit |
 
 ## 设计原则
 
-1. **统一基础字段：** 所有表都继承 `BaseSchema`，包含创建时间、更新时间、创建人、更新人、删除标志和备注字段
-2. **软删除：** 使用 `delFlag` 字段标记删除状态，不物理删除数据
-3. **主键策略：** 使用 `bigserial` 类型的自增主键
-4. **外键约束：** 使用外键保证数据完整性
-5. **字段命名：** 采用驼峰命名法，与代码风格保持一致
-6. **状态管理：** 使用 `boolean` 类型的 `status` 字段管理启用/禁用状态
+- **BaseSchema**：业务表统一继承基础审计字段（创建/更新人、时间、软删、备注）
+- **软删除**：`delFlag = true` 标记删除，查询时默认过滤
+- **主键**：系统用户用 UUID；其余多数表用 `bigserial` 自增
+- **外键**：Drizzle schema 中声明 `references`，保证引用完整性
+- **命名**：字段驼峰（代码侧）对应数据库下划线列名
+- **状态**：启用/禁用常用 `boolean` 的 `status`；业务流程状态常用 `varchar` + 字典
 
-## 基础字段（BaseSchema）
+## BaseSchema
 
-所有表都包含以下基础字段：
+所有业务表通过 `...BaseSchema` 展开以下字段（定义见 `server/database/base-schema.ts`）：
 
-| 字段名 | 类型 | 说明 | 默认值 |
-|--------|------|------|--------|
-| createTime | timestamp | 创建时间 | 当前时间 |
-| createBy | bigint | 创建人ID | null |
+| 字段 | 类型 | 说明 | 默认 |
+|------|------|------|------|
+| createTime | timestamp | 创建时间 | now() |
+| createBy | varchar(36) | 创建人 ID（UUID 字符串） | null |
 | updateTime | timestamp | 更新时间 | null |
-| updateBy | bigint | 更新人ID | null |
-| delFlag | boolean | 删除标志 | false |
+| updateBy | varchar(36) | 更新人 ID | null |
+| delFlag | boolean | 软删除标志 | false |
 | remark | varchar(255) | 备注 | null |
 
-## 数据库表分类
+下文各表字段表**不含** BaseSchema 重复列，实际表结构均包含上述字段。
 
-### 系统管理模块（System）
+## 模块总览
 
-#### 1. system_user - 用户表
+```mermaid
+flowchart TB
+    subgraph 系统 system
+        U[system_user]
+        R[system_role]
+        M[system_menu]
+        D[system_dict]
+    end
+    subgraph 监控 monitor
+        J[monitor_job]
+    end
+    subgraph 业务 business
+        BM[business_merchant]
+        BO[business_orders]
+        BP[business_payments]
+    end
+    U --> R
+    R --> M
+    BO --> BM
+    BO --> BP
+```
 
-存储系统用户的基本信息。
+| 模块 | 表数量 | 主要职责 |
+|------|--------|----------|
+| 系统管理 | 14 | RBAC、字典、日志、存储、IP 黑名单 |
+| 监控管理 | 1 | 定时任务配置 |
+| 业务管理 | 5 | 商户、订单、支付、退款 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| userId | bigserial | PK | 用户ID |
-| username | varchar(64) | NOT NULL, UNIQUE | 用户名 |
-| password | varchar(255) | NOT NULL | 密码（加密存储） |
+## 系统管理
+
+### system_user 用户表
+
+存储后台账号。主键 `userId` 为 UUID。
+
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| userId | uuid | PK | 用户 ID |
+| username | varchar(64) | NOT NULL, UNIQUE | 登录名 |
+| password | varchar(255) | NOT NULL | 密码（加密） |
 | nickname | varchar(64) | | 昵称 |
 | email | varchar(64) | | 邮箱 |
-| phone | varchar(11) | | 手机号 |
-| sex | varchar(1) | | 性别（0未知 1男 2女） |
-| avatar | varchar(255) | | 头像URL |
-| deptId | bigint | FK | 部门ID |
-| status | boolean | | 状态（true启用 false禁用） |
+| phone | varchar(11) | | 手机 |
+| sex | varchar(1) | | 0 未知 / 1 男 / 2 女 |
+| avatar | varchar(255) | | 头像 URL |
+| deptId | bigint | FK | 部门 ID |
+| status | boolean | | 启用 / 禁用 |
 
-**关联关系：**
-- 多对一：用户 → 部门（system_dept）
-- 多对多：用户 ↔ 角色（system_user_role）
+关联：多对一 `system_dept`；多对多 `system_role`（经 `system_user_role`）。
 
-#### 2. system_role - 角色表
+### system_role 角色表
 
-定义系统角色和权限组。
-
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| roleId | bigserial | PK | 角色ID |
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| roleId | bigserial | PK | 角色 ID |
 | roleName | varchar(64) | NOT NULL | 角色名称 |
 | roleCode | varchar(64) | NOT NULL | 角色编码 |
 | sort | integer | | 排序 |
 | status | boolean | | 状态 |
 
-**关联关系：**
-- 多对多：角色 ↔ 用户（system_user_role）
-- 多对多：角色 ↔ 菜单（system_role_menu）
+关联：多对多用户、菜单（经关联表）。
 
-#### 3. system_user_role - 用户角色关联表
+### system_user_role 用户角色关联
 
-用户与角色的多对多关系表。
+| 字段 | 类型 | 约束 | 说明 |
+|------|------|------|------|
+| userId | uuid | FK | 用户 ID |
+| roleId | bigint | FK | 角色 ID |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| userId | bigint | FK | 用户ID |
-| roleId | bigint | FK | 角色ID |
+### system_menu 菜单表
 
-#### 4. system_menu - 菜单表
+树形菜单与前端路由配置，支持外链、iframe、KeepAlive、固定标签等。
 
-存储系统菜单和路由配置。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| menuId | bigserial PK | 菜单 ID |
+| path / name / component | varchar | 路由路径、名称、组件 |
+| title / icon | varchar | 标题、图标 |
+| showBadge / showTextBadge | | 徽章 |
+| isHide / isHideTab | boolean | 隐藏菜单 / 标签 |
+| link / isIframe / isFullPage | | 外链、内嵌、全屏 |
+| keepAlive / fixedTab / activePath | | 缓存、固定标签、激活路径 |
+| sort / status / parentId | | 排序、状态、父级 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| menuId | bigserial | PK | 菜单ID |
-| path | varchar(255) | | 路由路径 |
-| name | varchar(64) | | 路由名称 |
-| component | varchar(255) | | 组件路径 |
-| title | varchar(64) | | 菜单标题 |
-| icon | varchar(64) | | 图标 |
-| showBadge | boolean | | 是否显示徽章 |
-| showTextBadge | varchar(64) | | 文本徽章内容 |
-| isHide | boolean | | 是否隐藏 |
-| isHideTab | boolean | | 是否在标签页中隐藏 |
-| link | varchar(255) | | 外部链接 |
-| isIframe | boolean | | 是否为iframe |
-| isFullPage | boolean | | 是否全屏显示 |
-| keepAlive | boolean | | 是否缓存 |
-| fixedTab | boolean | | 是否固定标签页 |
-| activePath | varchar(255) | | 激活路径 |
-| sort | integer | | 排序 |
-| status | boolean | | 状态 |
-| parentId | bigint | | 父菜单ID |
+### system_menu_btn 菜单按钮
 
-**特点：**
-- 支持树形结构（通过 parentId）
-- 支持外部链接和 iframe
-- 支持路由缓存和标签页固定
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| btnId | bigserial PK | 按钮 ID |
+| menuId | bigint FK | 所属菜单 |
+| title | varchar | 按钮名 |
+| permission | varchar | 权限标识，如 `system:user:create` |
+| sort / status | | 排序、状态 |
 
-#### 5. system_menu_btn - 菜单按钮表
+### system_role_menu 角色菜单关联
 
-存储菜单下的操作按钮权限。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| roleId | bigint FK | 角色 |
+| menuId | bigint FK | 菜单 |
+| menuBtnId | bigint FK | 按钮（可选） |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| btnId | bigserial | PK | 按钮ID |
-| menuId | bigint | FK | 所属菜单ID |
-| title | varchar(64) | | 按钮名称 |
-| permission | varchar(64) | | 权限标识 |
-| sort | integer | | 排序 |
-| status | boolean | | 状态 |
+### RBAC 关系图
 
-#### 6. system_role_menu - 角色菜单关联表
-
-角色与菜单/按钮的多对多关系表。
-
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| roleId | bigint | FK | 角色ID |
-| menuId | bigint | FK | 菜单ID |
-| menuBtnId | bigint | FK | 按钮ID |
-
-#### RBAC 关联关系
-
-以上六张表构成了权限模块「用户 — 角色 — 菜单/按钮」的核心模型：用户通过 `system_user_role` 绑定多个角色，角色通过 `system_role_menu` 绑定菜单与按钮。下图画出表之间的主体关联，字段级约束与索引请以 Drizzle 定义及迁移为准；若你扩展了部门、数据权限等，可在同一思路下追加实体。
+用户通过角色获得菜单与按钮权限：
 
 ```mermaid
 erDiagram
-    system_user ||--o{ system_user_role : "user_id"
-    system_role ||--o{ system_user_role : "role_id"
-    system_role ||--o{ system_role_menu : "role_id"
-    system_menu ||--o{ system_role_menu : "menu_id"
+    system_user ||--o{ system_user_role : has
+    system_role ||--o{ system_user_role : has
+    system_role ||--o{ system_role_menu : grants
+    system_menu ||--o{ system_role_menu : on
+    system_menu ||--o{ system_menu_btn : contains
+    system_user }o--|| system_dept : belongs_to
 ```
 
-#### 7. system_dept - 部门表
+### system_dept 部门表
 
-组织架构的部门信息。
+树形组织架构，`parentId` 自关联。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| deptId | bigserial | PK | 部门ID |
-| deptName | varchar(64) | NOT NULL | 部门名称 |
-| parentId | bigint | | 父部门ID |
-| sort | integer | | 排序 |
-| status | boolean | | 状态 |
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| deptId | bigserial PK | 部门 ID |
+| deptName | varchar(64) | 部门名称 |
+| parentId | bigint | 父部门 |
+| sort / status | | 排序、状态 |
 
-**特点：**
-- 支持树形结构
-- 用于用户的组织归属
+### system_api 接口表
 
-#### 8. system_api - API接口表
+记录 API 路径与方法，用于权限与文档。
 
-记录系统所有API接口。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| apiId | bigserial PK | API ID |
+| apiName | varchar(64) | 名称 |
+| apiPath | varchar(255) | 路径 |
+| apiMethod | varchar(10) | GET / POST 等 |
+| status | boolean | 状态 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| apiId | bigserial | PK | API ID |
-| apiName | varchar(64) | NOT NULL | API名称 |
-| apiPath | varchar(255) | NOT NULL | API路径 |
-| apiMethod | varchar(10) | NOT NULL | 请求方法 |
-| status | boolean | | 状态 |
+### system_dict_type / system_dict_data 字典
 
-**用途：**
-- API权限管理
-- 接口文档生成
-- 访问控制
+类型表定义 `dictType`，数据表存 label/value，前端 `useDictStore` 读取。
 
-#### 9. system_dict_type - 字典类型表
+**system_dict_type**
 
-系统字典类型定义。
+| 字段 | 说明 |
+|------|------|
+| dictId | PK |
+| dictName / dictType | 名称、类型编码（唯一） |
+| status | 状态 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| dictId | bigserial | PK | 字典ID |
-| dictName | varchar(64) | NOT NULL, UNIQUE | 字典名称 |
-| dictType | varchar(64) | NOT NULL, UNIQUE | 字典类型 |
-| status | boolean | | 状态 |
+**system_dict_data**
 
-#### 10. system_dict_data - 字典数据表
+| 字段 | 说明 |
+|------|------|
+| dictCode | PK |
+| dictType | 关联类型 |
+| dictLabel / dictValue | 显示文本、实际值 |
+| dictSort | 排序 |
+| tagType / customClass | 标签样式 |
+| status | 状态 |
 
-字典的具体数据项。
+### system_login_log 登录日志
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| dictCode | bigserial | PK | 字典数据ID |
-| dictType | varchar(64) | NOT NULL | 字典类型 |
-| dictLabel | varchar(64) | NOT NULL | 字典标签 |
-| dictValue | varchar(64) | NOT NULL | 字典值 |
-| dictSort | integer | | 排序 |
-| tagType | varchar(64) | | 标签类型 |
-| customClass | varchar(64) | | 自定义样式类 |
-| status | boolean | | 状态 |
+| 字段 | 说明 |
+|------|------|
+| logId | PK |
+| loginType / loginName | 登录方式、用户名 |
+| clientType / clientPlatform | 客户端 |
+| ipaddr / loginLocation | IP、地理位置 |
+| userAgent / os | UA、系统 |
+| message / status | 提示、成功与否 |
 
-**用途：**
-- 下拉选项
-- 状态码映射
-- 配置项管理
+### system_oper_log 操作日志
 
-#### 11. system_login_log - 登录日志表
+中间件 `AddOperLog` 写入，路由 `meta.isLog: true` 时记录。
 
-记录用户登录行为。
+| 字段 | 说明 |
+|------|------|
+| operId | PK |
+| title / action | 模块、操作名 |
+| requestMethod | HTTP 方法 |
+| userId / operName | 操作人 |
+| operUrl / operIp / operLocation | URL、IP、地点 |
+| operParam / jsonResult | 请求参数、响应摘要 |
+| costTime | 耗时（ms） |
+| status | 是否成功 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| logId | bigserial | PK | 日志ID |
-| loginType | varchar(32) | | 登录类型 |
-| loginName | varchar(64) | | 登录用户名 |
-| clientType | varchar(32) | | 客户端类型 |
-| clientPlatform | varchar(32) | | 客户端平台 |
-| ipaddr | varchar(128) | | IP地址 |
-| loginLocation | varchar(256) | | 登录地点 |
-| userAgent | varchar(512) | | 用户代理 |
-| os | varchar(64) | | 操作系统 |
-| message | varchar(255) | | 提示消息 |
-| status | boolean | | 登录状态 |
+### system_ip_black IP 黑名单
 
-**用途：**
-- 安全审计
-- 异常登录检测
-- 用户行为分析
+| 字段 | 说明 |
+|------|------|
+| ipBlackId | PK |
+| ipAddress | IP（唯一） |
+| status | 是否生效 |
 
-#### 12. system_oper_log - 操作日志表
+### system_storage 存储配置
 
-记录用户操作行为。
+对象存储（OSS / COS / S3 / RustFS 等）连接信息，详见 [文件存储](/guide/storage)。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| operId | bigserial | PK | 操作ID |
-| title | varchar(255) | | 模块标题 |
-| action | varchar(255) | | 操作名称 |
-| requestMethod | varchar(10) | | 请求方法 |
-| operatorType | varchar(32) | | 操作人类型 |
-| userId | bigint | | 操作人ID |
-| operName | varchar(64) | | 操作人名称 |
-| operUrl | varchar(256) | | 操作URL |
-| operIp | varchar(128) | | 操作IP |
-| operLocation | varchar(256) | | 操作地点 |
-| operParam | varchar(1024) | | 操作参数 |
-| jsonResult | varchar(1024) | | 返回结果 |
-| costTime | integer | | 耗时（毫秒） |
-| status | boolean | | 操作状态 |
+| 字段 | 说明 |
+|------|------|
+| storageId | PK |
+| name | 配置名称（唯一） |
+| region / endpoint / bucket | 区域、端点、桶 |
+| accessKey / secretKey | 密钥 |
+| status | 是否启用（同时仅一条可为 true） |
 
-**用途：**
-- 操作审计
-- 问题追踪
-- 性能分析
+## 监控管理
 
-#### 13. system_ip_black - IP黑名单表
+### monitor_job 定时任务
 
-管理被禁止访问的IP地址。
+与 `system-cron-queue`、后台「定时任务」页配合。`jobName` 须与 `worker-sandbox` 注册名一致。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| ipBlackId | bigserial | PK | 黑名单ID |
-| ipAddress | varchar(64) | NOT NULL, UNIQUE | IP地址 |
-| status | boolean | | 状态 |
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| jobId | bigserial PK | 任务 ID |
+| jobName | varchar(64) UNIQUE | 任务名称 |
+| jobCron | varchar(64) | Cron 表达式 |
+| jobArgs | varchar(256) | JSON 数组参数 |
+| status | boolean | 是否启用 |
 
-**用途：**
-- 安全防护
-- 恶意访问拦截
+详见 [定时任务](/guide/cron)。
 
-#### 14. system_storage - 存储配置表
+## 业务管理
 
-管理文件存储配置（OSS、S3等）。
+支付示例模块：商户 → 订单 → 支付流水 → 退款。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| storageId | bigserial | PK | 存储ID |
-| name | varchar(64) | NOT NULL, UNIQUE | 存储名称 |
-| region | varchar(64) | | 区域 |
-| endpoint | varchar(255) | | 存储端点 |
-| bucket | varchar(128) | | 存储桶 |
-| accessKey | varchar(128) | | 访问密钥 |
-| secretKey | varchar(128) | | 密钥 |
-| status | boolean | | 状态 |
+```mermaid
+erDiagram
+    business_merchant ||--o{ business_merchant_configs : has
+    business_merchant ||--o{ business_orders : receives
+    business_orders ||--o{ business_payments : pays
+    business_orders ||--o{ business_refund : refunds
+    business_payments ||--o{ business_refund : from
+```
 
-**支持的存储类型：**
-- 阿里云 OSS
-- 腾讯云 COS
-- AWS S3
-- MinIO
+### business_merchant 商户表
 
-### 监控管理模块（Monitor）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigserial PK | 商户 ID |
+| name | varchar(100) | 商户名称 |
+| status | boolean | 状态 |
 
-#### 15. monitor_job - 定时任务表
+### business_merchant_configs 商户支付配置
 
-管理系统定时任务。
+一条记录对应一个商户的一种支付渠道，供 `Pay(channel, platform)` 使用。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| jobId | bigserial | PK | 任务ID |
-| jobName | varchar(64) | NOT NULL, UNIQUE | 任务名称 |
-| jobCron | varchar(64) | NOT NULL | CRON表达式 |
-| jobArgs | varchar(256) | | 任务参数 |
-| status | boolean | | 状态 |
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigserial PK | 配置 ID |
+| merchantId | bigint FK | 商户 |
+| channel | varchar(20) | alipay / wechat / paypal |
+| appId / mchId | varchar | 应用 ID、微信商户号 |
+| privateKey / publicKey | text | 密钥 PEM |
+| config | jsonb | notifyUrl、apiV3Key 等扩展 |
+| status | boolean | 是否启用 |
 
-**用途：**
-- 定时数据清理
-- 定时报表生成
-- 定时数据同步
+详见 [支付集成](/guide/payment)。
 
-### 业务管理模块（Business）
+### business_orders 订单表
 
-#### 16. business_merchant - 商户表
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigserial PK | 订单 ID |
+| orderNo | varchar(64) UNIQUE | 订单号 |
+| userId | varchar(64) | 下单用户（UUID 字符串） |
+| merchantId | bigint FK | 商户 |
+| title / description | varchar | 标题、描述 |
+| amount | decimal(10,2) | 金额 |
+| currency | varchar(10) | 默认 CNY |
+| status | varchar(20) | 字典 `system_orders_status` |
+| expireTime | timestamp | 过期时间 |
+| extra | jsonb | 商品列表等扩展 |
 
-管理商户基本信息。
+订单状态（字典 `system_orders_status`）：
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | bigserial | PK | 商户ID |
-| name | varchar(100) | NOT NULL | 商户名称 |
-| status | boolean | | 状态 |
+| 值 | 含义 |
+|----|------|
+| 0 | 待支付 |
+| 1 | 已支付 |
+| 2 | 已取消 |
+| 3 | 已过期 |
+| 4 | 已退款 |
 
-#### 17. business_merchant_configs - 商户配置表
+### business_payments 支付流水
 
-存储商户的支付渠道配置。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigserial PK | 支付 ID |
+| orderId | bigint FK | 订单 ID |
+| orderNo | varchar(64) UNIQUE FK | 订单号 |
+| merchantConfigId | bigint FK | 商户配置 |
+| paymentNo | varchar(64) UNIQUE | 本地支付单号 |
+| platform | varchar(20) | 终端：app / h5 / mini / pc |
+| paymentMethod | varchar(20) | 渠道：alipay / wechat / paypal |
+| amount | decimal(10,2) | 实付金额 |
+| status | varchar(20) | 字典 `system_pay_status` |
+| thirdTradeNo | varchar(100) | 第三方交易号 |
+| extra | jsonb | 回调原始数据等 |
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | bigserial | PK | 配置ID |
-| merchantId | bigint | FK, NOT NULL | 商户ID |
-| channel | varchar(20) | NOT NULL | 支付渠道 |
-| appId | varchar(100) | | 应用ID |
-| mchId | varchar(100) | | 商户号 |
-| privateKey | text | | 商户私钥 |
-| publicKey | text | | 平台公钥 |
-| config | jsonb | | 扩展配置 |
-| status | boolean | | 状态 |
+支付状态（`system_pay_status`）：0 待支付、1 成功、2 失败、3 已关闭。
 
-**支持的支付渠道：**
-- 支付宝（Alipay）
-- 微信支付（WeChat）
-- PayPal
+### business_refund 退款表
 
-#### 18. business_orders - 订单表
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigserial PK | 退款 ID |
+| orderId | bigint FK | 订单 |
+| paymentId | bigint FK | 支付流水 |
+| refundNo | varchar(64) UNIQUE | 退款单号 |
+| amount | decimal(10,2) | 退款金额 |
+| status | varchar(20) | 字典 `system_refund_status` |
+| thirdRefundNo | varchar(100) | 第三方退款号 |
+| extra | jsonb | 扩展 |
 
-存储业务订单信息。
+退款状态：0 退款中、1 成功、2 失败。
 
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | bigserial | PK | 订单ID |
-| orderNo | varchar(64) | NOT NULL, UNIQUE | 订单号 |
-| userId | bigint | NOT NULL | 用户ID |
-| merchantId | bigint | FK, NOT NULL | 商户ID |
-| title | varchar(200) | NOT NULL | 订单标题 |
-| description | varchar(500) | | 订单描述 |
-| amount | decimal(10,2) | NOT NULL | 订单金额 |
-| currency | varchar(10) | | 货币类型 |
-| status | varchar(20) | | 订单状态 |
-| expireTime | timestamp | | 过期时间 |
-| paymentMethod | varchar(20) | NOT NULL | 支付方式 |
-| extra | jsonb | | 扩展字段 |
+## 索引建议
 
-**订单状态（字典：system_orders_status）：**
-- 0: 待支付
-- 1: 已支付
-- 2: 已取消
-- 3: 已过期
-- 4: 已退款
+常用查询字段建议加索引（列名为数据库下划线形式）：
 
-#### 19. business_payments - 支付记录表
-
-记录订单的支付流水。
-
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | bigserial | PK | 支付ID |
-| orderId | bigint | FK, NOT NULL | 订单ID |
-| merchantConfigId | bigint | FK, NOT NULL | 商户配置ID |
-| paymentNo | varchar(64) | UNIQUE | 支付单号 |
-| channel | varchar(20) | NOT NULL | 支付渠道 |
-| platform | varchar(20) | | 支付平台 |
-| amount | decimal(10,2) | NOT NULL | 支付金额 |
-| status | varchar(20) | | 支付状态 |
-| thirdTradeNo | varchar(100) | | 第三方交易号 |
-| extra | jsonb | | 扩展字段 |
-
-**支付状态（字典：system_pay_status）：**
-- 0: 待支付
-- 1: 支付成功
-- 2: 支付失败
-- 3: 已关闭
-
-#### 20. business_refund - 退款表
-
-管理订单退款记录。
-
-| 字段名 | 类型 | 约束 | 说明 |
-|--------|------|------|------|
-| id | bigserial | PK | 退款ID |
-| orderId | bigint | FK, NOT NULL | 订单ID |
-| paymentId | bigint | FK, NOT NULL | 支付记录ID |
-| refundNo | varchar(64) | NOT NULL, UNIQUE | 退款单号 |
-| amount | decimal(10,2) | NOT NULL | 退款金额 |
-| status | varchar(20) | | 退款状态 |
-| thirdRefundNo | varchar(100) | | 第三方退款单号 |
-| extra | jsonb | | 扩展字段 |
-
-**退款状态（字典：system_refund_status）：**
-- 0: 退款中
-- 1: 退款成功
-- 2: 退款失败
-
-## 索引设计
-
-### 推荐索引
-
-```sql [sql]
--- 用户表
+```sql
+-- 用户
 CREATE INDEX idx_user_username ON system_user(username);
 CREATE INDEX idx_user_dept ON system_user(dept_id);
 CREATE INDEX idx_user_status ON system_user(status);
 
--- 菜单表
+-- 菜单
 CREATE INDEX idx_menu_parent ON system_menu(parent_id);
 CREATE INDEX idx_menu_status ON system_menu(status);
 
--- 订单表
+-- 订单
 CREATE INDEX idx_order_no ON business_orders(order_no);
 CREATE INDEX idx_order_user ON business_orders(user_id);
 CREATE INDEX idx_order_merchant ON business_orders(merchant_id);
 CREATE INDEX idx_order_status ON business_orders(status);
 CREATE INDEX idx_order_create_time ON business_orders(create_time);
 
--- 支付表
+-- 支付
 CREATE INDEX idx_payment_order ON business_payments(order_id);
 CREATE INDEX idx_payment_no ON business_payments(payment_no);
 CREATE INDEX idx_payment_third_trade ON business_payments(third_trade_no);
 
--- 日志表
+-- 日志
 CREATE INDEX idx_login_log_time ON system_login_log(create_time);
 CREATE INDEX idx_oper_log_time ON system_oper_log(create_time);
 CREATE INDEX idx_oper_log_user ON system_oper_log(user_id);
 ```
 
-## 数据库操作
+Drizzle `db:push` 不会自动创建上述索引，可按需在 schema 或迁移 SQL 中补充。
 
-### 初始化数据库
+## 常用命令
 
-```bash [terminal]
-# 推送数据库结构
-cd server
-bun db:push
+在 `server/` 目录执行：
+
+```bash
+# 将 schema 推送到数据库（开发常用）
+bun run db:push
+
+# 从数据库拉取结构到本地 schema
+bun run db:pull
 ```
 
-### 数据迁移
+使用 Drizzle Kit 迁移工作流时：
 
-```bash [bun]
-# 生成迁移文件
+```bash
 bun drizzle-kit generate
-
-# 执行迁移
 bun drizzle-kit migrate
 ```
 
-### 数据库同步
+初始化 SQL 脚本在 `server/database/sql/`，新模块菜单权限可合并进 `{模块}-init.sql` 手动执行。
 
-```bash [bun]
-# 从数据库拉取结构
-bun db:pull
-```
+## 性能建议
 
-## 性能优化建议
-
-1. **合理使用索引：** 为常用查询字段添加索引
-2. **分页查询：** 大数据量查询使用分页
-3. **避免 N+1 查询：** 使用 JOIN 或批量查询
-4. **使用连接池：** 配置合适的数据库连接池大小
-5. **定期清理日志：** 定时清理过期的日志数据
-6. **使用 Redis 缓存：** 缓存热点数据和字典数据
-
+- 列表查询走 `FindPage` + `CreateQueryBuilder`，避免一次拉全表
+- 热点字典、配置用 Redis `WithCache`，见 [缓存](/guide/cache)
+- 日志表定期归档或清理
+- 联表查询注意 N+1，优先 `FindPageWithJoin` 或批量查询
+- 连接池大小按并发调优，勿过大占满数据库连接
 
 ## 相关文档
 
-- [数据库操作指南](/guide/database-operation.html)
-- [缓存使用指南](/guide/cache.html)
+- [数据库操作](/guide/database-operation)
+- [缓存](/guide/cache)
+- [支付集成](/guide/payment)
+- [定时任务](/guide/cron)

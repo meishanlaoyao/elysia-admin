@@ -9,6 +9,8 @@ Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/
 | Backend dev | `bun run dev` | `server/` |
 | Backend + workers | `bun run dev:all` | `server/` |
 | Backend test | `bun test` | `server/` |
+| Module scaffold (backend) | `bun run create:module {slug} --tag "..."` | `server/` |
+| Module scaffold (admin) | `bun run create:page {group} {name} --tag "..."` | `server/` |
 | Frontend dev | `pnpm dev` | `admin/` |
 | Frontend lint | `pnpm lint` | `admin/` |
 
@@ -17,9 +19,10 @@ Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
 - Read `.ai/AI_MODULE_WORKFLOW.md`
-- Code templates: `.ai/AI_CODE_EXAMPLES.md` (primary — do not duplicate inline)
+- **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` — run `create:module` + `create:page` from `server/` when schema exists
+- Code templates: `.ai/AI_CODE_EXAMPLES.md` (primary — do not duplicate inline; skip full CRUD copy if scaffold ran)
 - Handoff SQL output: `server/database/sql/{module-name}-init.sql`
-- Trigger phrases: `按 module dev workflow` / `走完整 SOP`
+- Trigger phrases: `按 module dev workflow` / `走完整 SOP` / `先用脚手架` / `脚手架已生成`
 
 ## Scoped rules
 
@@ -34,6 +37,7 @@ Path-specific rules live in `.claude/rules/`:
 | File | Purpose |
 |------|---------|
 | `AI_MODULE_WORKFLOW.md` | Main SOP |
+| `AI_MODULE_SCAFFOLD.md` | CRUD scaffold CLI |
 | `AI_CODE_EXAMPLES.md` | Code templates |
 | `AI_PAGE_QUALITY.md` | List/search/dialog quality |
 | `AI_SCHEMA_GUIDE.md` | Table design |

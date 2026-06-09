@@ -54,6 +54,7 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
 - Read `.ai/AI_MODULE_WORKFLOW.md` or use skill `.cursor/skills/elysia-module-dev/`
+- **Standard single-table CRUD** with schema ready → read `.ai/AI_MODULE_SCAFFOLD.md`; prefer `bun run create:module` + `bun run create:page` from `server/` before hand-writing CRUD files
 - Sub-guides: `AI_SCHEMA_GUIDE.md`, `AI_HANDOFF_SQL.md`, `AI_PAGE_QUALITY.md`, `AI_UI_LAYOUT.md`, `AI_MCP_SETUP.md`
 
 For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md` **only if needed** — it does **not** replace `AI_CODE_EXAMPLES.md`.
@@ -76,9 +77,11 @@ For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md
 - `server/src/core/` (unless the task explicitly touches infrastructure)
 - `database/schema/` other than the one table directly used in the current task
 
-**Read at most ONE reference module/page** when creating something new:
+**Read at most ONE reference module/page** when creating something new **without scaffold**:
 - Backend new module → read only `server/src/modules/system-api/`
 - Frontend new page → read only `admin/src/views/system/user/`
+
+**After module scaffold (`create:module` / `create:page`):** read only generated module/view files + the one schema file — **do not** read `system-api/` or `system/user/` for boilerplate
 
 **When modifying existing code:**
 - Read only the specific file being modified
@@ -94,6 +97,7 @@ For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md
 # `.ai` Doc Index
 
 - **`AI_MODULE_WORKFLOW.md`** — module dev main SOP
+- **`AI_MODULE_SCAFFOLD.md`** — `create:module` + `create:page` CRUD boilerplate (run from `server/`)
 - **`AI_CODE_EXAMPLES.md`** — code templates (primary for implementation)
 - **`AI_PAGE_QUALITY.md`** — list/search/dialog quality
 - **`AI_CONTEXT_CAPSULE.md`** — one-page quick ref

@@ -15,97 +15,120 @@ head:
 
 # 中间件
 
-本章将介绍在 `Elysia Admin` 中，中间件（Middleware）用于在请求生命周期的不同阶段注入自定义逻辑。所有的中间件通常定义在 `server/src/middleware` 目录下。
+中间件在请求生命周期的不同阶段注入通用逻辑：进入业务 `handle` 之前做鉴权与限流，响应发出之后写操作日志。代码集中在 `server/src/middleware/`，在 `app.ts` 里通过 `GlobalMiddleware` 和 `GlobalResponseMiddleware` 挂载。
+
+路由上的 `meta` 字段（`isAuth`、`permission`、`ipRateLimit` 等）决定哪些守卫会生效，配置方式见 [第一个接口](./first-api)。
+
+```mermaid
+flowchart TD
+    Req[HTTP 请求] --> R[onRequest 记录 startTime]
+    R --> B[onBeforeHandle 守卫链]
+    B --> H[handle.ts 业务逻辑]
+    H --> A[onAfterResponse 日志与统计]
+    B -->|守卫返回错误| Err[直接响应，跳过 handle]
+```
+
+任一守卫返回错误响应时，后续 `handle` 不会执行。排查「接口没进业务逻辑」时，可先确认认证、权限或限流是否在中途拦截。
 
 ## 请求预处理
 
-如果你需要在执行具体业务逻辑之前对请求进行拦截或预处理（例如：IP 黑名单校验、认证授权等），可以使用 `onBeforeHandle` 钩子。
+`onBeforeHandle` 里按顺序执行守卫。守卫返回 `BaseResultData.fail(...)` 时，`executeGuard` 会抛出并中断请求。
 
-```ts [ts]
-/**
- * 全局请求预处理中间件
- * @param app Elysia 实例
- */
+```ts [middleware/index.ts]
+import { Elysia } from 'elysia';
+import config from '@/config';
+import { AnalysisRoute } from './analysis';
+import { AuthGuard } from './guards/auth';
+import { PermissionGuard } from './guards/permission';
+import { IpBlackGuard } from './guards/ipblack';
+import { ApiGuard } from './guards/api';
+import { IpRateLimitGuard } from './guards/ipratelimit';
+
+const { guard } = config;
+
 export function GlobalMiddleware(app: Elysia) {
     app.onBeforeHandle(async (ctx) => {
-        // IP 黑名单校验
-        if (guard.ipBlacklist) await executeGuard(IpBlackGuard, ctx, '通过了黑名单IP守卫-->');
-        // API 熔断开关
-        if (guard.apiSwitch) await executeGuard(ApiGuard, ctx, '通过了API熔断守卫-->');
-        
-        // 依次执行路由分析、认证、限流及权限校验
-        await executeGuard(AnalysisRoute, ctx, '通过了路由分析器-->');
-        await executeGuard(AuthGuard, ctx, '通过了认证守卫-->');
-        await executeGuard(IpRateLimitGuard, ctx, '通过了ip限流守卫-->');
-        await executeGuard(PermissionGuard, ctx, '通过了权限守卫-->');
+        if (guard.ipBlacklist) await executeGuard(IpBlackGuard, ctx);
+        if (guard.apiSwitch) await executeGuard(ApiGuard, ctx);
+        await executeGuard(AnalysisRoute, ctx);
+        await executeGuard(AuthGuard, ctx);
+        await executeGuard(IpRateLimitGuard, ctx);
+        await executeGuard(PermissionGuard, ctx);
     });
-};
+}
 ```
+
+| 守卫 | 作用 | 触发条件 |
+|------|------|----------|
+| `IpBlackGuard` | IP 黑名单拦截 | `config.guard.ipBlacklist` 开启 |
+| `ApiGuard` | API 熔断开关 | `config.guard.apiSwitch` 开启 |
+| `AnalysisRoute` | 解析当前路由，注入 `routeInfo`、`routeKey` | 始终执行 |
+| `AuthGuard` | JWT 认证，注入 `ctx.user` | 路由 `meta.isAuth: true` |
+| `IpRateLimitGuard` | IP 限流 | 路由配置了 `meta.ipRateLimit` |
+| `PermissionGuard` | 按钮权限校验 | 路由配置了 `meta.permission` |
+
+自定义守卫放在 `middleware/guards/` 下，按同样方式 `executeGuard` 接入即可。
 
 ## 响应后处理
 
-如果你需要对响应结果进行统一处理，或者在响应发送后执行异步任务（例如：记录操作日志、统计响应时间等），可以结合 `onRequest` 和 `onAfterResponse` 钩子。
+`onRequest` 记录请求开始时间，`onAfterResponse` 在响应完成后执行副作用，不阻塞返回。
 
-```ts [ts]
-/**
- * 全局响应层中间件
- * @param app Elysia 实例
- */
+```ts [middleware/index.ts]
+import { logger } from '@/shared/logger';
+import { AddOperLog } from '@/modules/system-oper-log/handle';
+import { IpRateLimitRecord } from './guards/ipratelimit';
+
 export function GlobalResponseMiddleware(app: Elysia) {
-    // 记录请求开始时间
     app.onRequest((ctx) => {
         ctx.startTime = Date.now();
     });
 
-    // 响应完成后执行
     app.onAfterResponse(async (ctx) => {
-        // 非生产环境下打印请求日志
         process.env.NODE_ENV !== 'production' && logger.logRequest(ctx);
-        
-        // 记录操作日志及 IP 限流数据
         await AddOperLog(ctx);
         await IpRateLimitRecord(ctx);
     });
-};
+}
 ```
 
-## 获取上下文数据
+| 钩子 | 时机 | 典型用途 |
+|------|------|----------|
+| `onRequest` | 请求刚进入 | 记录 `startTime` |
+| `onAfterResponse` | 响应已发出 | 操作日志、限流计数、开发环境请求日志 |
 
-在 `handle.ts` 中请使用项目定义的 `AppContext`（`Context` 与中间件挂载字段的交集类型），直接访问 `user`、`routeInfo` 等，无需 `(ctx as any)`：
+路由 `meta.isLog: true` 时，`AddOperLog` 会把本次请求写入操作日志表。
 
-```ts [ts]
+## 在 handle 里读上下文
+
+`handle.ts` 使用 `AppContext` 类型（`@/types/app-context`），直接访问中间件注入的字段，无需 `(ctx as any)`。
+
+```ts [handle.ts]
 import type { AppContext } from '@/types/app-context';
 import { GetClientIp } from '@/shared/ip';
 import { BaseResultData } from '@/core/result';
 
-/**
- * 示例业务处理函数
- * @param ctx 请求上下文（含中间件注入字段）
- */
 export async function handleRequest(ctx: AppContext) {
-    try {
-        const startTime = ctx.startTime;   // onRequest 记录的开始时间
-        const user = ctx.user;             // 认证守卫注入的当前用户
-        const routeInfo = ctx.routeInfo;   // 路由分析器注入的 meta 等
-        const routeKey = ctx.routeKey;     // 路由唯一键
-        const ip = ctx.ip ?? GetClientIp(ctx); // IP 守卫会写入 ctx.ip
+    const startTime = ctx.startTime;           // onRequest
+    const user = ctx.user;                     // AuthGuard
+    const routeInfo = ctx.routeInfo;           // AnalysisRoute
+    const routeKey = ctx.routeKey;
+    const ip = ctx.ip ?? GetClientIp(ctx);     // IpBlackGuard 等
 
-        // 执行后续业务逻辑...
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    // 业务逻辑...
+    return BaseResultData.ok();
 }
 ```
 
-## 请求生命周期概览
+常用注入字段：
 
-`Elysia` 将一次请求拆成多个钩子：进入路由前可先记录元数据（如开始时间），在 `onBeforeHandle` 中集中做黑名单、认证、限流、权限等**前置校验**；通过后执行真实业务处理函数；响应发出前或在之后触发 `onAfterResponse`，适合写操作日志、落库限流统计等**副作用**。下图是三类中间件的简化执行顺序，具体守卫是否启用以 `GlobalMiddleware`、`GlobalResponseMiddleware` 及环境变量为准。
+| 字段 | 来源 | 说明 |
+|------|------|------|
+| `routeInfo` | `AnalysisRoute` | 当前路由的 `tags`、`summary`、`meta` |
+| `routeKey` | `AnalysisRoute` | 路由唯一键，如 `GET:/api/system/user/list` |
+| `user` | `AuthGuard` | 当前登录用户（含 `permissions`） |
+| `startTime` | `onRequest` | 请求开始时间戳 |
+| `ip` | IP 相关守卫 | 客户端 IP |
 
-```mermaid
-flowchart LR
-    R[onRequest<br/>记录开始时间等] --> B[onBeforeHandle<br/>预处理守卫链]
-    B --> H[路由处理函数]
-    H --> A[onAfterResponse<br/>日志 / 限流记录等]
-```
+## 错误处理
 
-若某一环返回响应（例如认证失败），后续业务处理函数不会执行，这一点在排查「为何接口未进 Controller」时很有用。
+全局异常由 `middleware/error-handler.ts` 的 `ConfigureErrorHandler` 统一捕获，在 `app.ts` 中与上述中间件一并注册。业务层用 `BaseResultData.fail(code, msg)` 返回错误即可，不必在 `handle` 里包 `try/catch`。

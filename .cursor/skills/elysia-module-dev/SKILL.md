@@ -19,9 +19,9 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 
 **Triggers:** `CRUD module`, `business-*`, `menu permission`, `handoff sql`, `schema design`, `admin page`
 
-**User phrases (中文):** `按 module dev workflow`, `走完整 SOP`, `含菜单权限和 handoff SQL`, `全栈模块`
+**User phrases (中文):** `按 module dev workflow`, `走完整 SOP`, `含菜单权限和 handoff SQL`, `全栈模块`, `先用脚手架`, `脚手架已生成`
 
-## 9-Step Checklist
+## 10-Step Checklist
 
 ### 1. MCP
 
@@ -36,41 +36,50 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **MUST** ask developer before changing drizzle schema
 - See `.ai/AI_SCHEMA_GUIDE.md`
 
-### 3. Plan (no code yet)
+### 3. Module scaffold (standard CRUD — when schema exists & module is new)
+
+- Read `.ai/AI_MODULE_SCAFFOLD.md`
+- From `server/`: `bun run create:module {slug} --tag "..."` then `bun run create:page {group} {name} --tag "..."`
+- Run in Agent mode when appropriate, or instruct user
+- **If scaffold ran:** skip hand-writing CRUD boilerplate — go to steps 5–8 for incremental work
+- **If skipped:** continue with step 4 as full backend generation
+
+### 4. Plan (no code yet — if scaffold not used)
 
 - Goal, module name, tables, CRUD, permissions, task/frontend need (≤5 lines)
 
-### 4. Backend
+### 5. Backend
 
-- `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional)
-- Templates: `.ai/AI_CODE_EXAMPLES.md`; reference: `system-api/` only
+- **Scaffold already ran:** edit `handle.ts` / extend `dto.ts` only; do **not** regenerate `route.ts` from templates
+- **No scaffold:** `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional); `.ai/AI_CODE_EXAMPLES.md`; reference `system-api/` only
 - `meta.permission`: `group:name:action`
 
-### 5. Dict
+### 6. Dict
 
 - **NEVER** hardcode business enums in backend or frontend
 - MCP query `system_dict_type` / `system_dict_data`
 - Missing items → handoff SQL
 
-### 6. Frontend (if needed)
+### 7. Frontend (if needed)
 
-- Reference: `admin/src/views/system/user/` only
+- **Scaffold already ran:** polish generated vue files; dict + layout per `.ai/AI_PAGE_QUALITY.md` / `.ai/AI_UI_LAYOUT.md`
+- **No scaffold:** reference `admin/src/views/system/user/` only
 - Permission strings **MUST** match backend
 - **MUST** read `.ai/AI_PAGE_QUALITY.md` and `.ai/AI_UI_LAYOUT.md` before finishing
 
-### 7. Handoff SQL
+### 8. Handoff SQL
 
 - Single file: `server/database/sql/{module-name}-init.sql`
 - Order: dict → menu/buttons → role permissions → seed data
 - Menu INSERT **MUST** query DB first (MCP)
 - See `.ai/AI_HANDOFF_SQL.md`
 
-### 8. Git Read-Only
+### 9. Git Read-Only
 
 - Allowed: `status` / `diff` / `log`
 - **NEVER** `add` / `commit` / `push` / `stash` unless user explicitly asks
 
-### 9. Optimization (on demand only)
+### 10. Optimization (on demand only)
 
 - Default: no indexes/cache
 - Only when clear performance need; state reason
@@ -91,6 +100,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 | Doc | Purpose |
 |-----|---------|
 | `.ai/AI_MODULE_WORKFLOW.md` | Full SOP |
+| `.ai/AI_MODULE_SCAFFOLD.md` | `create:module` + `create:page` CLI |
 | `.ai/AI_CODE_EXAMPLES.md` | Code templates |
 | `.ai/AI_PAGE_QUALITY.md` | List/search/dialog quality |
 | `.ai/AI_SCHEMA_GUIDE.md` | Table design |

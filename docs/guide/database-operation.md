@@ -15,704 +15,336 @@ head:
 
 # 数据库操作
 
-本章将介绍 `Elysia Admin` 中封装的常用 `PostgreSQL` 数据库操作方法，包括增删改查和事务管理。
+业务模块的 `handle.ts` 通过 `@/core/database/repository` 访问 PostgreSQL，底层基于 Drizzle ORM。你一般不需要手写 SQL，用封装好的增删改查和 `CreateQueryBuilder` 即可覆盖大部分场景。
 
-下文 `handle` 示例统一使用 `AppContext`（`import type { AppContext } from '@/types/app-context'`），与项目中间件注入字段一致。
+下文示例统一使用 `AppContext`（`import type { AppContext } from '@/types/app-context'`），与中间件注入的 `ctx.body`、`ctx.query`、`ctx.params`、`ctx.user` 一致。接口入参校验见 [参数验证](./parameter-validation)。
 
-## 插入数据
-
-本节介绍如何向数据库插入数据，包括不返回记录和返回记录两种方式。
-
-### 插入数据（不返回记录）
-
-```ts [ts]
-InsertOne(schema, ctx, customData);
+```mermaid
+flowchart TD
+    H[handle.ts] --> QB[CreateQueryBuilder]
+    H --> R[repository 函数]
+    QB --> R
+    R --> PG[Drizzle / PostgreSQL]
 ```
 
-参数说明：
-- `schema`：数据库表的 schema 结构，用于定义插入数据的字段
-- `ctx`：Elysia 的请求上下文对象，包含请求相关的数据
-- `customData`：自定义数据对象，若使用自定义数据，需要将 `ctx` 设置为 `null`（可选参数）
+## API 速查
 
-示例：
+所有函数均从 `@/core/database/repository` 导入。
 
-```ts [ts]
-import { InsertOne } from '@/core/database/repository';
+| 函数 | 用途 |
+|------|------|
+| `InsertOne` | 插入，不返回记录 |
+| `InsertOneAndRes` | 插入，返回新记录 |
+| `InsertMany` | 批量插入 |
+| `FindOneByKey` | 按主键查单条 |
+| `FindAll` | 查全部（不分页） |
+| `FindPage` | 分页查询 |
+| `FindAllWithJoin` | 联表查全部 |
+| `FindPageWithJoin` | 联表分页 |
+| `UpdateByKey` | 按主键更新，不返回 |
+| `UpdateByKeyAndRes` | 按主键更新，返回记录 |
+| `SoftDeleteByKeys` | 软删除（`delFlag = true`） |
+| `HardDelete` | 按 where 条件硬删除 |
+| `HardDeleteByKeys` | 按主键数组硬删除 |
+| `CreateQueryBuilder` | 链式构造 where 条件 |
 
-export async function create(ctx: AppContext) {
-    try {
-        await InsertOne(businessMerchantSchema, ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-}
-```
+传入 `ctx` 时，封装会自动填充 `createBy` / `updateBy`（表里有对应字段时）。用 `customData` 时把 `ctx` 设为 `null`。
 
-### 插入数据（返回记录）
+## 插入
 
-```ts [ts]
-InsertOneAndRes(schema, ctx, customData);
-```
-
-参数说明：
-- `schema`：数据库表的 schema 结构，用于定义插入数据的字段
-- `ctx`：Elysia 的请求上下文对象，包含请求相关的数据
-- `customData`：自定义数据对象，若使用自定义数据，需要将 `ctx` 设置为 `null`（可选参数）
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
+import type { AppContext } from '@/types/app-context';
 import { InsertOneAndRes } from '@/core/database/repository';
+import { BaseResultData } from '@/core/result';
+import { businessMerchantSchema } from '@database/schema/business_merchant';
 
 export async function create(ctx: AppContext) {
-    try {
-        const res = await InsertOneAndRes(businessMerchantSchema, ctx);
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const res = await InsertOneAndRes(businessMerchantSchema, ctx);
+    return BaseResultData.ok(res);
 }
 ```
 
-## 查询数据
+只需写入、不关心返回值时用 `InsertOne`。批量导入用 `InsertMany(schema, ctx, dataArray)`。
 
-本节介绍如何从数据库查询数据，包括单条查询、全部查询、分页查询以及联表查询等多种方式。
+## 查询条件
 
-### 查询条件关键字
+### QueryBuilder 方法
 
-在使用条件查询前，需要了解以下关键字：
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `eq` | 等于 | `eq('status', true)` |
+| `ne` | 不等于 | `ne('type', 'x')` |
+| `in` / `notIn` | 在 / 不在数组中 | `in('id', [1, 2, 3])` |
+| `like` / `ilike` | 模糊匹配（区分 / 不区分大小写） | `like('name', keyword)` |
+| `notLike` / `notIlike` | 不包含 | `notLike('name', 'test')` |
+| `leftLike` / `rightLike` | 左 / 右模糊 | `rightLike('code', 'A')` |
+| `gt` / `gte` / `lt` / `lte` | 比较 | `gte('amount', 0)` |
+| `between` / `notBetween` | 区间 | `between('age', 18, 60)` |
+| `dateRange` | 日期范围 | `dateRange('createTime', start, end)` |
+| `isNull` / `isNotNull` | 空值判断 | `isNull('deletedAt')` |
+| `or` / `not` | 组合条件 | `or()` / `not()` |
+| `join` | 联表 | 见下文 |
+| `custom` | 自定义 SQL 片段 | `custom(sql)` |
 
-| 关键字 | 说明 | 示例 |
-| --- | --- | --- |
-| `eq` | 精准匹配，等价于 `=` | `eq('id', 1)` |
-| `ne` | 不等于，等价于 `!=` | `ne('id', 1)` |
-| `in` | 在指定数组中 | `in('id', [1, 2, 3])` |
-| `notIn` | 不在指定数组中 | `notIn('id', [1, 2, 3])` |
-| `like` | 模糊匹配（区分大小写） | `like('name', '张三')` |
-| `ilike` | 模糊匹配（不区分大小写） | `ilike('name', '张三')` |
-| `notLike` | 模糊匹配不包含（区分大小写） | `notLike('name', '张三')` |
-| `notIlike` | 模糊匹配不包含（不区分大小写） | `notIlike('name', '张三')` |
-| `leftLike` | 左模糊匹配（以...结尾） | `leftLike('name', '张三')` |
-| `rightLike` | 右模糊匹配（以...开头） | `rightLike('name', '张三')` |
-| `gt` | 大于，等价于 `>` | `gt('age', 1)` |
-| `gte` | 大于等于，等价于 `>=` | `gte('age', 1)` |
-| `lt` | 小于，等价于 `<` | `lt('age', 1)` |
-| `lte` | 小于等于，等价于 `<=` | `lte('age', 1)` |
-| `between` | 在指定值之间 | `between('age', 1, 10)` |
-| `notBetween` | 不在指定值之间 | `notBetween('age', 1, 10)` |
-| `dateRange` | 日期范围查询，开始时间和结束时间都可选 | `dateRange('createTime', startTime, endTime)` |
-| `isNull` | 是否为 NULL | `isNull('age')` |
-| `isNotNull` | 是否不为 NULL | `isNotNull('age')` |
-| `or` | 构建 OR 条件 | `or()` |
-| `not` | 构建 NOT 条件 | `not()` |
-| `join` | 构建 JOIN 条件 | `join()` |
-| `custom` | 自定义查询条件 | `custom(SQL)` |
+值为 `undefined`、`null` 或空字符串时，对应条件会自动跳过，不必手动判断。
 
-### 查询条件构造器
+### 构造 where
 
-`CreateQueryBuilder` 可以通过链式调用的方式来生成查询条件。
-
-示例：
-
-```ts [ts]
-CreateQueryBuilder(businessMerchantSchema)
+```ts
+const where = CreateQueryBuilder(businessMerchantSchema)
     .eq('delFlag', false)
-    .eq('status', true)
+    .eq('status', status)
     .dateRange('createTime', startTime, endTime)
     .build();
 ```
 
-等价于以下 SQL：
+等价于：
 
-```sql [sql]
-SELECT * 
-FROM business_merchant
-WHERE del_flag = false 
-  AND status = true
-  AND create_time BETWEEN startTime AND endTime;
+```sql
+WHERE del_flag = false
+  AND status = $status
+  AND create_time BETWEEN $start AND $end
 ```
 
-### 单条查询
+## 查询
 
-```ts [ts]
-FindOneByKey(schema, keyColumnName, value);
-```
+### 按主键
 
-参数说明：
-- `schema`：数据库表的 schema 结构，用于定义查询数据的字段
-- `keyColumnName`：主键字段名（字符串）
-- `value`：主键值
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
 import { FindOneByKey } from '@/core/database/repository';
 
 export async function findOne(ctx: AppContext) {
-    try {
-        const id = ctx.params.id;
-        const res = await FindOneByKey(businessMerchantSchema, 'id', id);
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const res = await FindOneByKey(businessMerchantSchema, 'id', ctx.params.id);
+    return BaseResultData.ok(res);
 }
 ```
 
-### 全部查询
+### 列表与分页
 
-示例：
+不分页：
 
-```ts [ts]
-import { CreateQueryBuilder, FindAll } from '@/core/database/repository';
-
-export async function findAll(ctx: AppContext) {
-    try {
-        const where = CreateQueryBuilder(systemDictTypeSchema)
-            .eq('delFlag', false)
-            .build();
-        return await FindAll(systemDictTypeSchema, where);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-}
+```ts
+const where = CreateQueryBuilder(systemDictTypeSchema).eq('delFlag', false).build();
+const list = await FindAll(systemDictTypeSchema, where);
 ```
 
-### 联表查询全部
+分页（`pageNum`、`pageSize` 等通常来自 `ctx.query`，与 `BaseListQueryDto` 对齐）：
 
-示例：
-
-```ts [ts]
-import { eq } from 'drizzle-orm';
-import { CreateQueryBuilder, FindAllWithJoin } from '@/core/database/repository';
-
-export async function findTree(ctx: AppContext) {
-    try {
-        const builder = CreateQueryBuilder(systemMenuSchema)
-            .eq('delFlag', false)
-            .join({
-                joinSchema: systemMenuBtnSchema,
-                fieldName: 'authList',
-                foreignKey: 'menuId',
-                primaryKey: 'menuId',
-                defaultValue: [],
-                where: eq(systemMenuBtnSchema.delFlag, false),
-                multiple: true
-            });
-        const data = await FindAllWithJoin(systemMenuSchema, builder);
-        const tree = ListToTree(data, {
-            idKey: 'menuId',
-            parentKey: 'parentId',
-            childrenKey: 'children',
-            rootValue: 0,
-            sortKey: 'sort',
-        });
-        return BaseResultData.ok(tree);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-}
-```
-
-### 分页查询
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
 import { CreateQueryBuilder, FindPage } from '@/core/database/repository';
 
 export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            status,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(businessMerchantSchema)
-            .eq('delFlag', false)
-            .eq('status', status)
-            .dateRange('createTime', startTime, endTime)
-            .build();
-        const res = await FindPage(
-            businessMerchantSchema,
-            whereCondition,
-            {
-                pageNum,
-                pageSize,
-                orderByColumn,
-                sortRule
-            }
-        );
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const { pageNum = 1, pageSize = 10, orderByColumn = 'createTime', sortRule = 'desc', startTime, endTime, status } = ctx.query;
+    const where = CreateQueryBuilder(businessMerchantSchema)
+        .eq('delFlag', false)
+        .eq('status', status)
+        .dateRange('createTime', startTime, endTime)
+        .build();
+    const res = await FindPage(businessMerchantSchema, where, { pageNum, pageSize, orderByColumn, sortRule });
+    return BaseResultData.ok(res);
 }
 ```
 
-### 联表分页查询
+返回的 `res` 结构为 `{ list, total }`。
 
-示例：
+### 联表查询
 
-```ts [ts]
+通过 `.join()` 把关联表数据挂到主表字段上，再用 `FindAllWithJoin` 或 `FindPageWithJoin` 查询。
+
+```ts [handle.ts]
 import { eq } from 'drizzle-orm';
-import { CreateQueryBuilder, FindPageWithJoin } from '@/core/database/repository';
+import { CreateQueryBuilder, FindAllWithJoin } from '@/core/database/repository';
+import { ListToTree } from '@/shared/tree';
+import { systemMenuSchema } from '@database/schema/system_menu';
+import { systemMenuBtnSchema } from '@database/schema/system_menu_btn';
 
-export async function findList(ctx: AppContext) {
-    try {
-        const {
-            pageNum = 1,
-            pageSize = 10,
-            orderByColumn = "createTime",
-            sortRule = "desc",
-            startTime,
-            endTime,
-            status,
-        } = ctx.query;
-        const whereCondition = CreateQueryBuilder(businessMerchantSchema)
-            .eq('delFlag', false)
-            .eq('status', status)
-            .dateRange('createTime', startTime, endTime)
-            .join({
-                joinSchema: businessMerchantConfigsSchema,
-                fieldName: 'configList',
-                foreignKey: 'id',
-                primaryKey: 'merchantId',
-                defaultValue: [],
-                where: eq(businessMerchantConfigsSchema.delFlag, false),
-                multiple: true
-            });
-        const res = await FindPageWithJoin(
-            businessMerchantSchema,
-            whereCondition,
-            {
-                pageNum,
-                pageSize,
-                orderByColumn,
-                sortRule
-            }
-        );
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+export async function findTree(ctx: AppContext) {
+    const builder = CreateQueryBuilder(systemMenuSchema)
+        .eq('delFlag', false)
+        .join({
+            joinSchema: systemMenuBtnSchema,
+            fieldName: 'authList',
+            foreignKey: 'menuId',
+            primaryKey: 'menuId',
+            defaultValue: [],
+            where: eq(systemMenuBtnSchema.delFlag, false),
+            multiple: true,
+        });
+    const data = await FindAllWithJoin(systemMenuSchema, builder);
+    const tree = ListToTree(data, {
+        idKey: 'menuId',
+        parentKey: 'parentId',
+        childrenKey: 'children',
+        rootValue: 0,
+        sortKey: 'sort',
+    });
+    return BaseResultData.ok(tree);
 }
 ```
 
-## 更新数据
+联表分页与上面类似，把 `FindAllWithJoin` 换成 `FindPageWithJoin`，并传入分页参数。
 
-本节介绍如何更新数据库中的数据，支持不返回记录和返回更新后记录两种方式。
+`join` 常用字段：
 
-### 更新数据（不返回记录）
+| 字段 | 说明 |
+|------|------|
+| `joinSchema` | 关联表 schema |
+| `fieldName` | 挂到主表记录上的属性名 |
+| `foreignKey` / `primaryKey` | 关联键 |
+| `multiple` | `true` 为一对多，`false` 为一对一 |
+| `where` | 关联表的额外过滤 |
+| `defaultValue` | 无关联数据时的默认值 |
 
-```ts [ts]
-UpdateByKey(schema, keyColumnName, ctx, customData);
-```
+## 更新
 
-参数说明：
-- `schema`：数据库表的 schema 结构
-- `keyColumnName`：主键字段名
-- `ctx`：Elysia 上下文对象，若传递则会自动更新表中的 `updateBy` 字段，否则需要自行传递
-- `customData`：自定义数据更新对象，若使用自定义数据，需要将 `ctx` 设置为 `null`（可选参数）
-
-示例：
-
-```ts [ts]
-import { UpdateByKey } from '@/core/database/repository';
-
-export async function update(ctx: AppContext) {
-    try {
-        await UpdateByKey(systemDeptSchema, 'deptId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
-}
-```
-
-### 更新数据（返回记录）
-
-```ts [ts]
-UpdateByKeyAndRes(schema, keyColumnName, ctx, customData);
-```
-
-参数说明：
-- `schema`：数据库表的 schema 结构
-- `keyColumnName`：主键字段名
-- `ctx`：Elysia 上下文对象，若传递则会自动更新表中的 `updateBy` 字段，否则需要自行传递
-- `customData`：自定义数据更新对象，若使用自定义数据，需要将 `ctx` 设置为 `null`（可选参数）
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
 import { UpdateByKeyAndRes } from '@/core/database/repository';
+import { systemDeptSchema } from '@database/schema/system_dept';
 
 export async function update(ctx: AppContext) {
-    try {
-        const res = await UpdateByKeyAndRes(systemDeptSchema, 'deptId', ctx);
-        return BaseResultData.ok(res);
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    const res = await UpdateByKeyAndRes(systemDeptSchema, 'deptId', ctx);
+    return BaseResultData.ok(res);
 }
 ```
 
-## 删除数据
+传入 `ctx` 时，`ctx.body` 中的主键用于定位记录，其余字段写入更新；`updateTime` 和 `updateBy` 会自动处理。日期字符串经 `ParseDateFields` 转为 `Date`（见 [参数验证](./parameter-validation.md)）。
 
-本节介绍如何删除数据库中的数据，包括软删除（标记删除）和硬删除（物理删除）两种方式。
+## 删除
 
-### 批量软删除
+业务表默认用软删除，关联表、中间表常用硬删除。
 
-```ts [ts]
-SoftDeleteByKeys(schema, keyColumnName, ctx, customData);
-```
+**软删除** — 将 `delFlag` 标为 `true`，`ctx.params.ids` 为主键列表（路由通常为 `/:ids`）：
 
-参数说明：
-- `schema`：数据库表的 schema 结构
-- `keyColumnName`：主键字段名
-- `ctx`：Elysia 上下文对象，若传递则会自动更新表中的 `updateBy` 字段，否则需要自行传递
-- `customData`：自定义数据删除数组，若使用自定义数据，需要将 `ctx` 设置为 `null`（可选参数）
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
 import { SoftDeleteByKeys } from '@/core/database/repository';
 
 export async function remove(ctx: AppContext) {
-    try {
-        await SoftDeleteByKeys(systemApiSchema, 'apiId', ctx);
-        return BaseResultData.ok();
-    } catch (error) {
-        return BaseResultData.fail(500, error);
-    }
+    await SoftDeleteByKeys(systemApiSchema, 'apiId', ctx);
+    return BaseResultData.ok();
 }
 ```
 
-### 批量条件硬删除
+**硬删除** — 物理移除记录：
 
-```ts [ts]
-HardDelete(schema, where);
-```
-
-参数说明：
-- `schema`：数据库表的 schema 结构
-- `where`：Drizzle ORM 查询条件
-
-示例：
-
-```ts [ts]
+```ts
 import { eq } from 'drizzle-orm';
-import { HardDelete } from '@/core/database/repository';
+import { HardDelete, HardDeleteByKeys } from '@/core/database/repository';
 
+// 按条件
 await HardDelete(systemRoleMenuSchema, eq(systemRoleMenuSchema.roleId, roleId));
+
+// 按主键数组
+await HardDeleteByKeys(systemRoleMenuSchema, 'roleId', [1, 2, 3]);
 ```
 
-### 批量多主键硬删除
+## 事务
 
-```ts [ts]
-HardDeleteByKeys(schema, keyColumnName, values);
-```
+多表写入需要原子性时，用 `@/core/database/transaction`。事务内抛出错误会自动回滚。
 
-参数说明：
-- `schema`：数据库表的 schema 结构
-- `keyColumnName`：主键字段名
-- `values`：主键值数组
+### RunTransaction
 
-示例：
+最常用的写法。回调参数 `tx` 与 Drizzle 事务对象一致，可直接 `insert` / `update` / `select`。
 
-```ts [ts]
-import { HardDeleteByKeys } from '@/core/database/repository';
-
-await HardDeleteByKeys(systemRoleMenuSchema, 'roleId', [1, 2, 3, 4]);
-```
-
-## 数据库事务
-
-本节介绍如何使用事务来确保数据库操作的原子性、一致性、隔离性和持久性（ACID）。事务可以将多个数据库操作作为一个整体执行，要么全部成功，要么全部回滚。
-
-### 简单事务执行
-
-使用 `RunTransaction` 函数执行基本的事务操作：
-
-```ts [ts]
+```ts
 import { RunTransaction } from '@/core/database/transaction';
-import { systemUserSchema } from '@/database/schema/system_user';
-
-// 创建用户
-const result = await RunTransaction(async (tx) => {
-    const user = await tx.insert(systemUserSchema).values({
-        userName: 'john',
-        nickName: 'John Doe',
-        email: 'john@example.com'
-    }).returning();
-    
-    return user[0];
-});
-
-console.log('创建的用户:', result);
-```
-
-### 多表操作事务
-
-在一个事务中操作多个表：
-
-```ts [ts]
-import { RunTransaction } from '@/core/database/transaction';
-import { systemUserSchema } from '@/database/schema/system_user';
-import { systemRoleSchema } from '@/database/schema/system_role';
+import { systemUserSchema } from '@database/schema/system_user';
+import { systemRoleSchema } from '@database/schema/system_role';
 
 const result = await RunTransaction(async (tx) => {
-    // 创建用户
     const user = await tx.insert(systemUserSchema).values({
         userName: 'admin',
-        nickName: 'Administrator'
+        nickName: 'Administrator',
     }).returning();
-    
-    // 创建角色
+
     const role = await tx.insert(systemRoleSchema).values({
         roleName: 'admin',
         roleKey: 'admin',
-        roleSort: 1
+        roleSort: 1,
     }).returning();
-    
+
     return { user: user[0], role: role[0] };
 });
 ```
 
-### 事务回滚
+### 隔离级别与只读
 
-事务中抛出错误会自动回滚：
+第二个参数可传配置：
 
-```ts [ts]
-try {
-    await RunTransaction(async (tx) => {
-        await tx.insert(systemUserSchema).values({
-            userName: 'test'
-        });
-        
-        // 模拟错误
-        throw new Error('发生错误，事务将回滚');
-        
-        // 这行代码不会执行
-        await tx.insert(systemRoleSchema).values({
-            roleName: 'test'
-        });
-    });
-} catch (error) {
-    console.error('事务失败:', error.message);
-    // 所有操作都已回滚
-}
+```ts
+// 隔离级别：read uncommitted | read committed | repeatable read | serializable
+await RunTransaction(async (tx) => { /* ... */ }, { isolationLevel: 'serializable' });
+
+// 只读事务
+await RunTransaction(async (tx) => {
+    return await tx.select().from(systemUserSchema);
+}, { accessMode: 'read only' });
 ```
 
-### 构建器模式
+### 构建器与钩子
 
-使用 `CreateTransaction` 创建更复杂的事务配置：
+需要链式配置隔离级别、只读模式或生命周期钩子时，用 `CreateTransaction`：
 
-```ts [ts]
+```ts
 import { CreateTransaction } from '@/core/database/transaction';
 
 const result = await CreateTransaction<{ userId: number }>()
-    .isolation('serializable')  // 设置隔离级别
-    .onBegin(() => {
-        console.log('事务开始');
-    })
-    .onCommit(() => {
-        console.log('事务提交成功');
-    })
-    .onRollback((error) => {
-        console.error('事务回滚:', error.message);
-    })
+    .isolation('serializable')
+    .readOnly()
+    .onBegin(() => console.log('事务开始'))
+    .onCommit(() => console.log('提交成功'))
+    .onRollback((err) => console.error('已回滚', err))
     .execute(async (tx) => {
-        const user = await tx.insert(systemUserSchema).values({
-            userName: 'builder'
-        }).returning();
-        
+        const user = await tx.insert(systemUserSchema).values({ userName: 'builder' }).returning();
         return { userId: user[0].userId };
     })
     .run();
 ```
 
-### 隔离级别配置
+`RunTransaction` 也支持 `onBegin`、`onCommit`、`onRollback`、`onError` 钩子，适合提交后清缓存、回滚时记日志等场景。
 
-PostgreSQL 支持四种隔离级别：
+### 批量与嵌套
 
-```ts [ts]
-// 读未提交（最低隔离级别）
-await RunTransaction(async (tx) => {
-    // 事务逻辑
-}, {
-    isolationLevel: 'read uncommitted'
-});
+`CreateBatchTransaction` 可串行或并行跑多个**独立**事务：
 
-// 读已提交（PostgreSQL 默认）
-await RunTransaction(async (tx) => {
-    // 事务逻辑
-}, {
-    isolationLevel: 'read committed'
-});
-
-// 可重复读
-await RunTransaction(async (tx) => {
-    // 事务逻辑
-}, {
-    isolationLevel: 'repeatable read'
-});
-
-// 串行化（最高隔离级别）
-await RunTransaction(async (tx) => {
-    // 事务逻辑
-}, {
-    isolationLevel: 'serializable'
-});
-```
-
-### 只读事务
-
-对于只读操作，可以使用只读事务提高性能：
-
-```ts [ts]
-// 使用构建器
-const users = await CreateTransaction()
-    .readOnly()
-    .execute(async (tx) => {
-        return await tx.select().from(systemUserSchema);
-    })
-    .run();
-
-// 使用选项
-const users = await RunTransaction(async (tx) => {
-    return await tx.select().from(systemUserSchema);
-}, {
-    accessMode: 'read only'
-});
-```
-
-### 生命周期钩子
-
-监听事务的各个阶段：
-
-```ts [ts]
-await RunTransaction(async (tx) => {
-    // 事务逻辑
-    await tx.insert(systemUserSchema).values({ userName: 'hook' });
-}, {
-    onBegin: async () => {
-        console.log('事务开始前的准备工作');
-        // 可以执行一些准备操作
-    },
-    onCommit: async () => {
-        console.log('事务提交后的清理工作');
-        // 清除缓存、发送通知等
-    },
-    onRollback: async (error) => {
-        console.error('事务回滚，记录日志:', error);
-        // 记录错误日志、发送告警等
-    },
-    onError: (error) => {
-        // 自定义错误处理
-        console.error('自定义错误处理:', error);
-    }
-});
-```
-
-### 批量事务执行
-
-批量事务执行器允许你按顺序或并行执行多个独立的事务。
-
-顺序执行（串行）：
-
-```ts [ts]
+```ts
 import { CreateBatchTransaction } from '@/core/database/transaction';
 
 const results = await CreateBatchTransaction()
-    .add('创建用户', async (tx) => {
-        return await tx.insert(systemUserSchema).values({
-            userName: 'user1'
-        }).returning();
-    })
-    .add('创建角色', async (tx) => {
-        return await tx.insert(systemRoleSchema).values({
-            roleName: 'role1'
-        }).returning();
-    })
-    .add('创建部门', async (tx) => {
-        return await tx.insert(systemDeptSchema).values({
-            deptName: 'dept1'
-        }).returning();
-    })
-    .runAll();
-
-// 检查结果
-results.forEach(({ name, success, result, error }) => {
-    if (success) {
-        console.log(`${name} 成功:`, result);
-    } else {
-        console.error(`${name} 失败:`, error);
-    }
-});
+    .add('创建用户', async (tx) => tx.insert(systemUserSchema).values({ userName: 'u1' }).returning())
+    .add('创建角色', async (tx) => tx.insert(systemRoleSchema).values({ roleName: 'r1' }).returning())
+    .runAll();        // 串行
+    // .runAllParallel()  // 并行，互不影响
 ```
 
-并行执行：
+可复用函数用 `WithTransaction`，传入已有 `tx` 时加入同一事务，否则自动开新事务：
 
-```ts [ts]
-const results = await CreateBatchTransaction()
-    .add('事务1', async (tx) => {
-        // 独立的事务逻辑
-    })
-    .add('事务2', async (tx) => {
-        // 独立的事务逻辑
-    })
-    .add('事务3', async (tx) => {
-        // 独立的事务逻辑
-    })
-    .runAllParallel();  // 并行执行
-
-// 所有事务都会执行，互不影响
-```
-
-### 嵌套事务支持
-
-使用 `WithTransaction` 创建可复用的函数，自动检测是否在事务中：
-
-```ts [ts]
+```ts
 import { WithTransaction, TransactionContext } from '@/core/database/transaction';
-import { db } from '@/core/database/pg';
+import pg from '@/core/database/pg';
 
-// 创建可复用的业务函数
 async function createUser(name: string, tx?: TransactionContext) {
-    return await WithTransaction(tx || db, async (t) => {
-        return await t.insert(systemUserSchema).values({
-            userName: name
-        }).returning();
+    return WithTransaction(tx ?? pg, async (t) => {
+        return t.insert(systemUserSchema).values({ userName: name }).returning();
     });
 }
 
 async function createRole(name: string, tx?: TransactionContext) {
-    return await WithTransaction(tx || db, async (t) => {
-        return await t.insert(systemRoleSchema).values({
-            roleName: name
-        }).returning();
+    return WithTransaction(tx ?? pg, async (t) => {
+        return t.insert(systemRoleSchema).values({ roleName: name }).returning();
     });
 }
 
-// 方式1: 在事务中调用（共享同一个事务）
+// 共享同一事务
 await RunTransaction(async (tx) => {
     await createUser('john', tx);
     await createRole('admin', tx);
-    // 如果任何一个失败，所有操作都会回滚
 });
 
-// 方式2: 独立调用（各自创建新事务）
-await createUser('jane');  // 独立事务
-await createRole('user');  // 独立事务
+// 各自独立事务
+await createUser('jane');
 ```
 
-## 参考文档
+## 参考
 
 - [Drizzle ORM 事务](https://orm.drizzle.org.cn/docs/transactions)
 - [PostgreSQL 事务](https://www.runoob.com/postgresql/postgresql-transaction.html)

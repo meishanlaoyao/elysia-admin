@@ -1,7 +1,7 @@
 {
-    "version": "1.4.7",
-    "publishDate": "2026-06-09",
-    "description": "重构后端错误处理由全局 onError 收口并新增 server-error 工具；拆分应用启动配置；新增 AI 模块工作流、Cursor Skill 与 VS Code 调试命令；同步 Codex / Claude Code 分层指令。",
+    "version": "1.4.8",
+    "publishDate": "2026-06-10",
+    "description": "新增模块脚手架 create:module / create:page（依赖 Drizzle Schema，支持 --schema、--dry-run）及脚本模板与单测；新增 AI_MODULE_SCAFFOLD.md；更新 AI 工作流、Cursor Skill 与各 IDE Agent 规则；AI 开发指南与内置命令文档补充脚手架推荐流程。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

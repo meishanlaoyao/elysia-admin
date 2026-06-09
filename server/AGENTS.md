@@ -1,5 +1,12 @@
 # Backend Module Structure
 
+**Module scaffold (standard CRUD):** from `server/` run `bun run create:module {group-name} --tag "..."` — generates `route.ts`, `dto.ts`, `handle.ts`. See `.ai/AI_MODULE_SCAFFOLD.md`.
+
+| Command | cwd | Purpose |
+|---------|-----|---------|
+| `bun run create:module {slug} --tag "..."` | `server/` | Backend CRUD skeleton |
+| `bun run create:page {group} {name} --tag "..."` | `server/` | Admin types + api + views (output to `../admin`) |
+
 Every module under `server/src/modules/{group}-{name}/` should contain:
 
 ```

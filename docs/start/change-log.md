@@ -17,6 +17,16 @@ head:
 
 ## v1
 
+::: timeline v1.4.8(2026-06-10)
+- 新增了模块脚手架：在 `server/` 下执行 `bun run create:module` 生成后端 `route.ts` / `dto.ts` / `handle.ts`，`bun run create:page` 生成后台 types、api、views 标准 CRUD 骨架；依赖已有 Drizzle Schema，支持 `--schema`、`--dry-run`。
+- 新增了脚手架脚本与模板（`server/script/create-module.ts`、`create-page.ts`、`script/scaffold/`）及 `server/test/script/scaffold.test.ts` 单测。
+- 新增了 `.ai/AI_MODULE_SCAFFOLD.md`，说明脚手架使用场景、命令示例及跑完后 AI 增量职责（业务逻辑、表格/弹窗排版、字典与 handoff SQL）。
+- 更新了 AI 模块工作流（`.ai/AI_MODULE_WORKFLOW.md` Step 2.5）、`.ai/README.md`、`.ai/AI_CONTEXT_CAPSULE.md` 与 Cursor Skill（`.cursor/skills/elysia-module-dev/`）：标准单表 CRUD 优先脚手架，再让 AI 做增量。
+- 同步更新了 Cursor / Codex / Claude Code / Trae / Kiro 的 Agent 规则（`AGENTS.md`、`server/AGENTS.md`、`admin/AGENTS.md` 等），各 IDE 均可识别 `create:module` + `create:page` 推荐流程。
+- 更新了 [AI 开发指南](/guide/ai-guide)：新增「推荐流程（脚手架 + AI）」与档0 提示词（脚手架已生成后的增量开发）。
+- 补充了 [内置命令](/architecture/commands)「模块脚手架命令」章节。
+:::
+
 ::: timeline v1.4.7(2026-06-09)
 - 重构了后端错误处理：HTTP 路由 handler 移除重复的 `try/catch`，未捕获异常统一由全局 `onError` 收口；服务端日志保留完整 `stack`，客户端仍返回通用 500 文案。
 - 新增了 `server-error` 工具（`getHttpStatus` / `getPgErrorCode` / `logServerError`），支持业务 `httpStatus`（如 409）、PostgreSQL 唯一约束 `23505` 等在全局层映射。

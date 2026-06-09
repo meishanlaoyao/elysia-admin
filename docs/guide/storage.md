@@ -15,89 +15,59 @@ head:
 
 # 文件存储
 
-本章详细介绍 `Elysia Admin` 的文件存储管理功能，涵盖对象存储配置、文件上传流程及多端实现示例。
+项目通过 **预签名 URL** 实现文件直传：客户端先把文件 PUT 到对象存储，后端只负责签发短时 URL，不经手文件流。
 
-## 为什么建议使用对象存储？
+支持所有兼容 S3 协议的服务，包括 RustFS（自建）、阿里云 OSS、腾讯云 COS、七牛 Kodo 等。无法采购云服务时，可用 Docker 快速部署 RustFS。
 
-我们强烈建议将文件存储至兼容 S3 协议的对象存储中，而非本地文件系统。若无法采购第三方对象存储服务，推荐使用开源的 `RustFS`。
+## 为什么用对象存储
 
-直接存储至本地文件系统存在以下显著弊端：
+文件存本地磁盘会带来迁移成本高、难横向扩展、占用后端带宽和磁盘 I/O、缺少容灾与生命周期管理等问题。对象存储把这些能力交给专用服务，后端只保存文件 URL。
 
-- 迁移困难：服务器迁移时需同步海量文件，耗时且易出错。
-- 扩展性差：难以实现分布式存储、负载均衡及横向扩展。
-- 带宽占用：文件上传与下载均会占用后端服务器带宽，直接影响核心业务响应速度。
-- 资源损耗：长期累积的文件会大量消耗后端服务器的磁盘空间与 I/O 性能。
-- 可靠性低：缺乏自动化的数据冗余、容灾备份及生命周期管理机制。
+## 部署 RustFS
 
-## 安装 RustFS
+RustFS 是兼容 S3 的开源对象存储，Docker 一键启动：
 
-`RustFS` 是一款兼容 S3 协议的高性能开源对象存储服务，通过 `Docker` 可实现分钟级快速部署。
-
-### 使用 Docker 安装
-
-```bash [docker]
-docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /mnt/rustfs/data:/data -e RUSTFS_ACCESS_KEY=rustfsadmin -e RUSTFS_SECRET_KEY=rustfsadmin -e RUSTFS_CONSOLE_ENABLE=true rustfs/rustfs:latest --address :9000 --console-enable --access-key rustfsadmin --secret-key rustfsadmin /data
+```bash
+docker run -d --name rustfs_container --user root \
+  -p 9000:9000 -p 9001:9001 \
+  -v /mnt/rustfs/data:/data \
+  -e RUSTFS_ACCESS_KEY=rustfsadmin \
+  -e RUSTFS_SECRET_KEY=rustfsadmin \
+  -e RUSTFS_CONSOLE_ENABLE=true \
+  rustfs/rustfs:latest \
+  --address :9000 --console-enable \
+  --access-key rustfsadmin --secret-key rustfsadmin /data
 ```
 
-### 参数说明
+| 端口 | 用途 |
+|------|------|
+| 9000 | S3 API，上传与下载 |
+| 9001 | Web 管理控制台 |
 
-| 参数 | 说明 |
-| :--- | :--- |
-| `-d` | 后台运行容器 |
-| `--name` | 指定容器名称 |
-| `--user root` | 以 root 用户身份运行容器 |
-| `-p 9000:9000` | 映射 API 端口，用于文件上传与下载 |
-| `-p 9001:9001` | 映射控制台端口，用于 Web 管理界面 |
-| `-v` | 将宿主机目录挂载至容器内部，实现数据持久化 |
-| `-e RUSTFS_ACCESS_KEY` | 设置访问密钥（Access Key） |
-| `-e RUSTFS_SECRET_KEY` | 设置私有密钥（Secret Key） |
-| `-e RUSTFS_CONSOLE_ENABLE` | 是否启用 Web 管理控制台 |
-| `--address` | API 服务监听地址 |
-| `--console-enable` | 开启 Web 控制台功能 |
-| `/data` | 容器内的数据存储根目录 |
+默认凭据：`rustfsadmin` / `rustfsadmin`。生产环境务必修改 Access Key 和 Secret Key。
 
-### 访问 RustFS
+## 后台配置
 
-部署完成后，可通过以下地址进行访问：
-
-- API 端点：`http://<your-server-ip>:9000`
-- Web 控制台：`http://<your-server-ip>:9001`
-- 默认凭据：
-  - Access Key: `rustfsadmin`
-  - Secret Key: `rustfsadmin`
-
-> [!CAUTION]
-> 在生产环境中，请务必修改默认的 Access Key 与 Secret Key 以保障安全。
-
-## 配置对象存储
-
-选择好对象存储服务后，仅需在后台管理系统中进行简单的可视化配置即可。
-
-### 配置步骤
-
-1. 登录后台管理系统。
-2. 进入 `系统管理` -> `存储配置`。
-3. 填写对象存储的相关信息：
-   - 名称：存储服务标识（如：RustFS、阿里云 OSS、腾讯云 COS 等）。
-   - Region：服务所在区域（使用 RustFS 时可留空）。
-   - Endpoint：服务访问端点（如：`http://<your-server-ip>:9000`）。
-   - Bucket：存储桶名称。
-   - Access Key：访问密钥。
-   - Secret Key：私有密钥。
-4. 勾选并启用该配置。
-
-### 注意事项
-
-- 系统内置了主流对象存储服务的配置模板，方便快速填写。
-- 同一时间内仅允许启用一种存储配置。
-- 启用新配置时，系统将自动禁用当前已启用的其他配置。
-- 如有你有其它配置，可自行添加后端处理逻辑。
+登录后台，进入 **系统管理 → 存储配置**，填写 Endpoint、Bucket、Access Key、Secret Key 等信息后启用。
 
 ![存储配置表单](/guide/2.png)
 
-### 各服务商配置示例
+注意：
 
-#### RustFS（本地自建）
+- 系统内置主流服务商模板，可快速填写
+- 同一时间只能启用一种存储配置；启用新配置会自动禁用旧的
+
+| 字段 | 说明 |
+|------|------|
+| 名称 | 供应商标识，如 RustFS、OSS、COS |
+| Region | 服务区域；RustFS 可填 `us-east-1` |
+| Endpoint | API 访问地址，不含 bucket 前缀（OSS 由代码自动拼接） |
+| Bucket | 存储桶名称 |
+| Access Key / Secret Key | 访问密钥 |
+
+### 配置示例
+
+**RustFS**
 
 ```json
 {
@@ -110,13 +80,7 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 }
 ```
 
-> `region` 固定填写 `us-east-1`；
-> 
->`endpoint` 为服务器 IP + API 端口（9000）；
->
->`access_key` / `secret_key` 与 Docker 启动参数保持一致。
-
-#### COS（腾讯云）
+**腾讯云 COS**
 
 ```json
 {
@@ -129,13 +93,9 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 }
 ```
 
-> `endpoint` 格式为 `cos.<region>.myqcloud.com`；
->
->`bucket` 格式为 `<桶名>-<APPID>`；
->
->密钥在「访问管理 → API 密钥管理」中获取。
+`bucket` 格式为 `<桶名>-<APPID>`，密钥在「访问管理 → API 密钥管理」获取。
 
-#### OSS（阿里云）
+**阿里云 OSS**
 
 ```json
 {
@@ -148,11 +108,9 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 }
 ```
 
-> `endpoint` 格式为 `oss-<region>.aliyuncs.com`，**不含桶名前缀**（代码内部会自动拼接为 `<bucket>.<endpoint>`）；
->
->密钥在「RAM 访问控制 → 用户 → AccessKey」中获取。
+`endpoint` 不含桶名前缀，代码内部会拼成 `<bucket>.<endpoint>`。
 
-#### Kodo（七牛云）
+**七牛 Kodo**
 
 ```json
 {
@@ -165,61 +123,49 @@ docker run -d --name rustfs_container --user root -p 9000:9000 -p 9001:9001 -v /
 }
 ```
 
-> `endpoint` 填写存储桶的访问域名（控制台「空间概览」中的默认测试域名或自定义绑定域名）；
->
->`region` 可留空；密钥在「密钥管理」中获取。
+`endpoint` 填存储桶访问域名，`region` 可留空。
 
-## 文件上传流程
-
-系统采用 **预签名 URL（Presigned URL）** 方式实现文件直传，具有以下核心优势：
-
-- 零带宽占用：客户端直接将文件流上传至对象存储，不经过后端服务器中转。
-- 高并发支持：服务器仅负责生成极短时效的 URL，极大地减轻了 CPU 与内存压力。
-- 支持大文件：无后端文件大小限制，适合上传视频、镜像等大体积文件。
-
-### 上传流程
+## 上传流程
 
 ```mermaid
 flowchart TD
-    A[用户选择文件] --> B[调用 fetchGeneratePresign 接口]
-    B --> C[服务器返回预签名 URL 与文件 ID]
-    C --> D[客户端 PUT 直接上传二进制流至对象存储]
-    D --> E[提取文件访问地址<br/>去除签名参数]
-    E --> F[更新业务表单数据]
+    A[选择文件] --> B[GET /api/system/storage/presign]
+    B --> C[返回预签名 URL]
+    C --> D[客户端 PUT 直传对象存储]
+    D --> E[取 URL 去掉查询参数]
+    E --> F[写入业务表单]
 ```
 
-## 多端上传实现
+后端接口 `GET /api/system/storage/presign?fileName=xxx` 会读取当前启用的存储配置，调用 `StorageService.getPresignedUrl` 签发 URL。前端封装为 `fetchGeneratePresign`（`admin/src/api/system/storage.ts`），`ArtForm` 上传组件已内置这套流程。
 
-### Web 端上传（Fetch API）
+直传的优势：不占后端带宽、支持大文件、后端只做轻量签名。
 
-在现代浏览器环境下，直接利用原生 `fetch` 即可完成：
+## Web 端
 
-```ts [ts]
-// 每个文件上传前都调用 fetchGeneratePresign
+浏览器用原生 `fetch` 即可完成，与 `ArtForm` 中的实现一致：
+
+```ts
+import { fetchGeneratePresign } from '@/api/system/storage'
+
 const presignUrl = await fetchGeneratePresign({ fileName: file.name })
 
-// 使用 PUT 请求上传文件（binary 方式，类似 Postman 的 binary）
 const response = await fetch(presignUrl, {
   method: 'PUT',
-  body: file, // 文件作为 binary 数据放在 body 中
-  headers: {
-    'Content-Type': file.type || 'application/octet-stream'
-  }
+  body: file,
+  headers: { 'Content-Type': file.type || 'application/octet-stream' },
 })
 
-// 提取文件 URL（去除查询参数）
+// 持久化地址：去掉签名查询参数
 const fileUrl = presignUrl.split('?')[0]
 ```
 
-### uni-app / 小程序上传
+## uni-app / 小程序
 
-在 uni-app 环境下，需通过文件管理器读取 `ArrayBuffer` 后进行上传：
+小程序环境不能直接把 `File` 对象 PUT 出去，需要先用 `getFileSystemManager` 读出 `ArrayBuffer`，再调用后端获取预签名 URL，最后用 `uni.request` 以 `PUT` 上传。下面是一份可直接复制使用的完整示例，`generatePreSignUrl` 需对接你的 presign 接口（与 Web 端 `fetchGeneratePresign` 等价）。
 
 ```ts [ts]
 /**
- * 通过文件名称检测文件类型返回对应的Content-Type
- * @param fileName 文件名称
- * @returns 对应的Content-Type字符串
+ * 通过文件名称检测文件类型返回对应的 Content-Type
  */
 function getContentTypeByFileName(fileName: string) {
   const ext = fileName.split('.').pop()?.toLowerCase();
@@ -257,9 +203,7 @@ function getContentTypeByFileName(fileName: string) {
 }
 
 /**
- * 通过url获取文件名称
- * @param url 文件url
- * @returns 文件名称
+ * 通过 url 获取文件名称
  */
 function getFileNameByUrl(url: string) {
   let fileName = url.split('/').pop() || ''
@@ -269,14 +213,14 @@ function getFileNameByUrl(url: string) {
   return fileName + (ext ? '.' + ext : '')
 }
 
-/** 文件读成arrayBuffer */
+/** 文件读成 arrayBuffer */
 const fsm = uni.getFileSystemManager();
 async function readFileAsBuffer(url: string) {
   return new Promise((resolve, reject) => {
     fsm.readFile({
       filePath: url,
       success(res) {
-        const arrayBuffer = res.data; // 这就是文件二进制数据
+        const arrayBuffer = res.data;
         resolve(arrayBuffer)
       },
       fail(err) {
@@ -287,7 +231,7 @@ async function readFileAsBuffer(url: string) {
   })
 }
 
-/** S3预签名单文件上传 */
+/** S3 预签名单文件上传 */
 export function runOne(url: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     const fileName = getFileNameByUrl(url)
@@ -298,7 +242,7 @@ export function runOne(url: string): Promise<string> {
     uni.request({
       url: preSignUrl,
       method: 'PUT',
-      header: { 'Content-Type': contentType, },
+      header: { 'Content-Type': contentType },
       data: arrayBuffer,
       success(res) {
         if (res.statusCode === 200) resolve(fileUrl)
@@ -312,7 +256,7 @@ export function runOne(url: string): Promise<string> {
 }
 
 /**
- * 简易版通用S3预签名文件上传
+ * 简易版通用 S3 预签名文件上传
  */
 export function uploadFileToS3() {
   /** 图片上传 */
@@ -379,9 +323,20 @@ export function uploadFileToS3() {
 }
 ```
 
-## 注意事项
+使用方式：
 
-1. 文件名合规化：建议在上传前过滤特殊字符与中文，或使用 UUID 重命名，以避免部分浏览器兼容性问题。
-2. 时效性：预签名 URL 通常具有 15-60 分钟的时效，请在获取后立即发起上传请求。
-3. CORS 配置：若跨域上传失败，请检查对象存储控制台中的跨域资源共享（CORS）规则是否已配置。
-4. Content-Type：务必设置正确的文件类型，否则可能导致文件在浏览器中被强制下载而非预览。
+```ts
+const uploader = uploadFileToS3()
+const imageUrl = await uploader.image()
+const videoUrl = await uploader.video()
+// 微信小程序
+const fileUrl = await uploader.file()
+```
+
+## 常见问题
+
+- **文件名**：上传前过滤特殊字符，或用 UUID 重命名，避免部分环境兼容问题
+- **时效**：预签名 URL 通常 15–60 分钟有效，拿到后尽快上传
+- **CORS**：跨域 PUT 失败时，检查对象存储控制台的 CORS 规则
+- **Content-Type**：务必与文件类型一致，否则浏览器可能强制下载而非预览
+- **微信小程序域名**：若出现 `request:fail url not in domain list`，说明请求域名未加入白名单。登录 [微信公众平台](https://mp.weixin.qq.com/) → **开发管理 → 开发设置 → 服务器域名**，将后端 API 域名（presign 接口）和对象存储 Endpoint 域名（PUT 上传）添加到 **request 合法域名**

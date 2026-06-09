@@ -35,6 +35,24 @@ Output (≤5 line plan + list):
 
 ---
 
+## 2.5 Module Scaffold (standard CRUD — prefer before hand-writing CRUD)
+
+When the main table exists and the task is **standard single-table CRUD** with a **new** module/page:
+
+1. Read [AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md)
+2. From `server/`, run (or ask user to run / run in Agent mode):
+
+   ```bash
+   bun run create:module {group-name} --tag "<display name>"
+   bun run create:page {group} {name} --tag "<display name>"
+   ```
+
+3. Skip hand-writing `route.ts` / `dto.ts` / `handle.ts` / admin types+api+views boilerplate — proceed to dict, UI polish, handoff SQL
+
+**Skip scaffold** when: multi-table module, extending existing module, non-CRUD APIs, or schema not ready.
+
+---
+
 ## 3. Backend Module
 
 Directory: `server/src/modules/{group}-{name}/`
@@ -46,8 +64,8 @@ Directory: `server/src/modules/{group}-{name}/`
 | `route.ts` | HTTP + `meta.permission` |
 | `task.ts` | Optional; empty export if no jobs |
 
-- Templates: [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md)
-- Reference: `server/src/modules/system-api/` only
+- **If Step 2.5 scaffold ran:** edit generated files only — extend `handle.ts` / `dto.ts` as needed; **do not** regenerate CRUD from templates
+- **If no scaffold:** templates [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md); reference `server/src/modules/system-api/` only
 - Routes auto-register — **do not** edit `modules/index.ts`
 - **NEVER** hardcode business enums — see step 4
 
@@ -64,7 +82,8 @@ Directory: `server/src/modules/{group}-{name}/`
 
 ## 5. Frontend (if required)
 
-- Reference: `admin/src/views/system/user/` only
+- **If Step 2.5 scaffold ran:** polish generated `index.vue`, `*-search.vue`, `*-dialog.vue` — dict, columns, layout; **do not** recreate types/api/views from scratch
+- **If no scaffold:** reference `admin/src/views/system/user/` only
 - Permissions: `v-auth` / `auth.hasAuth` **MUST** match backend `meta.permission`
 - **MUST** apply [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) and [AI_UI_LAYOUT.md](./AI_UI_LAYOUT.md)
 
@@ -133,5 +152,6 @@ Consider only with clear performance need; **MUST** state why:
 - Architecture: `AI_MODULE_STANDARD.md`, `AI_STRUCTURE.md`
 - Legacy template: `AI_FEATURE_TEMPLATE.md` (migrated here)
 - Quick ref: `AI_CONTEXT_CAPSULE.md`
+- Scaffold: `AI_MODULE_SCAFFOLD.md`
 
 **On conflict:** follow **existing module code** in repo, then this file + `AI_CODE_EXAMPLES.md`.

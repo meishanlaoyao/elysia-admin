@@ -15,84 +15,95 @@ head:
 
 # 队列
 
-本章将详细介绍如何使用系统内置的队列工具，包括任务投递、定时调度、自定义队列、重试策略、限流控制等能力。
+有些业务不适合在 HTTP 请求里同步做完，比如发邮件、订单超时取消、批量导出。这类任务可以丢进队列，由后台 Worker 异步执行，接口快速返回，用户不用干等。
 
-系统基于 **BullMQ Sandboxed Processors** 实现队列，每个任务在独立子进程中执行，不会阻塞主进程事件循环。
+项目基于 **BullMQ Sandboxed Processors** 实现：主进程负责接收请求并投递任务；Redis 存队列；独立 Worker 进程取任务后，在**子进程**里跑 Processor，避免阻塞 HTTP 事件循环。
 
-## 一、架构概览
+定时任务也走同一套设施（`system-cron-queue`），区别只是触发方式。沙箱注册与后台配置见 [定时任务](./cron)。
 
-主进程负责接收 HTTP 并**投递任务**，Redis 作为队列存储；独立的 Worker 进程从 Redis 取任务，再在 **Sandbox 子进程**里执行具体 Processor，避免阻塞事件循环。下图展示进程边界与数据流向；读完可对照紧接的「三层隔离」列表理解为何要如此拆分。
+## 架构概览
+
+先把进程边界搞清楚，后面自定义队列时才知道文件该写在哪。
 
 ```mermaid
-graph LR
-    %% 定义样式
-    classDef main fill:#f9f,stroke:#333,stroke-width:2px,color:#fff;
-    classDef worker fill:#bbf,stroke:#333,stroke-width:2px,color:#fff;
-    classDef processor fill:#bfb,stroke:#333,stroke-width:2px,color:#fff;
-    classDef storage fill:#ffcc00,stroke:#333,stroke-width:2px,color:#000;
-
-    %% 主进程
-    subgraph MainProcess [主进程 index.js]
-        direction TB
-        RegisterQueue[注册队列 + 投递任务]:::main
+flowchart TD
+    subgraph 主进程 server/src/index.ts
+        HTTP[HTTP 请求] --> AddJob[queueManager.addJob]
+        AddJob --> Redis[(Redis)]
     end
-
-    %% Redis 中间件
-    Redis[(Redis)]:::storage
-
-    %% Worker 进程
-    subgraph WorkerProcess [Worker 进程 workers.js]
-        direction TB
-        RegisterWorker[注册 Worker]:::worker
-        Spawn[spawn]:::worker
+    subgraph Worker 进程 runtime/worker.ts
+        Redis --> Worker[Worker 消费]
+        Worker --> Spawn[spawn 子进程]
+        Spawn --> Proc[dist/processors/*.js]
     end
-
-    %% Processor 子进程
-    subgraph ProcessorProcess [Processor 子进程]
-        direction TB
-        ExecLogic[执行业务逻辑]:::processor
+    subgraph 子进程内
+        Proc --> Sandbox[worker-sandbox 任务注册]
+        Sandbox --> Biz[业务函数 / handle]
     end
-
-    %% 底层资源
-    subgraph Resources [底层资源]
-        direction TB
-        DB[(数据库/Redis)]:::storage
-    end
-
-    %% 连接关系
-    RegisterQueue --> Redis
-    Redis --> RegisterWorker
-    RegisterWorker --> Spawn
-    Spawn --> ExecLogic
-    ExecLogic --> DB
+    Biz --> DB[(数据库 / Redis)]
 ```
 
-系统采用三层隔离：
+三层隔离：
 
-- **主进程 vs Worker 进程**：Worker 崩溃不影响 HTTP 服务。
-- **Worker 进程 vs Processor 子进程**：单个任务崩溃不影响其他任务。
-- **Processor 子进程互相隔离**：CPU 密集型任务不会 block 事件循环，不产生 stalled jobs。
+| 层级 | 说明 |
+|------|------|
+| 主进程 vs Worker | Worker 挂了，网站照常响应 |
+| Worker vs Processor 子进程 | 某个任务崩溃，不影响同队列其他任务 |
+| 子进程互相隔离 | 耗时计算不会卡住 Worker 事件循环 |
 
-## 二、启动服务
+关键目录：
 
-```bash [bun]
-# 同时启动主进程和 Worker 进程
-bun dev:all
+| 路径 | 作用 |
+|------|------|
+| `infrastructure/queue/queues/*/queue.ts` | 注册队列（主进程加载） |
+| `infrastructure/queue/queues/*/worker.ts` | 注册 Worker（Worker 进程加载） |
+| `infrastructure/queue/queues/*/processor.ts` | 子进程入口，构建到 `dist/processors/` |
+| `worker-sandbox/*-tasks.ts` | 业务函数注册，可 import `modules` |
+| `runtime/app.ts` / `runtime/worker.ts` | 汇总 import 各队列 |
 
-# 或分开启动
-bun dev          # 仅主进程
-bun dev:workers  # 仅 Worker 进程
+## 启动服务
+
+本地开发至少要有一个 Worker 在跑，否则任务只会堆在 Redis 里没人消费。
+
+```bash
+cd server
+
+# 推荐：HTTP + Worker 一起启
+bun run dev:all
+
+# 或分开启（调试 Worker 时常用）
+bun run dev           # 仅主进程
+bun run dev:workers   # 仅 Worker（内部会先执行 build:processors）
 ```
 
-## 三、投递任务
+改动了 `processor.ts` 或 `worker-sandbox/*.ts` 后，必须重新构建 Processor，否则子进程跑的仍是旧代码：
 
-所有投递操作通过 `queueManager` 完成，在主进程任意位置均可使用。
+```bash
+bun run build:processors
+# 然后重启 Worker（dev:workers 或 PM2）
+```
 
-### 1. 基本投递
+## 投递任务
 
-```ts [ts]
+所有投递通过 `queueManager` 完成，在 `handle.ts`、定时逻辑等主进程代码里均可调用。
+
+```ts
 import { queueManager } from '@/infrastructure/queue';
+```
 
+项目内置三个队列，可以先对照理解再自定义：
+
+| 队列名 | 用途 | Processor 模式 |
+|--------|------|----------------|
+| `system-cron-queue` | 定时任务 | `taskName` + `jobArgs` |
+| `flow-buffer-queue` | 延迟/缓冲类业务 | 按 `job.name` 分发 |
+| `trade-order-queue` | 订单示例（演示用） | 直接读 `job.data` |
+
+### 基本投递
+
+最常用的写法，把业务数据放进 `job.data`，Worker 在子进程里读取。
+
+```ts
 await queueManager.addJob('trade-order-queue', {
     orderId: 'ORD-001',
     action: 'pay',
@@ -100,9 +111,13 @@ await queueManager.addJob('trade-order-queue', {
 });
 ```
 
-### 2. 延迟任务
+`trade-order` 的 Processor 会根据 `action` 分支处理（`create` / `pay` / `cancel` / `refund`），可在 `queues/trade-order/processor.ts` 查看示例。
 
-```ts [ts]
+### 延迟任务
+
+`delay` 单位为毫秒。适合「下单后 30 分钟未支付自动取消」这类场景。
+
+```ts
 // 30 分钟后执行
 await queueManager.addJob('trade-order-queue', {
     orderId: 'ORD-001',
@@ -112,29 +127,42 @@ await queueManager.addJob('trade-order-queue', {
 });
 ```
 
-### 3. 优先级任务
+项目里订单模块的真实写法（`flow-buffer-queue`，按 `job.name` 分发）：
 
-数字越小优先级越高，`1` 为最高优先级。
+```ts
+// server/src/modules/business-orders/handle.ts（节选）
+const queue = queueManager.getQueue('flow-buffer-queue')!;
+await queue.add('订单超时处理', { orderNo }, { delay: timeout });
+```
 
-```ts [ts]
+这里的 `'订单超时处理'` 必须与 `worker-sandbox/flow-buffer-tasks.ts` 里 `register('订单超时处理', ...)` 的名称一致。
+
+### 优先级
+
+数字**越小**优先级**越高**，`1` 为最高。多任务积压时，高优先级先被消费。
+
+```ts
 await queueManager.addJob('flow-buffer-queue', data, {
     priority: 1,
 });
 ```
 
-### 4. 幂等投递
+### 幂等投递
 
-指定 `jobId` 后，相同 ID 的任务不会重复入队，适合防止重复提交。
+传入 `jobId` 后，相同 ID 的任务不会重复入队。适合防止用户重复点击、接口重试导致重复扣款。
 
-```ts [ts]
+```ts
+const orderId = 'ORD-001';
 await queueManager.addJob('trade-order-queue', data, {
     jobId: `pay-${orderId}`,
 });
 ```
 
-### 5. 批量投递
+### 批量投递
 
-```ts [ts]
+一次塞多条任务，比循环 `addJob` 更高效。
+
+```ts
 await queueManager.addBulkJobs('flow-buffer-queue', [
     { data: { action: 'write', payload: { userId: 1 } } },
     { data: { action: 'write', payload: { userId: 2 } } },
@@ -142,45 +170,40 @@ await queueManager.addBulkJobs('flow-buffer-queue', [
 ]);
 ```
 
-### 6. 控制任务保留数量
+### 控制保留数量
 
-```ts [ts]
+避免 Redis 里堆积过多历史任务记录。
+
+```ts
 await queueManager.addJob('system-cron-queue', data, {
-    removeOnComplete: 100,  // 完成后只保留最近 100 条
-    removeOnFail: 200,      // 失败后只保留最近 200 条
+    removeOnComplete: 100,  // 完成后只留最近 100 条
+    removeOnFail: 200,      // 失败后只留最近 200 条
 });
 ```
 
-## 四、定时任务（Cron）
+## 定时调度
 
-定时任务基于 BullMQ 的 `repeat` 机制，任务数据持久化在 Redis 中，服务重启后自动恢复，无需重新注册。
+除了后台「定时任务」页面配置外，也可以在代码里用 `schedule` 注册 Cron。规则存在 Redis 中，服务重启后自动恢复，不用每次启动重新注册。
 
-### 1. 注册定时任务
-
-```ts [ts]
-import { queueManager, schedule } from '@/infrastructure/queue';
+```ts
+import { queueManager, schedule, removeSchedule } from '@/infrastructure/queue';
 
 const queue = queueManager.getQueue('system-cron-queue')!;
 
-// 每天凌晨 2 点执行
+// 注册：每天凌晨 2 点
 await schedule(queue, 'daily-cleanup', {
     cron: '0 2 * * *',
     data: {
-        taskName: 'cleanup',
-        jobArgs: JSON.stringify([30]),
+        taskName: 'cleanup',           // 对应 worker-sandbox 注册名
+        jobArgs: JSON.stringify([30]), // 传给任务函数的参数数组
     },
 });
-```
 
-### 2. 移除定时任务
-
-```ts [ts]
-import { removeSchedule } from '@/infrastructure/queue';
-
+// 移除
 await removeSchedule(queue, 'daily-cleanup', '0 2 * * *');
 ```
 
-### 3. 常用 Cron 表达式
+常用 Cron 表达式：
 
 | 表达式 | 说明 |
 |--------|------|
@@ -191,16 +214,30 @@ await removeSchedule(queue, 'daily-cleanup', '0 2 * * *');
 | `0 2 * * 1` | 每周一凌晨 2 点 |
 | `0 2 1 * *` | 每月 1 日凌晨 2 点 |
 
-建议使用 [Cron 表达式在线生成工具](https://tool.lu/crontab/) 进行校验。
+建议用 [Cron 在线工具](https://tool.lu/crontab/) 校验。`taskName` 与 `worker-sandbox` 注册、后台表单「任务名称」须完全一致，详见 [定时任务](./cron)。
 
-## 五、自定义队列
+## 自定义队列
 
-以新增 `email-notify` 邮件通知队列为例。
+下面以新增 `email-notify-queue`（邮件通知）为例，从零走一遍。自定义队列本质是**新增一组文件 + 改三处注册 + 构建**。
 
-### 1. 创建队列文件
+整体 checklist：
 
-```ts [ts]
-// src/infrastructure/queue/queues/email-notify/queue.ts
+```
+queues/email-notify/queue.ts      ← 注册队列
+queues/email-notify/processor.ts  ← 子进程逻辑
+queues/email-notify/worker.ts     ← 注册 Worker
+worker-sandbox/email-notify-tasks.ts ← 业务函数（可 import modules）
+runtime/app.ts                    ← import queue
+runtime/worker.ts                 ← import worker
+script/build-processors.ts        ← 加入构建列表
+```
+
+### 注册队列
+
+主进程启动时加载，用于 `addJob` 投递。
+
+```ts
+// server/src/infrastructure/queue/queues/email-notify/queue.ts
 import { queueManager } from '../../core';
 
 export default queueManager.registerQueue({
@@ -209,31 +246,32 @@ export default queueManager.registerQueue({
 });
 ```
 
-### 2. 注册沙箱任务（worker-sandbox）
+### 沙箱任务
 
-`infrastructure` 层不直接依赖 `modules`。在 `server/src/worker-sandbox/email-notify-tasks.ts` 中组合业务逻辑并注册：
+**不要**在 `processor.ts` 里直接 `import '@/modules/...'`。业务函数写在 `worker-sandbox`，保持 infrastructure 与 modules 的依赖边界（与定时任务相同）。
 
-```ts [ts]
+```ts
 // server/src/worker-sandbox/email-notify-tasks.ts
 import type { TaskFn } from '@/infrastructure/queue/core/processor-utils';
 
 async function sendEmail(to: string, subject: string, body: string) {
-  console.log(`发送邮件到 ${to}: ${subject}`);
+    console.log(`发送邮件到 ${to}: ${subject}`);
+    // 实际项目可 import 模块 handle：import { sendMail } from '@/modules/xxx/handle';
 }
 
 export function registerEmailNotifySandboxTasks(
-  register: (name: string, fn: TaskFn) => void,
+    register: (name: string, fn: TaskFn) => void,
 ): void {
-  register('sendEmail', sendEmail as TaskFn);
+    register('sendEmail', sendEmail as TaskFn);
 }
 ```
 
-也可 `import` 模块 `handle.ts` 中已导出的函数，避免在沙箱层重复业务逻辑。
+### Processor
 
-### 3. 创建 Processor 文件
+构建后输出到 `dist/processors/email-notify.js`，Worker 以沙箱方式 spawn 执行。
 
-```ts [ts]
-// src/infrastructure/queue/queues/email-notify/processor.ts
+```ts
+// server/src/infrastructure/queue/queues/email-notify/processor.ts
 import type { SandboxedJob } from 'bullmq';
 import { registerEmailNotifySandboxTasks } from '@/worker-sandbox/email-notify-tasks';
 import { createTaskRegistry, parseArgs } from '../../core/processor-utils';
@@ -246,16 +284,18 @@ export default async function processor(job: SandboxedJob) {
     const taskFn = get(taskName);
     if (!taskFn) throw new Error(`未找到任务: ${taskName}`);
     await taskFn(...parseArgs(jobArgs));
-    return { success: true };
+    return { success: true, taskName };
 }
 ```
 
-> Processor 运行在独立子进程中，可以正常使用数据库、Redis 等所有工具，但无法访问主进程的内存单例（如已建立的连接对象）。子进程会自行初始化所需的连接。
+子进程可以正常连数据库、Redis，但**拿不到**主进程内存里的单例（如已建立的连接对象），会在子进程内重新初始化。
 
-### 4. 创建 Worker 注册文件
+### Worker
 
-```ts [ts]
-// src/infrastructure/queue/queues/email-notify/worker.ts
+指定并发数、限流等运行参数。
+
+```ts
+// server/src/infrastructure/queue/queues/email-notify/worker.ts
 import path from 'path';
 import { queueManager, RateLimitPresets } from '../../core';
 
@@ -265,71 +305,114 @@ queueManager.registerWorker({
     queueName: 'email-notify-queue',
     processor: processorFile,
     options: {
-        concurrency: 5,
-        ...RateLimitPresets.low,
+        concurrency: 5,           // 同时处理 5 个任务
+        ...RateLimitPresets.low,  // 每秒最多 5 个（见下文「限流」）
     },
 });
 ```
 
-### 5. 注册到 runtime
+### 挂载与构建
 
-```ts [ts]
-// src/infrastructure/queue/runtime/app.ts
-import '../queues/email-notify/queue';  // 加这一行
+`runtime/app.ts` 增加：
 
-// src/infrastructure/queue/runtime/worker.ts
-import '../queues/email-notify/worker'; // 加这一行
+```ts
+import '../queues/email-notify/queue';
 ```
 
-### 6. 加入构建脚本
+`runtime/worker.ts` 增加：
 
-在 `script/build-processors.ts` 和 `script/build.ts` 的 `processors` 数组中加入：
+```ts
+import '../queues/email-notify/worker';
+```
 
-```ts [ts]
+`script/build-processors.ts` 的 `processors` 数组增加：
+
+```ts
 { name: 'email-notify', entry: './src/infrastructure/queue/queues/email-notify/processor.ts' },
 ```
 
-### 7. 构建并使用
+若 `script/build.ts` 里也有 `processors` 列表，同步加上（生产构建用）。
 
-```bash [bun]
-bun build:processors
+构建并投递测试任务：
+
+```bash
+bun run build:processors
+bun run dev:workers
 ```
 
-```ts [ts]
+```ts
 await queueManager.addJob('email-notify-queue', {
     taskName: 'sendEmail',
     jobArgs: JSON.stringify(['user@example.com', '验证码', '您的验证码是 123456']),
 });
 ```
 
-::: tip 队列任务数据格式
-- **system-cron-queue**：`job.data` 使用 `taskName` + `jobArgs`（JSON 字符串），与上文自定义队列示例一致。
-- **flow-buffer-queue**：按 **`job.name`** 分发任务，整包 `job.data` 作为参数传入（见 `flow-buffer/processor.ts` 与 `worker-sandbox/flow-buffer-tasks.ts`），勿与 system-cron 的 `taskName` 模式混用。
-:::
+到 Bull Board 面板确认任务从 waiting → completed。
 
-## 六、重试策略
+### 任务数据格式
 
-### 1. 使用预设
+两种 Processor 模式**不要混用**，新手最容易在这里踩坑：
 
-```ts [ts]
-import { RetryPresets } from '@/infrastructure/queue';
+**模式 A：`taskName` + `jobArgs`**
 
+用于 `system-cron-queue` 和上文 `email-notify` 自定义队列。
+
+```ts
+// 投递
+await queueManager.addJob('email-notify-queue', {
+    taskName: 'sendEmail',
+    jobArgs: JSON.stringify(['a@b.com', '标题', '正文']),
+});
+
+// Processor 内
+const { taskName, jobArgs } = job.data;
+const taskFn = get(taskName);
+await taskFn(...parseArgs(jobArgs));
+```
+
+**模式 B：按 `job.name` 分发**
+
+用于 `flow-buffer-queue`。投递时第一个参数是任务名，`data` 整包传给函数。
+
+```ts
+// 投递（注意用 queue.add，第一个参数是 job.name）
+const queue = queueManager.getQueue('flow-buffer-queue')!;
+await queue.add('订单超时处理', { orderNo: 'xxx' }, { delay: 60000 });
+
+// Processor 内（flow-buffer/processor.ts）
+const taskFn = get(job.name);
+await taskFn(job.data);
+```
+
+| 队列 | 投递方式 | Processor 取任务 |
+|------|----------|------------------|
+| `system-cron-queue` | `addJob` + `taskName` | `job.data.taskName` |
+| 自定义（email-notify 示例） | 同上 | 同上 |
+| `flow-buffer-queue` | `queue.add(name, data)` | `job.name` |
+| `trade-order-queue` | `addJob` + 业务字段 | 直接读 `job.data` |
+
+## 重试策略
+
+任务失败时 BullMQ 会自动重试。投递时通过选项控制策略，也可用项目预设。
+
+```ts
+import { RetryPresets, buildRetry } from '@/infrastructure/queue';
+
+// 预设：指数退避，最多 5 次
 await queueManager.addJob('trade-order-queue', data, {
     ...RetryPresets.aggressive,
 });
 ```
 
 | 预设 | 策略 | 次数 | 初始延迟 |
-|------|------|------|---------|
-| `RetryPresets.none` | 不重试 | 1 | - |
+|------|------|------|----------|
+| `RetryPresets.none` | 不重试 | 1 | — |
 | `RetryPresets.standard` | 固定间隔 | 3 | 2s |
 | `RetryPresets.aggressive` | 指数退避 | 5 | 1s |
 
-### 2. 自定义重试
+自定义：
 
-```ts [ts]
-import { buildRetry } from '@/infrastructure/queue';
-
+```ts
 // 固定间隔：失败后等 5 秒重试，最多 3 次
 await queueManager.addJob('email-notify-queue', data, {
     ...buildRetry({ attempts: 3, strategy: 'fixed', delay: 5000 }),
@@ -341,106 +424,128 @@ await queueManager.addJob('trade-order-queue', data, {
 });
 ```
 
-## 七、限流控制
+对外部 API（发邮件、发短信）建议配合 `RateLimitPresets.low`，避免重试风暴把第三方打挂。
 
-限流在 Worker 注册时配置，控制单位时间内最多处理多少个任务。
+## 限流控制
 
-### 1. 使用预设
+限流在 **Worker 注册时**配置，控制单位时间内最多处理多少个任务，与投递时的 `addJob` 无关。
 
-```ts [ts]
-import { RateLimitPresets } from '@/infrastructure/queue';
+```ts
+import { RateLimitPresets, buildRateLimit } from '@/infrastructure/queue';
 
 queueManager.registerWorker({
     queueName: 'email-notify-queue',
     processor: processorFile,
     options: {
-        concurrency: 5,
-        ...RateLimitPresets.low,  // 每秒最多 5 个
+        concurrency: 5,            // 同时并发处理的任务数
+        ...RateLimitPresets.low,   // 每秒最多 5 个
     },
 });
 ```
 
 | 预设 | 每秒上限 | 适用场景 |
-|------|---------|---------|
+|------|----------|----------|
 | `RateLimitPresets.low` | 5 | 邮件、短信等外部 API |
 | `RateLimitPresets.medium` | 20 | 普通业务处理 |
 | `RateLimitPresets.high` | 100 | 高并发写入缓冲 |
 
-### 2. 自定义限流
+自定义：
 
-```ts [ts]
-import { buildRateLimit } from '@/infrastructure/queue';
-
+```ts
 options: {
     concurrency: 10,
     ...buildRateLimit({ max: 50, duration: 2000 }), // 2 秒内最多 50 个
 }
 ```
 
-> `concurrency` 控制同时处理的任务数，`limiter` 控制单位时间内的速率，两者共同作用。
+`concurrency` 是「同时跑几个」，`limiter` 是「单位时间最多跑几个」，两者同时生效。发邮件队列通常 `concurrency` 略高、`limiter` 偏低。
 
-## 八、Processor 开发说明
+## Processor 开发
 
-### 1. 记录任务日志和进度
+### 日志与进度
 
-```ts [ts]
+在 Bull Board 里可查看任务日志和进度条，调试时很有用。
+
+```ts
 export default async function processor(job: SandboxedJob) {
     await job.log('开始处理...');
-    await job.updateProgress(50);
+    await job.updateProgress(30);
+    // 业务逻辑...
+    await job.updateProgress(100);
     await job.log('处理完成');
     return { success: true };
 }
 ```
 
-### 2. 在 Processor 中投递新任务
+### 子进程里投递新任务
 
-Processor 子进程无法使用主进程的 `queueManager` 单例，需要自行创建 Queue 实例。
+子进程**不能**用主进程的 `queueManager` 单例，需要自行创建 `Queue`：
 
-```ts [ts]
+```ts
 import { Queue } from 'bullmq';
-import { getQueueEnvConfig } from '../../config/env';
 import Redis from 'ioredis';
+import { getQueueEnvConfig } from '../../config/env';
 
 const cfg = getQueueEnvConfig();
-const conn = new Redis({ host: cfg.redis.host, port: cfg.redis.port, maxRetriesPerRequest: null });
+const conn = new Redis({
+    host: cfg.redis.host,
+    port: cfg.redis.port,
+    maxRetriesPerRequest: null,
+});
+
+// 注意队列名带 appId 前缀
 const notifyQueue = new Queue(`${cfg.appId}-email-notify-queue`, { connection: conn });
 
-await notifyQueue.add('sendEmail', { to: 'user@example.com' });
+await notifyQueue.add('sendEmail', {
+    taskName: 'sendEmail',
+    jobArgs: JSON.stringify(['user@example.com', '通知', '处理完成']),
+});
 ```
 
-### 3. 修改后重新构建
+### 修改后记得构建
 
-每次修改 `processor.ts` 或 `worker-sandbox/*.ts` 后必须重新构建，否则子进程运行的仍是旧代码。
-
-```bash [bun]
-bun build:processors
+```bash
+bun run build:processors
 ```
 
-## 九、监控面板
+## 监控面板
 
-启动主进程后访问 Bull Board 可视化面板：
+启动主进程后访问 Bull Board，可视化查看各队列状态：
 
-```bash [terminal]
+```
 http://localhost:{port}{prefix}/bullmq
 ```
 
-面板支持查看所有队列的任务状态（等待、活跃、完成、失败、延迟）、手动重试失败任务、清空队列、查看任务详情和日志。
+`{port}` 为服务端口，`{prefix}` 为 `config.app.prefix`（默认常为 `/api`）。例如：`http://localhost:3000/api/bullmq`。
 
-## 十、多实例与高可用
+面板支持：
 
-系统基于 **BullMQ** 的分布式队列机制，天然支持多实例部署：
+- 查看 waiting / active / completed / failed / delayed 任务
+- 点击任务看 `job.data`、日志、进度
+- 手动重试失败任务、清空队列
 
-- BullMQ 通过 Redis 保证同一任务在同一时间只被一个 Worker 消费，无需额外的分布式锁。
-- Worker 进程崩溃后由 PM2 自动重启，不影响主进程（HTTP 服务）。
-- 任务数据持久化在 Redis 中，重启后未完成的任务会自动恢复。
+任务一直停在 waiting，优先检查 Worker 是否在跑（`bun run dev:workers` 或 PM2 里的 worker 进程）。
 
-## 十一、相关链接
+## 部署与高可用
+
+- BullMQ 通过 Redis 协调，同一任务只会被一个 Worker 消费，多实例部署一般不需要额外分布式锁
+- 建议 HTTP 与 Worker 分开用 PM2 管理；Worker 崩溃重启不影响 API
+- 任务数据在 Redis 中持久化，重启后未完成的任务会继续被消费
+
+## 常见问题
+
+- **任务不执行**：Worker 没启动，或改了 Processor 没 `build:processors`
+- **未找到任务**：`taskName` / `job.name` 与 `worker-sandbox` 注册名不一致
+- **两种数据格式混用**：`flow-buffer` 用 `job.name`，cron 和自定义队列用 `taskName`，见上文对照表
+- **子进程报错连不上 DB**：子进程会自行初始化连接，检查环境变量与 Redis/Postgres 是否可达
+
+## 参考
 
 - [BullMQ 官方文档](https://docs.bullmq.io/)
-- [BullMQ Sandboxed Processors](https://docs.bullmq.io/guide/workers/sandboxed-processors)
-- [BullMQ Repeatable Jobs](https://docs.bullmq.io/guide/jobs/repeatable)
-- [BullMQ Rate Limiting](https://docs.bullmq.io/guide/rate-limiting)
-- [BullMQ Retrying Jobs](https://docs.bullmq.io/guide/retrying-failing-jobs)
-- [Bull Board 可视化面板](https://github.com/felixmosh/bull-board)
-- [Cron 表达式在线生成工具](https://tool.lu/crontab/)
-- [ioredis 文档](https://github.com/redis/ioredis)
+- [Sandboxed Processors](https://docs.bullmq.io/guide/workers/sandboxed-processors)
+- [Repeatable Jobs](https://docs.bullmq.io/guide/jobs/repeatable)
+- [Rate Limiting](https://docs.bullmq.io/guide/rate-limiting)
+- [Retrying Jobs](https://docs.bullmq.io/guide/retrying-failing-jobs)
+- [Bull Board](https://github.com/felixmosh/bull-board)
+- [Cron 表达式工具](https://tool.lu/crontab/)
+- [ioredis](https://github.com/redis/ioredis)

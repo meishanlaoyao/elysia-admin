@@ -1,5 +1,7 @@
 # Frontend File Structure
 
+**Admin CRUD pages:** can be scaffolded from `server/` via `bun run create:page {group} {name} --tag "..."` (see `.ai/AI_MODULE_SCAFFOLD.md`), then edit generated vue files in this repo.
+
 ```
 admin/src/
     types/api/{group}-{name}.d.ts   ← type declarations (declare namespace Api)

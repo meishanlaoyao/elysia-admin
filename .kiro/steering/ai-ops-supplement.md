@@ -10,6 +10,8 @@ Full SOP:
 
 #[[file:.ai/AI_MODULE_WORKFLOW.md]]
 
+- Scaffold (CRUD boilerplate): #[[file:.ai/AI_MODULE_SCAFFOLD.md]]
+
 Sub-guides:
 
 - Page quality: #[[file:.ai/AI_PAGE_QUALITY.md]]
@@ -21,7 +23,7 @@ Sub-guides:
 
 ## Key points
 
-- **Flow:** check `server/database/schema/` → backend → dict (no hardcoded enums) → frontend → single SQL at `server/database/sql/{module}-init.sql`
+- **Flow:** check `server/database/schema/` → **scaffold** (`create:module` + `create:page` from `server/`) → dict (no hardcoded enums) → frontend polish → single SQL at `server/database/sql/{module}-init.sql`
 - **Postgres MCP:** read-only for tables/dict/menu IDs; never DDL/write via MCP
 - **Menu SQL:** query DB before INSERT; permissions match `route.ts` and frontend auth
 - **Page quality:** `art-full-height`, `useDictStore`, see `AI_PAGE_QUALITY.md`

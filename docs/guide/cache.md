@@ -15,255 +15,120 @@ head:
 
 # 缓存操作
 
-本章介绍 `Elysia Admin` 中封装的常用 Redis 缓存操作方法，包括基础的缓存设置、获取、删除操作，以及高级的组合操作。
+项目通过 Redis 做数据缓存，减少重复查库。基础读写走 `@/core/database/redis`，带防击穿和列表增量维护的组合操作走 `@/core/cache`。
 
-## 基础操作
+缓存键建议用 `CacheEnum`（`@/constants/enum`）统一管理，避免硬编码字符串散落各处。字典、部门树等模块已按此方式使用。
 
-### 设置缓存
-
-```ts [ts]
-Set(key, value, expire);
+```mermaid
+flowchart LR
+    H[handle.ts] --> R[redis Set/Get/Del]
+    H --> C[WithCache 等组合函数]
+    C --> R
+    R --> Redis[(Redis)]
 ```
 
-参数说明：
-- `key`：缓存键，用于唯一标识缓存项
-- `value`：缓存值，可以是任何类型（会自动序列化为 JSON）
-- `expire`：过期时间，单位为秒（可选参数）
-  - 如果设置了过期时间，则缓存会在指定时间后自动过期
-  - 如果未设置过期时间，则保持原有的 TTL（如果键已存在）或永久存在（如果键不存在）
+## 基础 API
 
-示例：
+从 `@/core/database/redis` 导入。值会自动 JSON 序列化 / 反序列化。
 
-```ts [ts]
-import { Set } from '@/core/database/redis';
+| 函数 | 用途 |
+|------|------|
+| `Set(key, value, expire?)` | 写入缓存，`expire` 为秒；不传则保留已有 TTL |
+| `SetMulti(items)` | 批量写入，`items` 为 `{ key, value, expire? }[]` |
+| `Get(key)` | 读取，不存在返回 `null` |
+| `Del(key \| keys)` | 删除单个或批量 |
+| `Keys(pattern)` | 按前缀或通配符查找键 |
 
-// 设置缓存，60 秒后过期
+```ts
+import { Set, Get, Del } from '@/core/database/redis';
+
 await Set('user:1', { name: 'John', age: 30 }, 60);
-
-// 设置缓存，不设置过期时间
-await Set('config:app', { theme: 'dark' });
+const user = await Get('user:1');
+await Del(['user:1', 'user:2']);
 ```
 
-### 批量设置缓存
-
-```ts [ts]
-SetMulti(items);
-```
-
-参数说明：
-- `items`：缓存项数组，每个项包含以下字段：
-  - `key`：缓存键
-  - `value`：缓存值
-  - `expire`：过期时间（可选）
-
-示例：
-
-```ts [ts]
+```ts
 import { SetMulti } from '@/core/database/redis';
 
 await SetMulti([
     { key: 'user:1', value: { name: 'John' }, expire: 60 },
-    { key: 'user:2', value: { name: 'Jane' }, expire: 60 }
+    { key: 'user:2', value: { name: 'Jane' }, expire: 60 },
 ]);
 ```
 
-### 获取缓存
+业务数据变更后记得主动 `Del` 相关键。例如字典模块在增删改后会清除 `CacheEnum.DICT_TYPE` 和对应的 `DICT_DATA` 键，避免读到过期数据。
 
-```ts [ts]
-Get(key);
-```
+## WithCache
 
-参数说明：
-- `key`：缓存键，用于唯一标识缓存项
-
-返回值：
-- 如果缓存存在，返回缓存值（自动反序列化 JSON）
-- 如果缓存不存在，返回 `null`
-
-示例：
-
-```ts [ts]
-import { Get } from '@/core/database/redis';
-
-const user = await Get('user:1');
-console.log(user); // { name: 'John', age: 30 }
-```
-
-### 删除缓存
-
-```ts [ts]
-Del(key);
-```
-
-参数说明：
-- `key`：缓存键或缓存键数组，支持单个删除或批量删除
-
-示例：
-
-```ts [ts]
-import { Del } from '@/core/database/redis';
-
-// 删除单个缓存
-await Del('user:1');
-
-// 批量删除缓存
-await Del(['user:1', 'user:2', 'user:3']);
-```
-
-### 获取匹配的缓存键
-
-```ts [ts]
-Keys(pattern);
-```
-
-参数说明：
-- `pattern`：缓存键的匹配模式（支持通配符）
-
-返回值：
-- 匹配的缓存键数组
-
-示例：
-
-```ts [ts]
-import { Keys } from '@/core/database/redis';
-
-// 获取所有以 user: 开头的缓存键
-const userKeys = await Keys('user:');
-console.log(userKeys); // ['user:1', 'user:2', 'user:3']
-```
-
-## 组合操作
-
-### 获取或设置缓存（防缓存击穿）
-
-```ts [ts]
-WithCache<T>(cacheKey, dbQueryFn, expire?, lockTtl?, retryTimes?, retryDelay?);
-```
-
-参数说明：
-- `cacheKey`：Redis 缓存的键
-- `dbQueryFn`：数据库查询函数（当缓存不存在时执行），返回一个 Promise
-- `expire`：缓存过期时间（单位：秒），默认使用配置文件中的 `config.app.baseCacheTime`
-- `lockTtl`：分布式锁的过期时间（单位：秒），默认 10 秒
-- `retryTimes`：获取锁失败后的重试次数，默认 3 次
-- `retryDelay`：重试间隔（单位：毫秒），默认 100ms
-
-功能说明：
-
-这是一个通用的缓存包装函数，用于防止缓存击穿。其核心思路是：**热点键过期时**，不要让大量请求同时穿透到数据库，而是用分布式锁把「回源 + 回写缓存」串行化或限流，其他人短暂等待或兜底查库。下面的流程图与后面逐条文字步骤一一对应，可先扫图再读编号说明。
+`WithCache` 封装「先读缓存，未命中再查库并回写」的逻辑，并用分布式锁防止热点键过期时大量请求同时穿透到数据库。
 
 ```mermaid
 flowchart TD
-    A[读取 Redis] -->|命中| Z[返回缓存]
-    A -->|未命中| B[尝试分布式锁]
-    B -->|获得锁| C[执行 dbQueryFn]
-    C --> D[写入 Redis]
-    D --> Z
-    B -->|未获得锁| E[等待重试或直接查库]
+    A[读 Redis] -->|命中| Z[返回缓存]
+    A -->|未命中| B[尝试获取锁]
+    B -->|成功| C[双重检查缓存]
+    C --> D[执行 dbQueryFn]
+    D --> E[写入 Redis]
     E --> Z
+    B -->|失败| F[短暂等待重试]
+    F -->|读到缓存| Z
+    F -->|仍无缓存| G[直接查库]
+    G --> Z
 ```
 
-1. 首先尝试从 Redis 获取缓存数据
-2. 如果缓存不存在，使用分布式锁来执行数据库查询
-3. 查询结果会被缓存到 Redis 中
-4. 如果获取锁失败，会进行重试
-5. 如果重试后仍未获取到缓存，则直接查询数据库
-
-示例：
-
-```ts [ts]
+```ts [handle.ts]
 import { WithCache } from '@/core/cache';
+import { CacheEnum } from '@/constants/enum';
 import { CreateQueryBuilder, FindAll } from '@/core/database/repository';
-import { systemDictTypeSchema } from '@/database/schema/system_dict';
+import { systemDictTypeSchema } from '@database/schema/system_dict';
 
 const data = await WithCache(
-    'dict:types',
+    CacheEnum.DICT_TYPE,
     async () => {
-        const where = CreateQueryBuilder(systemDictTypeSchema)
-            .eq('delFlag', false)
-            .build();
+        const where = CreateQueryBuilder(systemDictTypeSchema).eq('delFlag', false).build();
         return await FindAll(systemDictTypeSchema, where);
     },
-    300 // 缓存 5 分钟
+    300, // 过期秒数，默认取 config.app.baseCacheTime
 );
 ```
 
-### 更新缓存 - 插入新数据
+| 参数 | 说明 | 默认 |
+|------|------|------|
+| `cacheKey` | Redis 键 | — |
+| `dbQueryFn` | 缓存未命中时执行的查库函数 | — |
+| `expire` | 过期时间（秒） | `config.app.baseCacheTime` |
+| `lockTtl` | 分布式锁 TTL（秒） | 10 |
+| `retryTimes` | 抢锁失败重试次数 | 3 |
+| `retryDelay` | 重试间隔（毫秒） | 100 |
 
-```ts [ts]
-CacheInsert(cacheKey, data);
-```
+获锁方回写缓存后，其他等待的请求会通过双重检查或重试读到新值；重试超时则直接查库兜底。
 
-参数说明：
-- `cacheKey`：Redis 缓存的键
-- `data`：要插入的数据
+## 列表缓存维护
 
-返回值：
-- `boolean`：是否插入成功
+`CacheInsert`、`CacheUpdate`、`CacheDelete` 用于在**不整键失效**的前提下，增量维护已缓存的**数组**数据。适合列表类缓存；结构复杂或一致性要求高时，直接 `Del` 后让 `WithCache` 重建更稳妥。
 
-功能说明：
+从 `@/core/cache` 导入：
 
-此函数用于向现有缓存中插入新数据。如果缓存中已有数据，则将新数据添加到现有数据的末尾；如果缓存不存在，则创建一个包含新数据的缓存。
+| 函数 | 用途 |
+|------|------|
+| `CacheInsert(cacheKey, data)` | 向数组末尾追加一项；缓存不存在则新建 `[data]` |
+| `CacheUpdate(cacheKey, key, data)` | 按 `key` 字段匹配并合并更新；无匹配项则追加 |
+| `CacheDelete(cacheKey, key, values)` | 按 `key` 字段值数组过滤删除；删空则移除整个键 |
 
-示例：
+```ts
+import { CacheInsert, CacheUpdate, CacheDelete } from '@/core/cache';
 
-```ts [ts]
-import { CacheInsert } from '@/core/cache';
-
-// 向缓存中插入新用户
+// 缓存结构: [{ id: 1, name: 'A' }, { id: 2, name: 'B' }]
 await CacheInsert('users:list', { id: 3, name: 'New User' });
-```
-
-### 更新缓存 - 删除指定数据
-
-```ts [ts]
-CacheDelete(cacheKey, key, values);
-```
-
-参数说明：
-- `cacheKey`：Redis 缓存的键
-- `key`：用于判断数据是否需要删除的字段名
-- `values`：包含需要删除的数据的 `key` 字段值的数组
-
-返回值：
-- `boolean`：是否删除成功
-
-功能说明：
-
-此函数用于从现有缓存中删除指定数据。它会根据提供的 `key` 和 `values` 数组来过滤缓存中的数据。如果删除后缓存为空，则会删除整个缓存。
-
-示例：
-
-```ts [ts]
-import { CacheDelete } from '@/core/cache';
-
-// 从缓存中删除 id 为 1 和 2 的用户
+await CacheUpdate('users:list', 'id', { id: 1, name: 'Updated', age: 25 });
 await CacheDelete('users:list', 'id', [1, 2]);
 ```
 
-### 更新缓存 - 更新指定数据
+三个函数均返回 `boolean` 表示是否操作成功，内部异常会记日志并返回 `false`。
 
-```ts [ts]
-CacheUpdate(cacheKey, key, data);
-```
+## 使用建议
 
-参数说明：
-- `cacheKey`：Redis 缓存的键
-- `key`：用于判断数据是否需要更新的字段名
-- `data`：要更新的数据，其中包含用于匹配的 `key` 字段值
-
-返回值：
-- `boolean`：是否更新成功
-
-功能说明：
-
-此函数用于更新缓存中的指定数据。它会遍历缓存中的数据，根据 `key` 字段匹配并更新相应的数据项。如果缓存中没有匹配项，则会将新数据作为新项插入。
-
-示例：
-
-```ts [ts]
-import { CacheUpdate } from '@/core/cache';
-
-// 更新缓存中 id 为 1 的用户信息
-await CacheUpdate('users:list', 'id', { id: 1, name: 'Updated User', age: 25 });
-```
+- 键名走 `CacheEnum`，新增业务缓存时在 `constants/enum` 里补常量
+- 写操作后主动失效相关键，不要依赖 TTL 兜底业务一致性
+- 高频读、低频写的数据适合 `WithCache`；写多读少的场景慎用列表增量维护
+- 后台「系统监控 → 缓存管理」可查看 `CacheEnum` 中注册的缓存键（见 `monitor-cache` 模块）

@@ -39,3 +39,5 @@ project_doc_max_bytes = 65536
 - 本目录对应的 `AGENTS.md` 三份
 
 代码模板详版仍以 [`.ai/AI_CODE_EXAMPLES.md`](../.ai/AI_CODE_EXAMPLES.md) 为唯一来源。
+
+标准 CRUD 模块优先使用 [`.ai/AI_MODULE_SCAFFOLD.md`](../.ai/AI_MODULE_SCAFFOLD.md)（`server/` 下 `bun run create:module` + `create:page`），再由 AI 补业务逻辑与 handoff SQL。
