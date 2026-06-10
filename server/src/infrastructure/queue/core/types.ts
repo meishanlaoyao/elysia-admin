@@ -7,7 +7,7 @@ export type RedisConnection = ConnectionOptions;
 
 /** 队列 */
 export interface QueueConfig {
-    /** 队列唯一名称（会自动加 appId 前缀） */
+    /** 队列唯一名称（Redis 键前缀使用 app.id） */
     name: string;
     description?: string;
     /** 自定义 Redis 连接，不传则使用默认 */

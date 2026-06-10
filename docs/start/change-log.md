@@ -25,6 +25,9 @@ head:
 - 同步更新了 Cursor / Codex / Claude Code / Trae / Kiro 的 Agent 规则（`AGENTS.md`、`server/AGENTS.md`、`admin/AGENTS.md` 等），各 IDE 均可识别 `create:module` + `create:page` 推荐流程。
 - 更新了 [AI 开发指南](/guide/ai-guide)：新增「推荐流程（脚手架 + AI）」与档0 提示词（脚手架已生成后的增量开发）。
 - 补充了 [内置命令](/architecture/commands)「模块脚手架命令」章节。
+- 优化了 BullMQ Redis 键前缀：Queue / Worker 使用 `app.id` 作为 `prefix`（如 `Elysia-Admin:flow-buffer-queue:meta`），替代默认 `bull:` + 队列名拼 `appId` 的旧形态；多应用共用 Redis 时仍按应用隔离，旧 `bull:*` 键需手动清理。
+- 修复了生产环境经 Nginx 反代后登录日志 IP 全为 `127.0.0.1`：`production.yaml` 默认开启 `trustProxy` 并配置 `trustedProxyCidrs`（`127.0.0.1` / `::1`），在受信代理场景下正确解析 `X-Forwarded-For` / `X-Real-IP`（需反代层传递对应头）。
+- 为 `server/src/config/schema.ts` 各配置段与字段补充了 JSDoc 注释，说明用途、单位及可被环境变量覆盖的项。
 :::
 
 ::: timeline v1.4.7(2026-06-09)

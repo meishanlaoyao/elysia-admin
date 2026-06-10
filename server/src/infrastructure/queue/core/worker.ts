@@ -22,10 +22,11 @@ export function createWorker(config: WorkerConfig, appId: string): Worker {
         process.env.CONFIG_PATH = configPath;
     };
     const worker = new Worker(
-        `${appId}-${queueName}`,
+        queueName,
         processor as any,
         {
             connection: getRedisConnection(),
+            prefix: appId,
             useWorkerThreads: useWorkerThreads ?? false,
             ...options,
         }

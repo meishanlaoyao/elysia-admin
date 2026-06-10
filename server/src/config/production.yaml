@@ -9,8 +9,10 @@ app:
   timeout: 30
   maxLoginAttempts: 3
   allowPublicRegister: false
-  trustProxy: false
-  trustedProxyCidrs: []
+  trustProxy: true
+  trustedProxyCidrs:
+    - "127.0.0.1"
+    - "::1"
   corsOrigin:
     - "http://localhost:3006"
     # - "https://elysia-admin.top"
