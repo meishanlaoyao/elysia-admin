@@ -1,7 +1,7 @@
 {
     "version": "1.4.8",
     "publishDate": "2026-06-10",
-    "description": "新增模块脚手架 create:module / create:page（依赖 Drizzle Schema，支持 --schema、--dry-run）及脚本模板与单测；新增 AI_MODULE_SCAFFOLD.md；更新 AI 工作流、Cursor Skill 与各 IDE Agent 规则；AI 开发指南与内置命令文档补充脚手架推荐流程。",
+    "description": "新增模块脚手架 create:module / create:page 及 AI 工作流、各 IDE Agent 规则与文档同步；新增内置队列监控（替代 Bull Board，含 monitor-queue 后端模块与 Admin 三栏监控页、RBAC 权限）；优化 BullMQ Redis 键前缀；修复 Nginx 反代后登录日志 IP 为 127.0.0.1；补充配置 Schema JSDoc。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

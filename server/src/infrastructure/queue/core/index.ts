@@ -17,5 +17,6 @@ export type {
     RateLimitConfig,
     RetryConfig,
     ScheduleConfig,
+    QueueMeta,
     IQueueManager,
 } from './types';

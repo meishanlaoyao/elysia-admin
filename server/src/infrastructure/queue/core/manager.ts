@@ -12,6 +12,7 @@ import type {
     JobOptions,
     IQueueManager,
     RedisConnection,
+    QueueMeta,
 } from './types';
 import { createQueue } from './queue';
 import { createWorker } from './worker';
@@ -40,6 +41,7 @@ export function getRedisConnection(custom?: RedisConnection): Redis {
 
 class QueueManager implements IQueueManager {
     private queues: Map<string, Queue> = new Map();
+    private queueMeta: Map<string, QueueMeta> = new Map();
     private workers: Map<string, Worker> = new Map();
     private appId: string;
 
@@ -52,6 +54,10 @@ class QueueManager implements IQueueManager {
         if (this.queues.has(config.name)) return this.queues.get(config.name)!;
         const queue = createQueue(config, this.appId);
         this.queues.set(config.name, queue);
+        this.queueMeta.set(config.name, {
+            name: config.name,
+            description: config.description,
+        });
         logger.info(`✓ Queue "${config.name}" 注册成功`);
         return queue;
     }
@@ -73,6 +79,14 @@ class QueueManager implements IQueueManager {
         return this.workers.get(name);
     }
 
+    getQueueMeta(name: string): QueueMeta | undefined {
+        return this.queueMeta.get(name);
+    }
+
+    getAllQueueMeta(): QueueMeta[] {
+        return Array.from(this.queueMeta.values());
+    }
+
     /** 投递单个任务 */
     async addJob(queueName: string, data: JobData, options?: JobOptions): Promise<any> {
         const queue = this.getQueue(queueName);
@@ -90,7 +104,7 @@ class QueueManager implements IQueueManager {
         return queue.addBulk(jobs.map((j) => ({ name: queueName, data: j.data, opts: j.options })));
     }
 
-    /** 获取所有队列（供 Bull Board 使用） */
+    /** 获取所有已注册队列实例 */
     getAllQueues(): Queue[] {
         return Array.from(this.queues.values());
     }
@@ -105,6 +119,9 @@ class QueueManager implements IQueueManager {
             await queue.close();
             logger.info(`[QueueManager] Queue "${name}" 已关闭`);
         }
+        this.queues.clear();
+        this.queueMeta.clear();
+        this.workers.clear();
         if (_defaultConnection) {
             await _defaultConnection.quit();
             _defaultConnection = null;

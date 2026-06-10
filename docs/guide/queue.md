@@ -510,19 +510,15 @@ bun run build:processors
 
 ## 监控面板
 
-启动主进程后访问 Bull Board，可视化查看各队列状态：
-
-```
-http://localhost:{port}{prefix}/bullmq
-```
-
-`{port}` 为服务端口，`{prefix}` 为 `config.app.prefix`（默认常为 `/api`）。例如：`http://localhost:3000/api/bullmq`。
+登录 Admin 后台，进入 **系统监控 → 队列监控**（路径 `/monitor/bullmq`）。
 
 面板支持：
 
-- 查看 waiting / active / completed / failed / delayed 任务
-- 点击任务看 `job.data`、日志、进度
-- 手动重试失败任务、清空队列
+- 查看各队列 waiting / active / completed / failed / delayed 统计
+- 按状态浏览任务、查看详情与运行日志
+- 延迟任务倒计时与立即执行（promote）
+- 单任务 / 批量重试失败任务、删除、清空 completed/failed
+- 可选 3 秒 / 5 秒自动刷新
 
 任务一直停在 waiting，优先检查 Worker 是否在跑（`bun run dev:workers` 或 PM2 里的 worker 进程）。
 
@@ -546,6 +542,5 @@ http://localhost:{port}{prefix}/bullmq
 - [Repeatable Jobs](https://docs.bullmq.io/guide/jobs/repeatable)
 - [Rate Limiting](https://docs.bullmq.io/guide/rate-limiting)
 - [Retrying Jobs](https://docs.bullmq.io/guide/retrying-failing-jobs)
-- [Bull Board](https://github.com/felixmosh/bull-board)
 - [Cron 表达式工具](https://tool.lu/crontab/)
 - [ioredis](https://github.com/redis/ioredis)

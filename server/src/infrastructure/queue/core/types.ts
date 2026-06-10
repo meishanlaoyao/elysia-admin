@@ -72,11 +72,18 @@ export interface ScheduleConfig {
 };
 
 /** Manager */
+export interface QueueMeta {
+    name: string;
+    description?: string;
+};
+
 export interface IQueueManager {
     registerQueue(config: QueueConfig): Queue;
     registerWorker(config: WorkerConfig): Worker;
     getQueue(name: string): Queue | undefined;
     getWorker(name: string): Worker | undefined;
+    getQueueMeta(name: string): QueueMeta | undefined;
+    getAllQueueMeta(): QueueMeta[];
     addJob(queueName: string, data: JobData, options?: JobOptions): Promise<Job>;
     addBulkJobs(queueName: string, jobs: Array<{ data: JobData; options?: JobOptions }>): Promise<Job[]>;
     getAllQueues(): Queue[];

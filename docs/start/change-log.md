@@ -26,6 +26,12 @@ head:
 - 更新了 [AI 开发指南](/guide/ai-guide)：新增「推荐流程（脚手架 + AI）」与档0 提示词（脚手架已生成后的增量开发）。
 - 补充了 [内置命令](/architecture/commands)「模块脚手架命令」章节。
 - 优化了 BullMQ Redis 键前缀：Queue / Worker 使用 `app.id` 作为 `prefix`（如 `Elysia-Admin:flow-buffer-queue:meta`），替代默认 `bull:` + 队列名拼 `appId` 的旧形态；多应用共用 Redis 时仍按应用隔离，旧 `bull:*` 键需手动清理。
+- 新增了内置队列监控，替代原 Bull Board 独立面板：移除 `@bull-board/api`、`@bull-board/elysia` 依赖及 `bull-board-ui.ts`，监控能力统一纳入 Admin 后台与 RBAC。
+- 新增了后端 `monitor-queue` 模块（`server/src/modules/monitor-queue/`）：队列列表、按状态分页查任务、任务详情与日志、单/批量重试、删除、清空 completed/failed、暂停/恢复、延迟任务立即执行（promote）；权限码 `monitor:queue:query` / `retry` / `delete` / `clean` / `pause` / `promote`。
+- 新增了前端队列监控页（`admin/src/views/monitor/bullmq/`）：三栏布局（队列列表 / 任务列表 / 任务详情），支持延迟倒计时、运行日志、3 秒 / 5 秒自动刷新；配套 `api/monitor/queue.ts` 与 `types/api/monitor-queue.d.ts`。
+- 扩展了 `QueueManager`：注册队列时记录 `description` 元数据，对外提供 `getQueueMeta` / `getAllQueueMeta` 供监控接口使用；`closeAll` 时同步清空内部 Map。
+- 更新了种子数据 `server/database/sql/pg.sql`：补充「系统监控 → 队列监控」菜单（`/monitor/bullmq`）及按钮权限；启动横幅移除 Bull Board 地址提示。
+- 更新了 [队列指南](/guide/queue) 与 [部署指南](/guide/deploy) 监控章节：入口改为 Admin 后台，说明新面板能力与权限要求。
 - 修复了生产环境经 Nginx 反代后登录日志 IP 全为 `127.0.0.1`：`production.yaml` 默认开启 `trustProxy` 并配置 `trustedProxyCidrs`（`127.0.0.1` / `::1`），在受信代理场景下正确解析 `X-Forwarded-For` / `X-Real-IP`（需反代层传递对应头）。
 - 为 `server/src/config/schema.ts` 各配置段与字段补充了 JSDoc 注释，说明用途、单位及可被环境变量覆盖的项。
 :::

@@ -9,7 +9,6 @@ import { BunAdapter } from 'elysia/adapter/bun';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 import { ConfigureErrorHandler } from '@/middleware/error-handler';
 import { ConfigureOpenAPI } from '@/infrastructure/openapi';
-import { ConfigureBullMQUI } from '@/infrastructure/queue/bull-board-ui';
 
 /**
  * 创建并配置 Elysia 应用实例
@@ -36,8 +35,7 @@ export async function CreateApp() {
         allowedHeaders: ['authorization', 'content-type', 'accept'],
     }));
     app.use(await staticPlugin({ assets: resolve(import.meta.dirname, '../public') }));
-    if (appEnv === 'development') await ConfigureOpenAPI(app);   
-    // await ConfigureBullMQUI(app); // 配置 BullMQ UI (存在问题，正常接口会被拦住)
+    if (appEnv === 'development') await ConfigureOpenAPI(app);
     GlobalMiddleware(app);
     GlobalResponseMiddleware(app);
     ConfigureErrorHandler(app);

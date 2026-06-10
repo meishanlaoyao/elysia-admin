@@ -49,8 +49,6 @@
     "create:page": "bun run script/create-page.ts"
   },
   "dependencies": {
-    "@bull-board/api": "^6.21.3",
-    "@bull-board/elysia": "^6.21.3",
     "@elysiajs/cors": "^1.4.2",
     "@elysiajs/static": "^1.4.10",
     "bullmq": "^5.76.7",

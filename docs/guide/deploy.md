@@ -297,7 +297,7 @@ Nginx 反代时，把域名指到 `app.port`，静态资源可由后端 `public/
 | 日志无报错 | `pm2 logs` 或 `docker logs` 查看启动错误 |
 | 数据库 / Redis | 登录、字典等接口正常；缓存监控有数据 |
 | API | 调几个关键接口（登录、列表）确认 200 |
-| 队列 | 访问 `http://域名{prefix}/bullmq`（如 `/api/bullmq`），确认 Worker 在消费 |
+| 队列 | Admin → 系统监控 → 队列监控，确认 Worker 在消费 |
 
 ## 安全建议
 
