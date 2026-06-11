@@ -273,7 +273,9 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "console": "Console"
+      "console": "Console",
+      "analysis": "Analysis",
+      "ecommerce": "Ecommerce"
     },
     "result": {
       "title": "Result Page",

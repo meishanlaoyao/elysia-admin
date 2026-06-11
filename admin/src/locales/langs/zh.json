@@ -273,7 +273,9 @@
     },
     "dashboard": {
       "title": "仪表盘",
-      "console": "工作台"
+      "console": "工作台",
+      "analysis": "分析页",
+      "ecommerce": "电子商务"
     },
     "result": {
       "title": "结果页面",
