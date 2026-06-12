@@ -20,6 +20,7 @@ head:
 ::: timeline v1.4.9(2026-06-12)
 - 修复了后台 CRUD 弹窗「编辑后再新增」时表单数据未清理的问题：`initFormData` 使用 `Object.assign(formData, { ...row })` 会把列表行的主键（如 `deptId`、`apiId`）与审计字段挂到 reactive 表单上，切换新增后仍随 create 请求提交导致接口报错。
 - 统一改为 `getDefaultFormData()` 打开弹窗时先重置默认值、删除可能残留的审计字段、编辑模式再显式赋值；已修复部门（`dept-dialog`）、接口（`api-dialog`）、角色（`role-edit-dialog`）、IP 黑名单（`blacklist-dialog`）、定时任务（`job-dialog`）、存储配置（`storage-dialog`）共 6 个弹窗；字典、用户、菜单等页面此前已采用相同模式无需改动。
+- 修复了系统用户新增时备注未入库的问题：`system-user` 模块 `CreateDto` 未声明 `remark`（及 `avatar`、`status`），Elysia 校验请求体时会丢弃未定义字段；编辑接口基于 `SelectSystemUser` 含 `remark` 故不受影响。已在 `CreateDto` 补全上述字段。
 :::
 
 ::: timeline v1.4.8(2026-06-10)

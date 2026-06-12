@@ -12,6 +12,9 @@ export const CreateDto = {
         roles: t.Optional(t.Array(t.Number({ description: "角色ID" }))),
         deptId: t.Optional(t.Number({ description: "部门ID" })),
         sex: t.Optional(t.String({ description: "性别" })),
+        avatar: t.Optional(t.String({ description: "头像" })),
+        status: t.Optional(t.Boolean({ description: "状态" })),
+        remark: t.Optional(t.String({ description: "备注" })),
     })
 };
 
