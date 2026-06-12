@@ -14,6 +14,7 @@ export const FindAllMenuDto = {
     query: t.Object({
         title: t.Optional(t.String({ description: "菜单名称" })),
         path: t.Optional(t.String({ description: "路由地址" })),
+        enabledOnly: t.Optional(t.Boolean({ description: "仅返回已启用的菜单与按钮（角色权限分配用）" })),
     })
 };
 

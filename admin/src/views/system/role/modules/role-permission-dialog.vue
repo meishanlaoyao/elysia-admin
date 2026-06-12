@@ -97,7 +97,7 @@ const convertAuthListToChildren = (menuList: MenuListItem[]): MenuListItem[] => 
  */
 const loadMenuTree = async () => {
   try {
-    const data = await fetchGetMenuTree()
+    const data = await fetchGetMenuTree({ enabledOnly: true })
     menuTreeData.value = convertAuthListToChildren(data || [])
   } catch (error) {
     console.error('加载菜单树失败:', error)

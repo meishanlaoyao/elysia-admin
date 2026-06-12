@@ -58,6 +58,8 @@ declare namespace Api {
         interface MenuSearchParams {
             title?: string
             path?: string
+            /** 仅返回已启用的菜单与按钮（角色权限分配） */
+            enabledOnly?: boolean
         }
     }
 }

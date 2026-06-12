@@ -1,5 +1,5 @@
 import type { AppContext } from '@/types/app-context';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { BaseResultData } from '@/core/result';
 import {
     InsertOne,
@@ -40,20 +40,25 @@ export async function findTree(ctx: AppContext) {
     const {
         title,
         path,
+        enabledOnly,
     } = ctx.query;
+    const onlyEnabled = String(enabledOnly) === 'true';
     const builder = CreateQueryBuilder(systemMenuSchema)
         .eq('delFlag', false)
         .like('title', title)
-        .like('path', path)
-        .join({
-            joinSchema: systemMenuBtnSchema,
-            fieldName: 'authList',
-            foreignKey: 'menuId',
-            primaryKey: 'menuId',
-            defaultValue: [],
-            where: eq(systemMenuBtnSchema.delFlag, false),
-            multiple: true
-        });
+        .like('path', path);
+    if (onlyEnabled) builder.eq('status', true);
+    builder.join({
+        joinSchema: systemMenuBtnSchema,
+        fieldName: 'authList',
+        foreignKey: 'menuId',
+        primaryKey: 'menuId',
+        defaultValue: [],
+        where: onlyEnabled
+            ? and(eq(systemMenuBtnSchema.delFlag, false), eq(systemMenuBtnSchema.status, true))
+            : eq(systemMenuBtnSchema.delFlag, false),
+        multiple: true
+    });
     const data = await FindAllWithJoin(systemMenuSchema, builder);
     const tree = ListToTree(data, {
         idKey: 'menuId',
@@ -137,6 +142,7 @@ export function handleMenuListToTree(
     menuList.sort((a, b) => (a.sort || 0) - (b.sort || 0));
     for (const menu of menuList) {
         const menuNode: any = {
+            menuId: menu.menuId,
             name: menu.name,
             path: menu.path,
             component: menu.component,
@@ -166,6 +172,7 @@ export function handleMenuListToTree(
         } else {
             const parentNode = menuMap.get(menu.parentId);
             if (parentNode) parentNode.children.push(menuNode);
+            else rootMenus.push(menuNode);
         };
     };
     for (const node of menuMap.values()) {
@@ -187,27 +194,67 @@ export async function RefreshRoutes(userId: string) {
     }
 };
 
+/** 补全菜单祖先链，保证子菜单能挂到树上 */
+async function expandMenuIdsWithAncestors(authorizedMenuIds: number[]) {
+    const authorizedSet = new Set(authorizedMenuIds);
+    const allMenuIds = new Set(authorizedMenuIds);
+    const parentMap = new Map<number, number | null>();
+    const menuWhere = CreateQueryBuilder(systemMenuSchema).eq('delFlag', false).build();
+    const allMenus = await FindAll(systemMenuSchema, menuWhere);
+    for (const menu of allMenus) {
+        const parentId = menu.parentId;
+        parentMap.set(
+            menu.menuId,
+            parentId == null || parentId === 0 ? null : parentId
+        );
+    }
+    for (const menuId of authorizedMenuIds) {
+        let currentId: number | null = menuId;
+        while (currentId != null) {
+            const parentId = parentMap.get(currentId);
+            if (parentId == null) break;
+            allMenuIds.add(parentId);
+            currentId = parentId;
+        }
+    }
+    return { allMenuIds: [...allMenuIds], authorizedSet };
+}
+
+/** 未直接授权的祖先节点仅作路由容器，不在侧边栏展示 */
+function markAutoIncludedAncestorsAsHidden(
+    nodes: any[],
+    authorizedSet: Set<number>
+): any[] {
+    return nodes.map(node => {
+        const menuId = node.menuId as number | undefined;
+        if (menuId != null && !authorizedSet.has(menuId)) {
+            node.meta = { ...node.meta, isHide: true };
+        }
+        if (node.children?.length) {
+            node.children = markAutoIncludedAncestorsAsHidden(node.children, authorizedSet);
+        }
+        return node;
+    });
+};
+
 /** 加载用户可见菜单树（未删除且已启用） */
 async function loadUserMenuTree(userId: string) {
-    const { menuBtnIds, menuIds } = await GetRoleMenuIdsAndBtnIds(userId);
-    if (!menuIds.length) return [];
+    const { menuBtnIds, menuIds: authorizedMenuIds } = await GetRoleMenuIdsAndBtnIds(userId);
+    if (!authorizedMenuIds.length) return [];
+    const { allMenuIds, authorizedSet } = await expandMenuIdsWithAncestors(authorizedMenuIds);
     const menuWhere = CreateQueryBuilder(systemMenuSchema)
-        .in('menuId', [...menuIds])
+        .in('menuId', allMenuIds)
         .eq('delFlag', false)
         .eq('status', true)
         .build();
-    const menuData = await FindAll(systemMenuSchema, menuWhere, {
-        orderByColumn: 'sort',
-        sortRule: 'desc',
-    });
-    const menuBtnBuilder = CreateQueryBuilder(systemMenuBtnSchema)
-        .eq('delFlag', false)
-        .eq('status', true);
+    const menuData = await FindAll(systemMenuSchema, menuWhere, { orderByColumn: 'sort', sortRule: 'desc',});
+    const menuBtnBuilder = CreateQueryBuilder(systemMenuBtnSchema).eq('delFlag', false).eq('status', true);
     if (menuBtnIds.length) menuBtnBuilder.in('btnId', [...menuBtnIds]);
     const menuBtnData = menuBtnIds.length
         ? await FindAll(systemMenuBtnSchema, menuBtnBuilder.build())
         : [];
-    return handleMenuListToTree(menuData, menuBtnData);
+    const tree = handleMenuListToTree(menuData, menuBtnData);
+    return markAutoIncludedAncestorsAsHidden(tree, authorizedSet);
 };
 
 /** 清除所有用户的侧边栏菜单缓存 */

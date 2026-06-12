@@ -163,8 +163,16 @@ export async function GetRoleMenuIdsAndBtnIds(userId: string) {
         if (roleIds.length === 0) return { menuIds: [], menuBtnIds: [] };
         const roleMenuWhere = CreateQueryBuilder(systemRoleMenuSchema).in('roleId', roleIds).build();
         const roleMenuData = await FindAll(systemRoleMenuSchema, roleMenuWhere);
-        const menuIds = new Set(roleMenuData.map(item => item.menuId).filter(Boolean) as number[]);
-        const menuBtnIds = new Set(roleMenuData.map(item => item.menuBtnId).filter(Boolean) as number[]);
+        const menuIds = new Set(
+            roleMenuData
+                .filter(item => item.menuId != null && item.menuBtnId == null)
+                .map(item => item.menuId as number)
+        );
+        const menuBtnIds = new Set(
+            roleMenuData
+                .filter(item => item.menuBtnId != null)
+                .map(item => item.menuBtnId as number)
+        );
         return {
             menuIds: [...menuIds],
             menuBtnIds: [...menuBtnIds],

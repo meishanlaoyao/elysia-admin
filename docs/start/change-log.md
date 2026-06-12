@@ -21,6 +21,9 @@ head:
 - 修复了后台 CRUD 弹窗「编辑后再新增」时表单数据未清理的问题：`initFormData` 使用 `Object.assign(formData, { ...row })` 会把列表行的主键（如 `deptId`、`apiId`）与审计字段挂到 reactive 表单上，切换新增后仍随 create 请求提交导致接口报错。
 - 统一改为 `getDefaultFormData()` 打开弹窗时先重置默认值、删除可能残留的审计字段、编辑模式再显式赋值；已修复部门（`dept-dialog`）、接口（`api-dialog`）、角色（`role-edit-dialog`）、IP 黑名单（`blacklist-dialog`）、定时任务（`job-dialog`）、存储配置（`storage-dialog`）共 6 个弹窗；字典、用户、菜单等页面此前已采用相同模式无需改动。
 - 修复了系统用户新增时备注未入库的问题：`system-user` 模块 `CreateDto` 未声明 `remark`（及 `avatar`、`status`），Elysia 校验请求体时会丢弃未定义字段；编辑接口基于 `SelectSystemUser` 含 `remark` 故不受影响。已在 `CreateDto` 补全上述字段。
+- 修复了 `/api/system/menu/simple` 只勾选子菜单时子菜单丢失的问题：`handleMenuListToTree` 在父节点未授权时会丢弃孤儿节点；现于 `loadUserMenuTree` 自动补全祖先链，未直接授权的父级合成 `isHide`，并增加孤儿挂 root 兜底。
+- 修复了只勾选按钮权限时侧边栏误显示所属菜单的问题：`GetRoleMenuIdsAndBtnIds` 原先将按钮行的 `menuId` 一并计入可见菜单；现 `menuIds` 仅取 `menuBtnId` 为 null 的纯菜单授权行，按钮权限仍通过 `menuBtnIds` 与 API 权限字符串正常生效。
+- 修复了角色权限弹窗仍展示已禁用菜单与按钮的问题：`/api/system/menu/tree` 原先仅过滤 `delFlag`；新增查询参数 `enabledOnly`，角色权限分配时传 `true` 仅返回 `status=true` 的菜单与按钮，菜单管理页保持展示全部记录。
 :::
 
 ::: timeline v1.4.8(2026-06-10)
