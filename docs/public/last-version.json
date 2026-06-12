@@ -1,7 +1,7 @@
 {
-    "version": "1.4.8",
-    "publishDate": "2026-06-10",
-    "description": "新增模块脚手架 create:module / create:page 及 AI 工作流、各 IDE Agent 规则与文档同步；新增内置队列监控（替代 Bull Board，含 monitor-queue 后端模块与 Admin 三栏监控页、RBAC 权限）；优化 BullMQ Redis 键前缀；修复 Nginx 反代后登录日志 IP 为 127.0.0.1；补充配置 Schema JSDoc。",
+    "version": "1.4.9",
+    "publishDate": "2026-06-12",
+    "description": "修复后台 CRUD 弹窗编辑后再新增时表单主键与审计字段残留导致 create 接口报错；统一 getDefaultFormData 重置模式，覆盖部门、接口、角色、IP 黑名单、定时任务、存储配置共 6 个弹窗。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

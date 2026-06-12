@@ -44,12 +44,17 @@ const loading = ref(false)
 // 表单实例
 const formRef = ref()
 
+function getDefaultFormData() {
+    return {
+        ipBlackId: undefined,
+        ipAddress: '',
+        remark: '',
+        status: true,
+    }
+}
+
 // 表单数据
-const formData = reactive({
-    ipAddress: '',
-    remark: '',
-    status: true
-})
+const formData = reactive(getDefaultFormData())
 
 // 表单项配置
 const formItems = computed<FormItem[]>(() => [
@@ -105,13 +110,22 @@ const rules: FormRules = {
 const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
-    const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        ipAddress: isEdit && row.ipAddress ? row.ipAddress || '' : '',
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true
-    })
+    const row = props.data
+    // 先重置为干净默认值，避免上次编辑字段（如 ipBlackId、createTime）残留到新增请求
+    Object.assign(formData, getDefaultFormData())
+    delete (formData as Record<string, unknown>).createTime
+    delete (formData as Record<string, unknown>).createBy
+    delete (formData as Record<string, unknown>).updateTime
+    delete (formData as Record<string, unknown>).updateBy
+    delete (formData as Record<string, unknown>).delFlag
+    if (isEdit && row) {
+        Object.assign(formData, {
+            ipBlackId: row.ipBlackId,
+            ipAddress: row.ipAddress || '',
+            remark: row.remark || '',
+            status: row.status ?? true,
+        })
+    }
 }
 
 /**

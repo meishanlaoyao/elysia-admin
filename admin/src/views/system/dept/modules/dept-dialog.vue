@@ -45,14 +45,16 @@ const dialogType = computed(() => props.type)
 // 表单实例
 const formRef = ref()
 
-// 表单数据
-const formData = reactive({
+const getDefaultFormData = (parentId?: number) => ({
     deptName: '',
     sort: 0,
     status: true,
     remark: '',
-    parentId: undefined,
+    parentId: parentId ?? undefined,
 })
+
+// 表单数据
+const formData = reactive(getDefaultFormData())
 
 // 级联选择器配置
 const cascaderProps = {
@@ -119,14 +121,24 @@ const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
     const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        deptName: isEdit && row.deptName ? row.deptName || '' : '',
-        sort: isEdit ? row.sort : 0,
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true,
-        parentId: row.parentId || undefined,
-    })
+    Object.assign(formData, getDefaultFormData(row.parentId))
+    delete (formData as Record<string, unknown>).deptId
+    delete (formData as Record<string, unknown>).createTime
+    delete (formData as Record<string, unknown>).createBy
+    delete (formData as Record<string, unknown>).updateTime
+    delete (formData as Record<string, unknown>).updateBy
+    delete (formData as Record<string, unknown>).delFlag
+    delete (formData as Record<string, unknown>).children
+    if (isEdit) {
+        Object.assign(formData, {
+            deptId: row.deptId,
+            deptName: row.deptName || '',
+            sort: row.sort ?? 0,
+            remark: row.remark || '',
+            status: row.status ?? true,
+            parentId: row.parentId ?? undefined,
+        })
+    }
 }
 
 /**

@@ -48,14 +48,19 @@ const dialogType = computed(() => props.type)
 // 表单实例
 const formRef = ref()
 
+function getDefaultFormData() {
+    return {
+        apiId: undefined,
+        apiName: '',
+        apiPath: '',
+        apiMethod: '',
+        remark: '',
+        status: true,
+    }
+}
+
 // 表单数据
-const formData = reactive({
-    apiName: '',
-    apiPath: '',
-    apiMethod: '',
-    remark: '',
-    status: true
-})
+const formData = reactive(getDefaultFormData())
 
 // 接口方法选项
 const apiMethodOptions = computed(() => {
@@ -122,15 +127,24 @@ const rules: FormRules = {
 const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
-    const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        apiName: isEdit && row.apiName ? row.apiName || '' : '',
-        apiPath: isEdit && row.apiPath ? row.apiPath || '' : '',
-        apiMethod: isEdit && row.apiMethod ? row.apiMethod || '' : '',
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true
-    })
+    const row = props.data
+    // 先重置为干净默认值，避免上次编辑字段（如 apiId、createTime）残留到新增请求
+    Object.assign(formData, getDefaultFormData())
+    delete (formData as Record<string, unknown>).createTime
+    delete (formData as Record<string, unknown>).createBy
+    delete (formData as Record<string, unknown>).updateTime
+    delete (formData as Record<string, unknown>).updateBy
+    delete (formData as Record<string, unknown>).delFlag
+    if (isEdit && row) {
+        Object.assign(formData, {
+            apiId: row.apiId,
+            apiName: row.apiName || '',
+            apiPath: row.apiPath || '',
+            apiMethod: row.apiMethod || '',
+            remark: row.remark || '',
+            status: row.status ?? true,
+        })
+    }
 }
 
 /**

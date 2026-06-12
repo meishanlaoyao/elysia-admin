@@ -141,10 +141,7 @@ const deleteDict = (row: DeptListItem): void => {
         type: 'error'
     }).then(() => {
         fetchDeleteDept(row.deptId as number).then(() => {
-            ElMessage.success('删除成功')
             getData()
-        }).catch(() => {
-            ElMessage.error('删除失败')
         })
     })
 }

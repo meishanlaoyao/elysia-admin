@@ -48,17 +48,21 @@ const visible = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+function getDefaultFormData(): RoleListItem {
+  return {
+    roleId: undefined,
+    roleName: '',
+    roleCode: '',
+    sort: 0,
+    remark: '',
+    status: true,
+  }
+}
+
 /**
  * 表单数据
  */
-const form = reactive<RoleListItem>({
-  roleId: undefined,
-  roleName: '',
-  roleCode: '',
-  sort: 0,
-  remark: '',
-  status: true
-})
+const form = reactive<RoleListItem>(getDefaultFormData())
 
 /**
  * 表单项配置
@@ -130,16 +134,24 @@ watch(
 const initFormData = () => {
   loading.value = false
   const isEdit = props.dialogType === 'edit' && props.roleData
-  const row = props.roleData || {}
-  Object.assign(form, {
-    ...row,
-    roleId: isEdit && row.roleId ? row.roleId || undefined : undefined,
-    roleName: isEdit && row.roleName ? row.roleName || '' : '',
-    roleCode: isEdit && row.roleCode ? row.roleCode || '' : '',
-    sort: isEdit && row.sort ? row.sort || 0 : 0,
-    remark: isEdit && row.remark ? row.remark || '' : '',
-    status: isEdit ? row.status : true,
-  })
+  const row = props.roleData
+  // 先重置为干净默认值，避免上次编辑字段（如 roleId、createTime）残留到新增请求
+  Object.assign(form, getDefaultFormData())
+  delete (form as Record<string, unknown>).createTime
+  delete (form as Record<string, unknown>).createBy
+  delete (form as Record<string, unknown>).updateTime
+  delete (form as Record<string, unknown>).updateBy
+  delete (form as Record<string, unknown>).delFlag
+  if (isEdit && row) {
+    Object.assign(form, {
+      roleId: row.roleId,
+      roleName: row.roleName || '',
+      roleCode: row.roleCode || '',
+      sort: row.sort ?? 0,
+      remark: row.remark || '',
+      status: row.status ?? true,
+    })
+  }
 }
 
 /**

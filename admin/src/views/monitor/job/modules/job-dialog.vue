@@ -45,14 +45,19 @@ const title = computed(() => (props.type === 'add' ? '新增定时任务' : '编
 // 表单实例
 const formRef = ref()
 
+function getDefaultFormData() {
+    return {
+        jobId: undefined as number | undefined,
+        jobName: '',
+        jobCron: '',
+        jobArgs: '',
+        status: true,
+        remark: '',
+    }
+}
+
 // 表单数据
-const formData = reactive({
-    jobName: '',
-    jobCron: '',
-    jobArgs: '',
-    status: true,
-    remark: ''
-})
+const formData = reactive(getDefaultFormData())
 
 // 表单项配置
 const formItems = computed<FormItem[]>(() => [
@@ -108,15 +113,24 @@ const rules: FormRules = {
 const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
-    const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        jobName: isEdit && row.jobName ? row.jobName || '' : '',
-        jobCron: isEdit && row.jobCron ? row.jobCron || '' : '',
-        jobArgs: isEdit && row.jobArgs ? row.jobArgs || '' : '',
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true
-    })
+    const row = props.data
+    // 先重置为干净默认值，避免上次编辑字段（如 jobId、createTime）残留到新增请求
+    Object.assign(formData, getDefaultFormData())
+    delete (formData as Record<string, unknown>).createTime
+    delete (formData as Record<string, unknown>).createBy
+    delete (formData as Record<string, unknown>).updateTime
+    delete (formData as Record<string, unknown>).updateBy
+    delete (formData as Record<string, unknown>).delFlag
+    if (isEdit && row) {
+        Object.assign(formData, {
+            jobId: row.jobId,
+            jobName: row.jobName || '',
+            jobCron: row.jobCron || '',
+            jobArgs: row.jobArgs || '',
+            remark: row.remark || '',
+            status: row.status ?? true,
+        })
+    }
 }
 
 /**

@@ -45,17 +45,22 @@ const title = computed(() => (props.type === 'add' ? '新增存储配置' : '编
 // 表单实例
 const formRef = ref()
 
+function getDefaultFormData() {
+    return {
+        storageId: undefined as number | undefined,
+        name: '',
+        endpoint: '',
+        bucket: '',
+        accessKey: '',
+        secretKey: '',
+        status: true,
+        remark: '',
+        region: '',
+    }
+}
+
 // 表单数据
-const formData = reactive({
-    name: '',
-    endpoint: '',
-    bucket: '',
-    accessKey: '',
-    secretKey: '',
-    status: true,
-    remark: '',
-    region: '',
-})
+const formData = reactive(getDefaultFormData())
 
 // 表单项配置
 const formItems = computed<FormItem[]>(() => [
@@ -139,18 +144,27 @@ const rules: FormRules = {
 const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
-    const row = props.data || {}
-    Object.assign(formData, {
-        ...row,
-        name: isEdit && row.name ? row.name || '' : '',
-        endpoint: isEdit && row.endpoint ? row.endpoint || '' : '',
-        bucket: isEdit && row.bucket ? row.bucket || '' : '',
-        accessKey: isEdit && row.accessKey ? row.accessKey || '' : '',
-        secretKey: isEdit && row.secretKey ? row.secretKey || '' : '',
-        remark: isEdit && row.remark ? row.remark || '' : '',
-        status: isEdit ? row.status : true,
-        region: isEdit && row.region ? row.region || '' : '',
-    })
+    const row = props.data
+    // 先重置为干净默认值，避免上次编辑字段（如 storageId、createTime）残留到新增请求
+    Object.assign(formData, getDefaultFormData())
+    delete (formData as Record<string, unknown>).createTime
+    delete (formData as Record<string, unknown>).createBy
+    delete (formData as Record<string, unknown>).updateTime
+    delete (formData as Record<string, unknown>).updateBy
+    delete (formData as Record<string, unknown>).delFlag
+    if (isEdit && row) {
+        Object.assign(formData, {
+            storageId: row.storageId,
+            name: row.name || '',
+            endpoint: row.endpoint || '',
+            bucket: row.bucket || '',
+            accessKey: row.accessKey || '',
+            secretKey: row.secretKey || '',
+            remark: row.remark || '',
+            status: row.status ?? true,
+            region: row.region || '',
+        })
+    }
 }
 
 /**
