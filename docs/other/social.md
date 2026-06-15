@@ -33,6 +33,8 @@ head:
 
 <img src="/social/qq_group1.webp" alt="QQ 交流群二维码" style="width: 240px;" />
 
+感谢支持本项目的朋友，名单见 [鸣谢](/other/sponsors)。
+
 ## 说在最后
 
 社区氛围很重要，进群之后多交流、多分享，有好的想法或者发现了问题都可以直接说。
