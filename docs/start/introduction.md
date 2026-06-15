@@ -17,7 +17,7 @@ head:
 <p align="center">
   <a href="https://gitee.com/nian-qian/elysia-admin">
     <img src="/big-logo.webp" style="width: 128px;" alt="Elysia Admin">
-    <h1 align="center">Elysia Admin</h1>
+    <h2 align="center">Elysia Admin</h2>
   </a>
 </p>
 
