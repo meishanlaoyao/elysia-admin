@@ -1,7 +1,7 @@
 {
-    "version": "1.4.9",
-    "publishDate": "2026-06-12",
-    "description": "修复后台 CRUD 弹窗编辑后再新增时表单主键与审计字段残留导致 create 接口报错；统一 getDefaultFormData 重置模式，覆盖部门、接口、角色、IP 黑名单、定时任务、存储配置共 6 个弹窗。",
+    "version": "1.4.10",
+    "publishDate": "2026-06-16",
+    "description": "新增系统管理「通知公告」菜单及前后端 CRUD，通知类型复用字典 system_notice_type，内容支持富文本编辑。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }

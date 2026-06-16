@@ -301,7 +301,8 @@
       "log": "Log Manage",
       "loginLog": "Login Log",
       "operLog": "Oper Log",
-      "storage": "Storage Config"
+      "storage": "Storage Config",
+      "notice": "Notice"
     },
     "monitor": {
       "title": "System Monitor",

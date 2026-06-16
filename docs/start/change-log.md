@@ -17,6 +17,10 @@ head:
 
 ## v1
 
+::: timeline v1.4.10(2026-06-16)
+- 新增了系统管理「通知公告」菜单及前后端 CRUD，通知类型复用字典 `system_notice_type`，内容支持富文本编辑；
+:::
+
 ::: timeline v1.4.9(2026-06-12)
 - 修复了后台 CRUD 弹窗「编辑后再新增」时表单数据未清理的问题：`initFormData` 使用 `Object.assign(formData, { ...row })` 会把列表行的主键（如 `deptId`、`apiId`）与审计字段挂到 reactive 表单上，切换新增后仍随 create 请求提交导致接口报错。
 - 统一改为 `getDefaultFormData()` 打开弹窗时先重置默认值、删除可能残留的审计字段、编辑模式再显式赋值；已修复部门（`dept-dialog`）、接口（`api-dialog`）、角色（`role-edit-dialog`）、IP 黑名单（`blacklist-dialog`）、定时任务（`job-dialog`）、存储配置（`storage-dialog`）共 6 个弹窗；字典、用户、菜单等页面此前已采用相同模式无需改动。

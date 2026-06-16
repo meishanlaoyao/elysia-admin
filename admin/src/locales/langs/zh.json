@@ -301,7 +301,8 @@
       "log": "日志管理",
       "loginLog": "登陆日志",
       "operLog": "操作日志",
-      "storage": "存储配置"
+      "storage": "存储配置",
+      "notice": "通知公告"
     },
     "monitor": {
       "title": "系统监控",
