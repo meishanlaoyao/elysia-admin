@@ -23,10 +23,11 @@ head:
 
 | 组件 | 选型 |
 |------|------|
-| 数据库 | PostgreSQL 16+ |
-| ORM | Drizzle ORM |
-| 缓存 | Redis 7+ |
-| 迁移 | Drizzle Kit |
+| 数据库 | PostgreSQL >= 16 |
+| ORM | [Drizzle ORM](https://orm.drizzle.team/) |
+| 数据库驱动 | [postgres](https://github.com/porsager/postgres)（轻量级 PG 驱动） |
+| 缓存 | Redis >= 6（[Ioredis](https://ioredis.org/)，会话、缓存与队列共用） |
+| 迁移 | Drizzle Kit（`bun run db:push` / `db:pull`，见下方常用命令） |
 
 ## 设计原则
 
@@ -61,6 +62,7 @@ flowchart TB
         R[system_role]
         M[system_menu]
         D[system_dict]
+        N[system_notice]
     end
     subgraph 监控 monitor
         J[monitor_job]
@@ -78,7 +80,7 @@ flowchart TB
 
 | 模块 | 表数量 | 主要职责 |
 |------|--------|----------|
-| 系统管理 | 14 | RBAC、字典、日志、存储、IP 黑名单 |
+| 系统管理 | 15 | RBAC、字典、日志、存储、IP 黑名单、通知公告 |
 | 监控管理 | 1 | 定时任务配置 |
 | 业务管理 | 5 | 商户、订单、支付、退款 |
 
@@ -260,6 +262,21 @@ erDiagram
 | region / endpoint / bucket | 区域、端点、桶 |
 | accessKey / secretKey | 密钥 |
 | status | 是否启用（同时仅一条可为 true） |
+
+### system_notice 通知公告
+
+后台「系统管理 → 通知公告」维护的系统公告，内容存 HTML（富文本编辑器）。
+
+| 字段 | 说明 |
+|------|------|
+| noticeId | PK |
+| title | 公告标题 |
+| noticeType | 通知类型，字典 `system_notice_type` |
+| content | 公告正文（HTML） |
+| status | 发布状态（启用 / 停用） |
+| sort | 排序 |
+
+Handoff SQL：`server/database/sql/system-notice-init.sql`（菜单与按钮权限）。
 
 ## 监控管理
 

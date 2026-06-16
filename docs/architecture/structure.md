@@ -293,6 +293,7 @@ elysia-admin/
 │   │   ├── system-ip-black       # IP 黑名单
 │   │   ├── system-login-log      # 登录日志
 │   │   ├── system-menu           # 菜单管理
+│   │   ├── system-notice         # 通知公告
 │   │   ├── system-oper-log       # 操作日志
 │   │   ├── system-role           # 角色管理
 │   │   ├── system-storage        # 存储配置
