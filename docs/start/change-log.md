@@ -19,6 +19,7 @@ head:
 
 ::: timeline v1.4.10(2026-06-16)
 - 新增了系统管理「通知公告」菜单及前后端 CRUD，通知类型复用字典 `system_notice_type`，内容支持富文本编辑；
+- 修复了系统用户批量删除对 uuid 主键无效的问题：`SoftDeleteByKeys` 原先对 `ctx.params.ids` 一律 `.map(Number)`，uuid 会变成 `NaN` 导致软删除失效；现按主键列 `dataType` 区分，`number` 仍转数字、`string`（含 uuid）保留原值；`system-user` 的 `remove` 改走 repository 抽象，移除 handle 内直连 `pg` 的写法。
 :::
 
 ::: timeline v1.4.9(2026-06-12)

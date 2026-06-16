@@ -242,14 +242,15 @@ export async function SoftDeleteByKeys<T extends PgTable>(
     schema: T,
     keyColumnName: string,
     ctx: AppContext | null | undefined,
-    customData?: number[]
+    customData?: (number | string)[]
 ) {
     const keyColumn = (schema as any)[keyColumnName];
     if (!keyColumn) throw new Error(`Column "${keyColumnName}" not found in schema`);
-    let ids = [];
+    let ids: (number | string)[] = [];
     let data: any = { delFlag: true, };
     if (ctx) {
-        ids = ctx.params.ids.split(',').map(Number) as number[];
+        const rawIds = ctx.params.ids.split(',');
+        ids = keyColumn.dataType === 'number' ? rawIds.map(Number) : rawIds;
         if (!ids || ids.length === 0) return;
         const updateByColumn = (schema as any)['updateBy'];
         const updateBy = ctx?.user?.userId || null;

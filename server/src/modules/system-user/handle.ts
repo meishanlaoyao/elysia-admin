@@ -1,6 +1,5 @@
 import type { AppContext } from '@/types/app-context';
-import pg from '@/core/database/pg';
-import { eq, inArray } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Get } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
@@ -13,6 +12,7 @@ import {
     UpdateByKeyAndRes,
     CreateQueryBuilder,
     FindPage,
+    SoftDeleteByKeys,
 } from '@/core/database/repository';
 import { ParseDateFields } from '@/types/dto';
 import { GetUserRoleIds } from '@/modules/system-role/handle';
@@ -133,12 +133,7 @@ export async function updatePassword(ctx: AppContext) {
 };
 
 export async function remove(ctx: AppContext) {
-    let ids = ctx.params.ids.split(',');
-    await pg.update(systemUserSchema).set({
-        delFlag: true,
-        updateTime: new Date(),
-        updateBy: ctx?.user?.userId,
-    }).where(inArray(systemUserSchema.userId, ids));
+    await SoftDeleteByKeys(systemUserSchema, 'userId', ctx);
     return BaseResultData.ok();
 };
 
