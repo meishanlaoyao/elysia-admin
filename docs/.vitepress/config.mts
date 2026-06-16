@@ -92,7 +92,7 @@ export default withMermaid(
         { text: 'AI', link: '/guide/ai-guide' },
         { text: '架构', link: '/architecture/structure' },
         { text: '生态', link: '/other/related-links' },
-        { text: 'Showcase', link: 'https://demo.elysia-admin.top/admin' },
+        { text: '业务包', link: '/other/business-packages' },
         { text: '更新日志', link: '/start/change-log' },
       ],
       sidebar: [

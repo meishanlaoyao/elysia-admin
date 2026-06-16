@@ -24,6 +24,7 @@ const links = [
   { text: 'AI', href: '/guide/ai-guide' },
   { text: '架构', href: '/architecture/structure' },
   { text: '生态', href: '/other/related-links' },
+  { text: '业务包', href: '/other/business-packages' },
   { text: '更新日志', href: '/start/change-log' },
 ]
 
