@@ -18,7 +18,7 @@ export type BusinessPackage = {
   badge?: string
 };
 
-/** 业务包列表：贡献者提 PR 在此追加条目，详见 /other/business-packages#contribute */
+/** 业务包列表：贡献者提 PR 在此追加条目，详见 /ecosystem/business-packages#contribute */
 export const businessPackages: BusinessPackage[] = [
   // {
   //   id: 'example-notice-module',

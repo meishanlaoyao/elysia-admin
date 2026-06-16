@@ -91,8 +91,13 @@ export default withMermaid(
         { text: '介绍', link: '/start/introduction' },
         { text: 'AI', link: '/guide/ai-guide' },
         { text: '架构', link: '/architecture/structure' },
-        { text: '生态', link: '/other/related-links' },
-        { text: '业务包', link: '/other/business-packages' },
+        {
+          text: '生态',
+          items: [
+            { text: '业务包', link: '/ecosystem/business-packages' },
+            { text: '相关链接', link: '/ecosystem/related-links' },
+          ],
+        },
         { text: '更新日志', link: '/start/change-log' },
       ],
       sidebar: [
@@ -129,12 +134,18 @@ export default withMermaid(
           ]
         },
         {
+          text: '生态',
+          items: [
+            { text: '业务包', link: '/ecosystem/business-packages' },
+            { text: '相关链接', link: '/ecosystem/related-links' },
+          ],
+        },
+        {
           text: '其他',
           items: [
             { text: '社交', link: '/other/social' },
             { text: '鸣谢', link: '/other/sponsors' },
             { text: '常见问题', link: '/other/faq' },
-            { text: '相关链接', link: '/other/related-links' },
           ]
         },
       ],

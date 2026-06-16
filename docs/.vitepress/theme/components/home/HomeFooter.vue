@@ -41,7 +41,8 @@ const cols: FooterColumn[] = [
   {
     title: '社区',
     links: [
-      { text: '相关链接', href: '/other/related-links' },
+      { text: '业务包', href: '/ecosystem/business-packages' },
+      { text: '相关链接', href: '/ecosystem/related-links' },
       { text: '社交', href: '/other/social' },
     ],
   },

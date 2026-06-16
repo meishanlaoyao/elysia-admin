@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { withBase, useRoute } from 'vitepress'
-import { Menu, X, Search } from 'lucide-vue-next'
+import { Menu, X, Search, ChevronDown } from 'lucide-vue-next'
 import { useEaVersion } from '../composables/useEaVersion'
 import { eaExternalLinkAttrs } from '../shared/linkAttrs'
 import EaDocSearch from './EaDocSearch.vue'
@@ -18,13 +18,26 @@ const props = withDefaults(
 const route = useRoute()
 const { data: version } = useEaVersion()
 
-const links = [
+type NavLink = { text: string; href: string }
+type NavGroup = { text: string; items: NavLink[] }
+type NavItem = NavLink | NavGroup
+
+function isNavGroup(item: NavItem): item is NavGroup {
+  return 'items' in item
+}
+
+const navItems: NavItem[] = [
   { text: '文档', href: '/start/quick-start' },
   { text: '介绍', href: '/start/introduction' },
   { text: 'AI', href: '/guide/ai-guide' },
   { text: '架构', href: '/architecture/structure' },
-  { text: '生态', href: '/other/related-links' },
-  { text: '业务包', href: '/other/business-packages' },
+  {
+    text: '生态',
+    items: [
+      { text: '业务包', href: '/ecosystem/business-packages' },
+      { text: '相关链接', href: '/ecosystem/related-links' },
+    ],
+  },
   { text: '更新日志', href: '/start/change-log' },
 ]
 
@@ -142,13 +155,26 @@ const navElevated = computed(() => props.solid || scrolled.value || menuOpen.val
             <span class="ea-drawer-search__label">搜索文档…</span>
           </button>
           <EaThemeToggle block @toggled="closeMenu" />
-          <a
-            v-for="l in links"
-            :key="l.text"
-            class="ea-drawer-link"
-            :href="l.href"
-            @click="closeMenu"
-          >{{ l.text }}</a>
+          <template v-for="item in navItems" :key="item.text">
+            <a
+              v-if="!isNavGroup(item)"
+              class="ea-drawer-link"
+              :href="item.href"
+              @click="closeMenu"
+            >{{ item.text }}</a>
+            <section v-else class="ea-drawer-nav-group">
+              <p class="ea-drawer-section-title">
+                {{ item.text }}
+              </p>
+              <a
+                v-for="sub in item.items"
+                :key="sub.text"
+                class="ea-drawer-link ea-drawer-link--sub"
+                :href="sub.href"
+                @click="closeMenu"
+              >{{ sub.text }}</a>
+            </section>
+          </template>
           <a
             class="ea-nav-btn ea-drawer-cta"
             href="/start/quick-start"
@@ -201,12 +227,34 @@ const navElevated = computed(() => props.solid || scrolled.value || menuOpen.val
           v-bind="eaExternalLinkAttrs(versionExternal)"
         >v{{ version.version }}</a>
         <nav class="ml-0.5 hidden items-center gap-0.5 lg:flex">
-          <a
-            v-for="l in links"
-            :key="l.text"
-            class="rounded-lg px-2.5 py-2 text-[13px] text-fg-muted transition-colors duration-400 ease-out hover:bg-ea-nav-hover hover:text-fg xl:px-3"
-            :href="l.href"
-          >{{ l.text }}</a>
+          <template v-for="item in navItems" :key="item.text">
+            <a
+              v-if="!isNavGroup(item)"
+              class="rounded-lg px-2.5 py-2 text-[13px] text-fg-muted transition-colors duration-400 ease-out hover:bg-ea-nav-hover hover:text-fg xl:px-3"
+              :href="item.href"
+            >{{ item.text }}</a>
+            <div
+              v-else
+              class="ea-nav-dropdown group relative"
+            >
+              <button
+                type="button"
+                class="ea-nav-dropdown-trigger inline-flex items-center gap-0.5 rounded-lg px-2.5 py-2 text-[13px] text-fg-muted transition-colors duration-400 ease-out hover:bg-ea-nav-hover hover:text-fg xl:px-3"
+                aria-haspopup="true"
+              >
+                {{ item.text }}
+                <ChevronDown class="ea-nav-dropdown-icon h-3.5 w-3.5 opacity-60" stroke-width="2" />
+              </button>
+              <div class="ea-nav-dropdown-menu">
+                <a
+                  v-for="sub in item.items"
+                  :key="sub.text"
+                  class="ea-nav-dropdown-item"
+                  :href="sub.href"
+                >{{ sub.text }}</a>
+              </div>
+            </div>
+          </template>
         </nav>
       </div>
       <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">

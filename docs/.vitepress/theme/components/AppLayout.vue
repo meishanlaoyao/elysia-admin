@@ -11,8 +11,8 @@ const route = useRoute()
 const DefaultLayout = DefaultTheme.Layout
 
 const isBusinessPackagesPage = computed(() =>
-  route.path === '/other/business-packages'
-  || route.path === '/other/business-packages.html',
+  route.path === '/ecosystem/business-packages'
+  || route.path === '/ecosystem/business-packages.html',
 )
 </script>
 
