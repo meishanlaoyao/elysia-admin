@@ -4,15 +4,16 @@ import busuanzi from 'busuanzi.pure.js'
 import { Package, Search, ArrowDown } from 'lucide-vue-next'
 import SiteNav from './SiteNav.vue'
 import BusinessPackageList from './BusinessPackageList.vue'
-import { businessPackages } from '../data/business-packages'
+import { useBusinessPackages } from '../composables/useBusinessPackages'
 import { eaExternalLinkAttrs } from '../shared/linkAttrs'
 
+const { packages: businessPackages } = useBusinessPackages()
 const query = ref('')
 
 const filteredPackages = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return businessPackages
-  return businessPackages.filter((pkg) => {
+  if (!q) return businessPackages.value
+  return businessPackages.value.filter((pkg) => {
     const haystack = [pkg.name, pkg.description, pkg.author, ...pkg.eaVersions]
       .join(' ')
       .toLowerCase()
@@ -97,6 +98,7 @@ onMounted(() => {
             <input
               v-model="query"
               type="search"
+              autocomplete="off"
               placeholder="搜索名称、简介、作者或 EA 版本…"
               class="w-full rounded-xl border border-ea-strong bg-surface-1 py-2.5 pl-10 pr-4 text-sm text-fg placeholder:text-fg-subtle outline-none transition-[border-color,box-shadow] focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
             />

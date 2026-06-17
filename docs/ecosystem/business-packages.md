@@ -1,6 +1,9 @@
 ---
 title: 业务包 - Elysia Admin
 description: 社区贡献的可复用业务模块集合，快速查找并复用常见业务实现，减少重复造轮子。
+layout: false
+sidebar: false
+navbar: false
 head:
   - - meta
     - name: keywords
@@ -13,4 +16,8 @@ head:
       content: 社区贡献的可复用业务模块集合。
 ---
 
-<!-- 业务包页由 `.vitepress/theme/components/BusinessPackagesPage.vue` 全量渲染 -->
+<script setup lang="ts">
+import BusinessPackagesPage from '../.vitepress/theme/components/BusinessPackagesPage.vue'
+</script>
+
+<BusinessPackagesPage />
