@@ -25,7 +25,7 @@ export const businessPackages: BusinessPackage[] = [
     name: 'EA-CMS',
     eaVersions: ['1.4.10'],
     description: '面向 Elysia Admin 的可拷贝式 CMS 业务模块，提供文章、分类、标签的后台管理能力，含完整 RBAC 权限与菜单配置。',
-    author: 'EA-CMS',
+    author: '梅山老妖',
     cover: '',
     url: 'https://gitee.com/nian-qian/ea-cms',
     badge: `<a href='https://gitee.com/nian-qian/ea-cms/stargazers'><img src='https://gitee.com/nian-qian/ea-cms/badge/star.svg?theme=dark' alt='star'></img></a>`,
