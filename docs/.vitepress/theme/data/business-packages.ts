@@ -20,14 +20,14 @@ export type BusinessPackage = {
 
 /** 业务包列表：贡献者提 PR 在此追加条目，详见 /ecosystem/business-packages#contribute */
 export const businessPackages: BusinessPackage[] = [
-  // {
-  //   id: 'example-notice-module',
-  //   name: '通知公告模块',
-  //   eaVersions: ['1.4.10'],
-  //   description: '示例条目：系统管理下的通知公告 CRUD，含前后端与字典配置，可直接参考目录结构贡献自己的业务包。',
-  //   author: '巴豆豆',
-  //   cover: '/business-packages/example-notice-module.jpg',
-  //   url: 'https://github.com/meishanlaoyao/elysia-admin',
-  //   badge: '<img src="https://img.shields.io/github/stars/meishanlaoyao/elysia-admin?style=flat&logo=github" alt="GitHub stars" />',
-  // },
+  {
+    id: 'ea-cms',
+    name: 'EA-CMS',
+    eaVersions: ['1.4.10'],
+    description: '面向 Elysia Admin 的可拷贝式 CMS 业务模块，提供文章、分类、标签的后台管理能力，含完整 RBAC 权限与菜单配置。',
+    author: 'EA-CMS',
+    cover: '',
+    url: 'https://gitee.com/nian-qian/ea-cms',
+    badge: `<a href='https://gitee.com/nian-qian/ea-cms/stargazers'><img src='https://gitee.com/nian-qian/ea-cms/badge/star.svg?theme=dark' alt='star'></img></a>`,
+  },
 ];
