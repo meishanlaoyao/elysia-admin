@@ -130,16 +130,14 @@ export async function resetPassword(ctx: AppContext) {
 };
 
 export async function logout(ctx: AppContext) {
-        const userId = ctx?.user?.userId;
-        // 刷新token
-        const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
-        const oldKeys = await Keys(refreshKey) || [];
-        // 在线状态
-        const onlineKey = CacheEnum.ONLINE_USER + `${userId}`;
-        // 权限菜单
-        const menuKey = CacheEnum.ADMIN_MENU + `${userId}`;
-        await Del([...oldKeys, onlineKey, menuKey]);
-        return BaseResultData.ok();
+    const userId = ctx?.user?.userId;
+    if (!userId) return BaseResultData.ok();
+    const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
+    const oldKeys = await Keys(refreshKey) || [];
+    const onlineKey = CacheEnum.ONLINE_USER + `${userId}`;
+    const menuKey = CacheEnum.ADMIN_MENU + `${userId}`;
+    await Del([...oldKeys, onlineKey, menuKey]);
+    return BaseResultData.ok();
 };
 
 // 生成并存储令牌

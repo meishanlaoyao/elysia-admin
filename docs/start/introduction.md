@@ -159,4 +159,3 @@ flowchart TB
 | 名称 | 描述 | 地址 | 进度 |
 | --- | --- | --- | --- |
 | `master` | 主分支，包含最新版本的代码 | [https://gitee.com/nian-qian/elysia-admin/tree/master](https://gitee.com/nian-qian/elysia-admin/tree/master) | `已完成` |
-| `uniapp` | 微信小程序分支，用于开发微信小程序的分支 | [https://gitee.com/nian-qian/elysia-admin/tree/uniapp](https://gitee.com/nian-qian/elysia-admin/tree/uniapp) | `开发中` |

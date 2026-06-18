@@ -30,4 +30,14 @@ export const businessPackages: BusinessPackage[] = [
     url: 'https://gitee.com/nian-qian/ea-cms',
     badge: `<a href='https://gitee.com/nian-qian/ea-cms/stargazers'><img src='https://gitee.com/nian-qian/ea-cms/badge/star.svg?theme=dark' alt='star'></img></a>`,
   },
+  {
+    id: 'ea-wxmp',
+    name: 'EA-WxMP',
+    eaVersions: ['1.4.10'],
+    description: 'Elysia Admin 微信小程序全栈业务包：提供后端 API、后台管理页与 unibest 小程序客户端，覆盖应用配置、C 端用户、KV 参数、微信登录与双 Token 鉴权。',
+    author: '梅山老妖',
+    cover: '',
+    url: 'https://gitee.com/nian-qian/ea-wx-mp',
+    badge: `<a href='https://gitee.com/nian-qian/ea-wx-mp/stargazers'><img src='https://gitee.com/nian-qian/ea-wx-mp/badge/star.svg?theme=dark' alt='star'></img></a>`,
+  },
 ];
