@@ -188,6 +188,10 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.ea-bp-page :deep(.ea-site-nav) {
+  position: sticky;
+}
+
 .ea-bp-code code {
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
 }
