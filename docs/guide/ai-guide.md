@@ -1,10 +1,6 @@
 ---
 title: AI 开发指南
 description: 介绍 Cursor、Trae、Kiro、Codex、Claude Code 的项目规则与 `.ai/` 规范文档，配合提示词让 AI 按 Elysia Admin 风格生成前后端模块代码。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin AI 开发, AI 代码生成, Cursor, Trae, Kiro, Codex, Claude Code, 提示词模板
 ---
 
 # AI 开发指南

@@ -2,15 +2,14 @@
 import { computed, reactive } from 'vue'
 import { withBase } from 'vitepress'
 import { Package } from 'lucide-vue-next'
-import { businessPackages, type BusinessPackage } from '../data/business-packages'
+import type { BusinessPackage } from '../data/business-packages'
 import { eaExternalLinkAttrs } from '../shared/linkAttrs'
 
 const props = defineProps<{
-  /** 可选：外部传入过滤后的列表，默认读取 businessPackages */
-  items?: BusinessPackage[]
+  items: BusinessPackage[]
 }>()
 
-const packages = computed(() => props.items ?? businessPackages)
+const packages = computed(() => props.items)
 const coverFailed = reactive<Record<string, boolean>>({})
 
 function coverSrc(cover: string) {
@@ -18,7 +17,7 @@ function coverSrc(cover: string) {
   return withBase(cover)
 }
 
-function hasCover(pkg: (typeof businessPackages)[number]) {
+function hasCover(pkg: BusinessPackage) {
   return Boolean(pkg.cover) && !coverFailed[pkg.id]
 }
 

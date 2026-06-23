@@ -4,6 +4,7 @@ import vitepressProtectPlugin from "vitepress-protect-plugin"
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import timeline from "vitepress-markdown-timeline"
 import llmstxtPlugin from 'vitepress-plugin-llmstxt'
+import { buildSeoHead, DEFAULT_DESCRIPTION } from './seo'
 
 function loaderCustomIcon(path: string) {
   return localIconLoader(import.meta.url, path)
@@ -15,12 +16,13 @@ function loaderCustomIcon(path: string) {
 export default withMermaid(
   defineConfig({
     title: "Elysia Admin",
-    description: "一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。",
+    description: DEFAULT_DESCRIPTION,
     lang: 'zh-CN',
     appearance: false,
     sitemap: {
       hostname: "https://elysia-admin.top",
     },
+    transformHead: (ctx) => buildSeoHead(ctx),
     head: [
       [
         'script',
@@ -29,7 +31,9 @@ export default withMermaid(
       ],
       ['link', { rel: 'icon', href: '/favicon.ico' }],
       ['meta', { charset: 'utf-8' }],
-      ['meta', { name: 'description', content: '一个基于 Elysia.js + Art Design Pro 的现代化全栈后台管理系统。' }],
+      ['meta', { name: 'description', content: DEFAULT_DESCRIPTION }],
+      ['meta', { name: 'author', content: 'Elysia Admin' }],
+      ['meta', { name: 'robots', content: 'index, follow' }],
       [
         'script',
         {

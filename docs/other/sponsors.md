@@ -1,16 +1,6 @@
 ---
 title: 感谢支持 - Elysia Admin
 description: 感谢自愿打赏与支持 Elysia Admin 开源项目的朋友们，你们的鼓励是项目持续维护的动力。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin 鸣谢, 感谢支持, 打赏, 开源赞助
-  - - meta
-    - property: og:title
-      content: 感谢支持 - Elysia Admin
-  - - meta
-    - property: og:description
-      content: 感谢自愿支持 Elysia Admin 开源项目的朋友们。
 ---
 
 # 感谢支持

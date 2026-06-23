@@ -1,16 +1,6 @@
 ---
 title: 内置命令 - Elysia Admin 架构
 description: 详细说明 Elysia Admin 项目内置的所有命令，包括开发启动、生产构建、数据库操作及 Docker 管理命令的使用方法。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin 命令, bun dev, bun build, bun test, dev:debug, Bun 调试, debug.bun.sh, Docker, 数据库命令, PM2, 构建脚本
-  - - meta
-    - property: og:title
-      content: 内置命令 - Elysia Admin 架构
-  - - meta
-    - property: og:description
-      content: 查阅 Elysia Admin 所有内置命令，快速掌握开发、构建、部署的完整工作流。
 ---
 
 # 内置命令

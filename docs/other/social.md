@@ -1,16 +1,6 @@
 ---
 title: 找到我们 - Elysia Admin
 description: 加入 Elysia Admin 社区，通过微信或 QQ 群与作者及其他开发者交流，获取最新动态与技术支持。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin 社区, 微信群, QQ群, 联系作者, 技术交流
-  - - meta
-    - property: og:title
-      content: 找到我们 - Elysia Admin
-  - - meta
-    - property: og:description
-      content: 加入 Elysia Admin 社区，与作者和开发者们一起交流。
 ---
 
 # 找到我们

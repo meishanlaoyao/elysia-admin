@@ -1,23 +1,13 @@
 ---
 title: 介绍 - Elysia Admin
 description: 了解 Elysia Admin 是什么、核心特色、技术选型及内置功能，快速掌握这套基于 ElysiaJS + Vue3 的全栈后台管理解决方案。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin 介绍, ElysiaJS, Bun, Vue3, 全栈后台, RBAC权限, JWT认证, DrizzleORM, TypeScript
-  - - meta
-    - property: og:title
-      content: 介绍 - Elysia Admin
-  - - meta
-    - property: og:description
-      content: 了解 Elysia Admin 的核心特色、技术选型及内置功能。
 ---
 
 # 介绍
 <p align="center">
   <a href="https://gitee.com/nian-qian/elysia-admin">
     <img src="/big-logo.webp" style="width: 128px;" alt="Elysia Admin">
-    <h2 align="center">Elysia Admin</h2>
+    <p align="center" style="font-size: 1.5em; font-weight: 600; margin: 0;">Elysia Admin</p>
   </a>
 </p>
 

@@ -1,16 +1,6 @@
 ---
 title: 支付集成 - Elysia Admin 指南
 description: 介绍 Elysia Admin 中支付宝、微信支付、PayPal 的统一支付适配层，包括 Pay 路由、商户配置、下单查询退款与异步回调，以及与商户配置表、业务支付模块的配合方式。
-head:
-  - - meta
-    - name: keywords
-      content: Elysia Admin 支付, 支付宝, 微信支付, PayPal, Pay, 商户配置, 异步回调
-  - - meta
-    - property: og:title
-      content: 支付集成 - Elysia Admin 指南
-  - - meta
-    - property: og:description
-      content: 使用 Pay(channel, platform) 统一接入多渠道多终端支付，完成下单、查询、退款与验签回调。
 ---
 
 # 支付集成
