@@ -23,7 +23,7 @@ export const businessPackages: BusinessPackage[] = [
   {
     id: 'ea-cms',
     name: 'EA-CMS',
-    eaVersions: ['1.4.10'],
+    eaVersions: ['1.4.10+'],
     description: '面向 Elysia Admin 的可拷贝式 CMS 业务模块，提供文章、分类、标签的后台管理能力，含完整 RBAC 权限与菜单配置。',
     author: '梅山老妖',
     cover: '',
@@ -33,7 +33,7 @@ export const businessPackages: BusinessPackage[] = [
   {
     id: 'ea-wxmp',
     name: 'EA-WxMP',
-    eaVersions: ['1.4.10'],
+    eaVersions: ['1.4.10+'],
     description: 'Elysia Admin 微信小程序全栈业务包：提供后端 API、后台管理页与 unibest 小程序客户端，覆盖应用配置、C 端用户、KV 参数、微信登录与双 Token 鉴权。',
     author: '梅山老妖',
     cover: '',

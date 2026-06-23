@@ -17,8 +17,14 @@ head:
 
 ## v1
 
+::: timeline v1.4.11(2026-06-23)
+- 修复了生产环境打包部署后静态资源路径错误：`staticPlugin` 原先使用 `resolve(import.meta.dirname, '../public')`，打包后 `index.js` 位于部署目录（如 `/www/wwwroot/elysia-admin`）时实际解析到上一级 `public/`（如 `/www/wwwroot/public`），与 `build` 复制到 `dist/public` 的布局不一致，启动时报 `ENOENT: no such file or directory`；生产环境改为同目录 `public`，开发环境保持 `../public` 指向 `server/public`。
+- 修复了未登录调用登出接口可能误删缓存的问题：`logout` 在无 `userId` 时直接返回成功，避免 `undefined` 拼入 Redis key 前缀。
+:::
+
 ::: timeline v1.4.10(2026-06-16)
 - 新增了系统管理「通知公告」菜单及前后端 CRUD，通知类型复用字典 `system_notice_type`，内容支持富文本编辑；
+- 新增了仪表盘「分析页」「电商页」示例（`dashboard/analysis`、`dashboard/ecommerce`），含销售趋势、热门商品、访客洞察等演示模块，种子数据补充对应菜单；
 - 修复了系统用户批量删除对 uuid 主键无效的问题：`SoftDeleteByKeys` 原先对 `ctx.params.ids` 一律 `.map(Number)`，uuid 会变成 `NaN` 导致软删除失效；现按主键列 `dataType` 区分，`number` 仍转数字、`string`（含 uuid）保留原值；`system-user` 的 `remove` 改走 repository 抽象，移除 handle 内直连 `pg` 的写法。
 :::
 

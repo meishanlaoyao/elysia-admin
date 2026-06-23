@@ -24,6 +24,7 @@ head:
 <script setup>
 const sponsors = [
   { avatar: '/tip/蜗牛先生.jpg', nickname: '蜗牛先生' },
+  { avatar: '/tip/夏天.jpg', nickname: '夏天' },
 ]
 </script>
 

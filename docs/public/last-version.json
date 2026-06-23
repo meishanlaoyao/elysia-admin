@@ -1,7 +1,7 @@
 {
-    "version": "1.4.10",
-    "publishDate": "2026-06-16",
-    "description": "新增系统管理「通知公告」菜单及前后端 CRUD，通知类型复用字典 system_notice_type，内容支持富文本编辑。",
+    "version": "1.4.11",
+    "publishDate": "2026-06-23",
+    "description": "修复生产环境部署后 staticPlugin 静态资源路径错误导致 ENOENT，以及未登录调用登出接口可能误删 Redis 缓存的问题。",
     "changelogUrl": "https://elysia-admin.top/start/change-log.html",
     "forceUpdate": false
 }
