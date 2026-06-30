@@ -8,6 +8,10 @@ const AppSchema = z.object({
     port: z.number(),
     /** API 路由前缀，如 /api */
     prefix: z.string(),
+    /** 静态资源所在目录，如 /public */
+    staticDir: z.string(),
+    /** 静态资源前缀，如 /public */
+    staticPrefix: z.string(),
     /** 默认缓存过期时间（秒），登录失败计数、WithCache 等复用 */
     baseCacheTime: z.number(),
     /** 忘记密码令牌在 Redis 中的有效期（秒） */
@@ -28,6 +32,10 @@ const AppSchema = z.object({
     trustedProxyCidrs: z.array(z.string()),
     /** CORS 允许来源：true 允许全部，或字符串/字符串数组指定域名 */
     corsOrigin: z.union([z.boolean(), z.string(), z.array(z.string())]),
+    /** CORS Methods */
+    corsMethods: z.union([z.array(z.string()), z.string()]),
+    /** CORS allowedHeaders */
+    corsAllowedHeaders: z.union([z.array(z.string()), z.string()]),
     /** IP 归属地查询（ipinfo.io）超时（毫秒），失败时降级为「未知」 */
     geoIpTimeoutMs: z.number(),
 }).strict();

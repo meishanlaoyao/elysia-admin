@@ -16,7 +16,7 @@ import { ConfigureOpenAPI } from '@/infrastructure/openapi';
 export async function CreateApp() {
     const appEnv = process.env.NODE_ENV || 'development';
     const isProduction = appEnv === 'production';
-    const { prefix, maxRequestBodySize, timeout } = config.app;
+    const { prefix, maxRequestBodySize, timeout, staticDir, staticPrefix, corsOrigin, corsMethods, corsAllowedHeaders } = config.app;
     const app = new Elysia({
         prefix: prefix as any,
         aot: true,
@@ -29,13 +29,15 @@ export async function CreateApp() {
             idleTimeout: timeout,
         }
     });
-    const corsOrigin = isProduction ? (config.app.corsOrigin ?? false) : (config.app.corsOrigin ?? true);
     app.use(cors({
-        origin: corsOrigin as any,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['authorization', 'content-type', 'accept'],
+        origin: corsOrigin,
+        methods: corsMethods,
+        allowedHeaders: corsAllowedHeaders,
     }));
-    app.use(await staticPlugin({ assets: resolve(import.meta.dirname, isProduction ? 'public' : '../public')}));
+    app.use(await staticPlugin({
+        assets: resolve(import.meta.dirname, isProduction ? staticDir : `../${staticDir}`),
+        prefix: staticPrefix,    
+    }));
     if (!isProduction) await ConfigureOpenAPI(app);
     GlobalMiddleware(app);
     GlobalResponseMiddleware(app);

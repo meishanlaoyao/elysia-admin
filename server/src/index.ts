@@ -35,13 +35,12 @@ async function bootstrap() {
         const { port, id } = config.app;
         const appPort = process.env.PORT || port;
         const appEnv = process.env.NODE_ENV || 'development';
+        const isProduction = appEnv === 'production';
         httpServer = app.listen(appPort) as unknown as HttpListenHandle;
         let appVersion: string | undefined;
-        if (appEnv !== 'production') {
+        if (!isProduction) {
             try {
-                const pkg = await Bun.file(new URL('../package.json', import.meta.url)).json() as {
-                    version?: string;
-                };
+                const pkg = await Bun.file(new URL('../package.json', import.meta.url)).json() as { version?: string };
                 appVersion = typeof pkg.version === 'string' ? pkg.version : 'unknown';
             } catch {
                 appVersion = 'unknown';
@@ -54,7 +53,7 @@ async function bootstrap() {
             env: appEnv,
             pid: process.pid,
             ...(appVersion !== undefined ? { appVersion } : {}),
-            openApiEnabled: appEnv !== 'production',
+            openApiEnabled: !isProduction,
             bunVersion: process.versions.bun || 'N/A',
         });
     } catch (error) {

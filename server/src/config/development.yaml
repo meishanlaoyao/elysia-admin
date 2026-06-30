@@ -2,6 +2,8 @@ app:
   id: "Elysia-Admin"
   port: 3000
   prefix: "/api"
+  staticDir: "public"
+  staticPrefix: "/"
   baseCacheTime: 300
   forgetPasswordExpiresIn: 600
   forgetPasswordUrl: "http://192.168.2.112:3006/#/auth/reset-password"
@@ -12,6 +14,8 @@ app:
   trustProxy: false
   trustedProxyCidrs: []
   corsOrigin: true
+  corsMethods: "*"
+  corsAllowedHeaders: "*"
   geoIpTimeoutMs: 1500
 
 jwt:
