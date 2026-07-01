@@ -2,7 +2,7 @@
   <a href="https://elysia-admin.top">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://elysia-admin.top/big-logo.webp">
-      <img src="./docs/public/big-logo.webp" height="128">
+      <img src="https://elysia-admin.top/big-logo.webp" height="128">
     </picture>
     <h1 align="center">Elysia Admin</h1>
   </a>

@@ -1,6 +1,5 @@
 # `.ai/` Documentation Index
-
-> **给人看的中文说明**见 [docs/guide/ai-guide.md](../docs/guide/ai-guide.md)。  
+ 
 > **AI-facing docs below are in English** for better agent comprehension and skill matching.
 
 This directory holds **Elysia Admin** AI development standards.
