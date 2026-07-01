@@ -1,6 +1,5 @@
 import { t } from 'elysia';
-import { CrudDto, BaseResultDto, BaseListQueryDto } from '@/types/dto';
-import { SelectBusinessRefund } from '@database/schema/business_refund';
+import { BaseResultDto } from '@/types/dto';
 
 export const CreateDto = {
     body: t.Object({

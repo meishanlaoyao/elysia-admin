@@ -4,8 +4,8 @@ import { CrudDto } from '@/types/dto';
 
 export const CreateDto = {
     body: t.Object({
-        username: t.String({ description: "用户名" }),
-        password: t.String({ description: "密码" }),
+        username: t.String({ description: "用户名", minLength: 1, error: '用户名不能为空' }),
+        password: t.String({ description: "密码", minLength: 1, error: '密码不能为空' }),
         nickname: t.Optional(t.String({ description: "昵称" })),
         email: t.Optional(t.String({ description: "邮箱" })),
         phone: t.Optional(t.String({ description: "手机号" })),
@@ -38,7 +38,7 @@ export const UpdateBasicDto = CrudDto.update(t.Omit(SelectSystemUser, ['password
 
 export const UpdatePasswordDto = t.Object({
     body: t.Object({
-        oldPassword: t.String({ description: "旧密码" }),
-        newPassword: t.String({ description: "新密码" }),
+        oldPassword: t.String({ description: "旧密码", minLength: 1, error: '旧密码不能为空' }),
+        newPassword: t.String({ description: "新密码", minLength: 1, error: '新密码不能为空' }),
     })
-})
+});

@@ -15,8 +15,8 @@ export const CacheKeyDto = {
 
 export const UpdateCacheDto = {
     body: t.Object({
-        cacheType: t.String({ minLength: 1, description: "缓存类型" }),
-        cacheKey: t.String({ description: "缓存键" }),
+        cacheType: t.String({ minLength: 1, description: "缓存类型", error: '缓存类型不符合要求' }),
+        cacheKey: t.String({ description: "缓存键", minLength: 1, error: '缓存键不符合要求' }),
         cacheValue: t.String({ minLength: 1, description: "缓存值", error: '缓存值不符合要求' }),
     })
 };
