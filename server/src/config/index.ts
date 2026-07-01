@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { Value } from '@sinclair/typebox/value';
 import { YAML } from 'bun';
-import { prettifyError } from 'zod';
 import { ConfigSchema, type IConfig } from './schema';
 
 const appEnv = process.env.NODE_ENV || 'development';
@@ -19,13 +19,15 @@ const raw = YAML.parse(text) as Record<string, unknown>;
     ...(raw.app as Record<string, unknown> | undefined),
 };
 
-const result = ConfigSchema.safeParse(raw);
-if (!result.success) {
-    console.error(`[config] 配置校验失败: ${configPath}\n${prettifyError(result.error)}`);
+if (!Value.Check(ConfigSchema, raw)) {
+    const detail = [...Value.Errors(ConfigSchema, raw)]
+        .map((e) => `  - ${e.path}: ${e.message}`)
+        .join('\n');
+    console.error(`[config] 配置校验失败: ${configPath}\n${detail}`);
     process.exit(1);
 };
 
-const config: IConfig = result.data;
+const config = raw as IConfig;
 
 export type { IConfig };
 export default config;

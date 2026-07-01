@@ -11,6 +11,7 @@ console.log(`
 
 const proc = Bun.spawn(["bun", "--inspect=6499", "src/index.ts"], {
   cwd: `${import.meta.dir}/..`,
+  env: { ...process.env, NODE_ENV: "development" },
   stdout: "inherit",
   stderr: "inherit",
   stdin: "inherit",

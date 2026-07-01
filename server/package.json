@@ -1,6 +1,6 @@
 {
   "name": "elysia-admin",
-  "version": "1.4.11",
+  "version": "1.4.12",
   "description": "一个基于 ElysiaJS + Bun + Vue 3 构建的全栈管理后台。",
   "keywords": [
     "Elysia Admin",
@@ -27,14 +27,15 @@
   "homepage": "https://elysia-admin.top",
   "bugs": "https://gitee.com/nian-qian/elysia-admin/issues",
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
-    "dev:debug": "bun --inspect=6499 src/index.ts",
-    "dev:debug:browser": "bun script/dev-debug.ts",
-    "dev:debug:watch": "bun --inspect=6499 --watch src/index.ts",
-    "dev:workers": "bun run script/build-processors.ts && bun run src/infrastructure/queue/runtime/worker.ts",
+    "dev": "NODE_ENV=development bun run --watch src/index.ts",
+    "dev:debug": "NODE_ENV=development bun --inspect=6499 src/index.ts",
+    "dev:debug:browser": "NODE_ENV=development bun script/dev-debug.ts",
+    "dev:debug:watch": "NODE_ENV=development bun --inspect=6499 --watch src/index.ts",
+    "dev:workers": "NODE_ENV=development bun run script/build-processors.ts && NODE_ENV=development bun run src/infrastructure/queue/runtime/worker.ts",
     "dev:all": "concurrently -n server,workers -c cyan,yellow \"bun run dev\" \"bun run dev:workers\"",
-    "build": "bun run script/build.ts",
-    "build:processors": "bun run script/build-processors.ts",
+    "build": "NODE_ENV=production bun run script/build.ts",
+    "build:processors": "NODE_ENV=production bun run script/build-processors.ts",
+    "start": "NODE_ENV=production bun dist/index.js",
     "db:push": "bun ./script/generate-dbconfig.ts push",
     "db:pull": "bun ./script/generate-dbconfig.ts pull",
     "docker:build": "docker build -t hnq1/elysia-admin:latest .",
@@ -60,8 +61,7 @@
     "ioredis": "^5.10.1",
     "jose": "^6.2.3",
     "nodemailer": "^7.0.13",
-    "postgres": "^3.4.9",
-    "zod": "^4.4.3"
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@elysiajs/openapi": "^1.4.15",

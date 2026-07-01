@@ -20,7 +20,7 @@ COPY ./src ./src
 ENV NODE_ENV=production
 
 # 构建应用
-RUN bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./server ./src/index.ts
+RUN bun build --compile --minify --target bun --outfile ./server ./src/index.ts
 
 # 使用Google的Distroless基础镜像
 FROM gcr.io/distroless/base

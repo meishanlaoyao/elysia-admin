@@ -1,28 +1,27 @@
 import { mkdirSync, cpSync } from 'node:fs';
 import { logger } from '@/shared/logger';
+import { bunBuildBaseArgs, discoverProcessorEntries } from './build-shared';
 
-const processors: Array<{ name: string; entry: string }> = [
-    { name: 'system-cron', entry: './src/infrastructure/queue/queues/system-cron/processor.ts' },
-    { name: 'flow-buffer', entry: './src/infrastructure/queue/queues/flow-buffer/processor.ts' },
-    { name: 'trade-order', entry: './src/infrastructure/queue/queues/trade-order/processor.ts' },
-];
-
+const processorEntries = discoverProcessorEntries();
+if (processorEntries.length === 0) {
+    logger.error('未在 src/infrastructure/queue/queues/*/processor.ts 发现任何 Processor');
+    process.exit(1);
+};
 mkdirSync('./dist/processors', { recursive: true });
-for (const p of processors) {
-    const result = Bun.spawnSync([
-        'bun', 'build',
-        '--minify-whitespace', '--minify-syntax',
-        '--target', 'bun',
-        '--outfile', `./dist/processors/${p.name}.js`,
-        p.entry
-    ]);
-    if (result.exitCode !== 0) {
-        logger.error(`Processor "${p.name}" 构建失败: ` + result.stderr.toString());
-        process.exit(1);
-    }
+const processorBuildResult = Bun.spawnSync([
+    ...bunBuildBaseArgs,
+    '--outdir', './dist/processors',
+    '--entry-naming', '[dir].[ext]',
+    '--chunk-naming', 'chunk-[hash].[ext]',
+    ...processorEntries.map((p) => p.entry),
+]);
+if (processorBuildResult.exitCode !== 0) {
+    logger.error('Processor 构建失败: ' + processorBuildResult.stderr.toString());
+    process.exit(1);
+};
+for (const p of processorEntries) {
     logger.success(`✓ dist/processors/${p.name}.js`);
 };
-
 // 复制 BullMQ 沙箱 bootstrap 文件（需要完整 cjs 目录，main.js 有相对路径依赖）
 const bullmqCjsDir = './node_modules/bullmq/dist/cjs';
 const distCjsDir = './dist/cjs';

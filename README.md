@@ -249,11 +249,8 @@ VITE_APP_TITLE=Elysia Admin
 ```bash
 cd server
 
-# 构建（Linux/macOS）
-NODE_ENV=production bun run build
-
-# Windows
-$env:NODE_ENV="production"; bun run build
+# 构建
+bun run build
 
 # 启动（主进程 + Worker 进程）
 pm2 start dist/ecosystem.config.cjs

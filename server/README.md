@@ -11,10 +11,6 @@ bun install
 ```
 2. 运行项目
 ```bash
-# 如果不是开发环境，需要设置回去
-$env:NODE_ENV="development"; bun dev
-
-# 运行项目
 bun dev
 ```
 
@@ -23,19 +19,15 @@ bun dev
 ### 普通 js 部署
 1. 构建项目
 ```bash
-# windows
-$env:NODE_ENV="production"; bun run build
-
-# linux | mac
-NODE_ENV="production"; bun run build
+bun run build
 ```
 
 2. 启动项目
 ```bash
-# 普通启动项目
-bun dist/index.js
+# 普通启动
+bun run start
 
-# pm2启动项目
+# pm2 启动（主进程 + Worker）
 pm2 start dist/ecosystem.config.cjs
 ```
 
