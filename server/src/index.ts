@@ -1,9 +1,17 @@
 ﻿import config from "@/config";
 import { CreateApp } from '@/app';
 import { logger } from '@/shared/logger';
-import { InitSeedData } from 'script/seed';
+import { InitSeedData } from 'script/seed.prod';
 import { StopAllCronJobs } from '@/infrastructure/cron/cron-scheduler';
 import { quitRedis } from '@/core/database/redis';
+
+async function runSeedData() {
+    if (process.env.NODE_ENV !== 'production') {
+        const { InitSeedDevData } = await import('script/seed.dev');
+        await InitSeedDevData();
+    };
+    await InitSeedData();
+};
 
 let shuttingDown = false;
 type HttpListenHandle = { stop?: () => void | Promise<unknown> };
@@ -31,7 +39,7 @@ process.on('SIGTERM', () => { void gracefulShutdown('SIGTERM'); });
 async function bootstrap() {
     try {
         const app = await CreateApp();
-        await InitSeedData();
+        await runSeedData();
         const { port, id } = config.app;
         const appPort = process.env.PORT || port;
         const appEnv = process.env.NODE_ENV || 'development';

@@ -261,7 +261,10 @@ pm2 start dist/ecosystem.config.cjs
 ```bash
 cd server
 bun docker:build
-bun docker:run
+# 运行建议加 --init，配置挂载至 /app/dist/production.yaml
+docker run -d --name elysia-admin --init -p 3000:3000 \
+  -v /path/to/production.yaml:/app/dist/production.yaml \
+  hnq1/elysia-admin:latest
 ```
 
 ### 前端部署
