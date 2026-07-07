@@ -1,9 +1,15 @@
-import { rmSync, mkdirSync, existsSync, cpSync, writeFileSync, readdirSync, renameSync } from 'node:fs';
+import { rmSync, mkdirSync, existsSync, cpSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import appConfig from '@/config';
 import { logger } from '@/shared/logger';
 import { generateRegistry } from './generate-registry';
-import { bunBuildBaseArgs, discoverProcessorEntries } from './build-shared';
+import {
+  discoverProcessorEntries,
+  generateBuildEntryStubs,
+  removeBuildEntryStubs,
+  runUnifiedBuild,
+  copyBullmqCjs,
+} from './build-shared';
 
 const distDir = './dist';
 const publicDir = './public';
@@ -18,63 +24,25 @@ generateRegistry({
   outputPath: './src/core/route-registry.generated.ts',
   exportName: 'allRoutes'
 });
-generateRegistry({
-  modulesPath: './src/modules',
-  fileName: 'task',
-  outputPath: './src/core/task-registry.generated.ts',
-  exportName: 'allTasks'
-});
 
-// 主进程 + Worker（共享 chunk，Worker 输出后重命名为 workers.js）
-const runtimeBuildResult = Bun.spawnSync([
-  ...bunBuildBaseArgs,
-  '--outdir', distDir,
-  '--entry-naming', '[name].[ext]',
-  '--chunk-naming', 'chunk-[hash].[ext]',
-  './src/index.ts',
-  './src/infrastructure/queue/runtime/worker.ts',
-]);
-if (runtimeBuildResult.exitCode !== 0) {
-  logger.error('主进程/Worker 构建失败:' + runtimeBuildResult.stderr.toString());
-  process.exit(1);
-}
-const workerOut = join(distDir, 'worker.js');
-const workersOut = join(distDir, 'workers.js');
-if (existsSync(workerOut)) {
-  renameSync(workerOut, workersOut);
-}
+// 主进程 + Worker + Processor 单次构建，共享 chunk
+const processorEntries = discoverProcessorEntries();
+const entrypoints = generateBuildEntryStubs(processorEntries);
+await runUnifiedBuild(entrypoints, distDir);
+
 logger.info('✓ 主进程构建完成 → dist/index.js');
 logger.info('✓ Worker 构建完成 → dist/workers.js');
-
-// BullMQ 沙箱 bootstrap
-const bullmqCjsDir = './node_modules/bullmq/dist/cjs';
-const releaseCjsDir = `${distDir}/dist/cjs`;
-mkdirSync(releaseCjsDir, { recursive: true });
-cpSync(bullmqCjsDir, releaseCjsDir, { recursive: true });
-logger.info('✓ BullMQ sandbox bootstrap → dist/dist/cjs/');
-
-// Processor（多入口共享 chunk；入口名取队列目录名，自动扫描 queues/*/processor.ts）
-mkdirSync(`${distDir}/processors`, { recursive: true });
-
-const processorEntries = discoverProcessorEntries();
 if (processorEntries.length === 0) {
   logger.warn('未发现 Processor（queues/*/processor.ts），跳过 processors 构建');
 } else {
-  const processorBuildResult = Bun.spawnSync([
-    ...bunBuildBaseArgs,
-    '--outdir', `${distDir}/processors`,
-    '--entry-naming', '[dir].[ext]',
-    '--chunk-naming', 'chunk-[hash].[ext]',
-    ...processorEntries.map((p) => p.entry),
-  ]);
-  if (processorBuildResult.exitCode !== 0) {
-    logger.error('Processor 构建失败: ' + processorBuildResult.stderr.toString());
-    process.exit(1);
-  }
   for (const p of processorEntries) {
     logger.info(`✓ Processor 构建完成 → dist/processors/${p.name}.js`);
-  }
-}
+  };
+};
+
+// BullMQ 沙箱 bootstrap
+copyBullmqCjs(distDir);
+logger.info('✓ BullMQ sandbox bootstrap → dist/dist/cjs/');
 
 // 静态资源
 if (existsSync(publicDir)) {
@@ -137,10 +105,8 @@ module.exports = {
 writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
 
 // 清理临时文件
-const generatedFiles = [
-  './src/core/task-registry.generated.ts',
-  './src/core/route-registry.generated.ts'
-];
+const generatedFiles = ['./src/core/route-registry.generated.ts'];
 generatedFiles.forEach(file => { if (existsSync(file)) rmSync(file); });
+removeBuildEntryStubs();
 logger.info('✓ 清理临时生成文件');
 logger.success(`构建完成 → ${appConfig.app.id}:${appConfig.app.port}`);

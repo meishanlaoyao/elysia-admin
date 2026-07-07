@@ -11,9 +11,6 @@
 /logs
 .pnp.js
 
-# generated files
-src/core/task-registry.generated.ts
-
 # testing
 /coverage
 

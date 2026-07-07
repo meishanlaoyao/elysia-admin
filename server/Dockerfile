@@ -1,41 +1,33 @@
-# 使用官方的Bun容器镜像作为基础镜像
-FROM oven/bun AS build
+FROM oven/bun:1-debian AS build
 
-# 在容器内设置工作目录
 WORKDIR /app
 
-# 复制项目文件
-COPY package.json package.json
-COPY bun.lock bun.lock
-COPY drizzle.config.ts drizzle.config.ts
-COPY tsconfig.json tsconfig.json
+COPY package.json bun.lock ./
+COPY tsconfig.json ./
+RUN bun install --frozen-lockfile
 
-# 安装依赖
-RUN bun install
+COPY script ./script
+COPY src ./src
+COPY database/base-schema.ts ./database/base-schema.ts
+COPY database/schema ./database/schema
+COPY public ./public
 
-# 复制项目代码
-COPY ./src ./src
-
-# 设置环境变量为生产环境
 ENV NODE_ENV=production
+RUN bun run build
 
-# 构建应用
-RUN bun build --compile --minify --target bun --outfile ./server ./src/index.ts
+FROM debian:bookworm-slim AS runtime
 
-# 使用Google的Distroless基础镜像
-FROM gcr.io/distroless/base
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# 设置工作目录
-WORKDIR /app
+COPY --from=build /usr/local/bin/bun /usr/local/bin/bun
 
-# 复制构建好的应用
-COPY --from=build /app/server server
+WORKDIR /app/dist
 
-# 设置环境变量为生产环境
-ENV NODE_ENV=production 
+COPY --from=build /app/dist ./
 
-# 定义容器启动时执行的命令
-CMD ["./server"]
-
-# 暴露应用端口
+ENV NODE_ENV=production
 EXPOSE 3000
+
+CMD ["sh", "-c", "trap 'kill -TERM $(jobs -p) 2>/dev/null; wait' TERM INT; bun run workers.js & bun run index.js & wait"]
