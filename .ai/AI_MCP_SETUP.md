@@ -2,6 +2,8 @@
 
 Configure these in Cursor or any MCP-capable IDE before module development. AI **MUST** prefer MCP read-only verification over guessing IDs or dict rows.
 
+**Runtime DB facts (dict, menu, permissions):** Postgres MCP read-only **first**. **NEVER** read `server/database/sql/pg.sql` — backup file; may not match live DB.
+
 ---
 
 ## Required: Postgres (`user-postgres`)

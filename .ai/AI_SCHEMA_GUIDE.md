@@ -64,7 +64,34 @@
 ## Handoff SQL vs Drizzle
 
 - **Drizzle schema:** structural source of truth (developer approval required)
-- **`server/database/sql/{module}-init.sql`:** dict, menu, permissions, seed — separate from DDL notes
+- **`server/database/sql/{module}-init.sql`:** dict, menu, permissions, seed — separate from DDL; **developer runs manually only**
+
+---
+
+## Apply schema (`db:push`)
+
+After creating or editing files under `server/database/schema/` (with developer approval):
+
+1. Check [`.ai/dev-preferences.local.md`](./dev-preferences.local.example.md) for `db_push: allowed`
+2. **If allowed** → run `bun run db:push` in `server/` and report result
+3. **If not set** → ask developer once whether AI may run `db:push`; on yes, create `.ai/dev-preferences.local.md` with `db_push: allowed` then run
+4. **If developer declines** → remind them to run manually in `server/`; do not run
+
+See [dev-preferences.local.example.md](./dev-preferences.local.example.md) for the preference file format.
+
+---
+
+## DB truth source (runtime data)
+
+When verifying dict, menu, permissions, or other **live DB state**:
+
+| Priority | Source | Use |
+|----------|--------|-----|
+| 1 | **Postgres MCP** (read-only SELECT) | Actual database — **MUST use first** when available |
+| 2 | `server/database/schema/` | Table/column structure when MCP unavailable |
+| — | **`server/database/sql/pg.sql`** | **NEVER read** — backup snapshot; may not match live DB |
+
+**NEVER** use `pg.sql` as a substitute for MCP or live queries. See [AI_MCP_SETUP.md](./AI_MCP_SETUP.md), [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
 
 ---
 

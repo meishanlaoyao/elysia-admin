@@ -33,6 +33,7 @@ project_doc_max_bytes = 65536
 改架构、依赖方向或读文件纪律时，请同步：
 
 - `.cursor/rules/`
+- `.qoder/rules/`
 - `.trae/rules/`
 - `.kiro/steering/`
 - `.claude/rules/`

@@ -55,15 +55,18 @@ server/database/sql/{module-name}-init.sql
 
 See [server/database/sql/README.md](../server/database/sql/README.md).
 
+Developer preferences (e.g. `db_push`): [dev-preferences.local.example.md](./dev-preferences.local.example.md) → copy to `.ai/dev-preferences.local.md` (gitignored).
+
 ---
 
 ## IDE Rules (same semantics)
 
 - Cursor: `.cursor/rules/`
+- Qoder: `.qoder/rules/`, `.qoder/skills/` — see `.qoder/README.md`
 - Trae: `.trae/rules/`
 - Kiro: `.kiro/steering/`
 - Codex: `AGENTS.md` (root), `server/AGENTS.md`, `admin/AGENTS.md` — see `.codex/README.md`
 - Claude Code: `.claude/CLAUDE.md`, `.claude/rules/` — see `.claude/README.md`
 - VS Code: `.vscode/` (settings, tasks, launch) + `elysia-admin.code-workspace`
 
-When updating architecture or file-reading discipline, sync all five Agent rule locations above.
+When updating architecture or file-reading discipline, sync all six Agent rule locations above.

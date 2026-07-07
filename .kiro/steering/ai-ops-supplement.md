@@ -24,7 +24,10 @@ Sub-guides:
 ## Key points
 
 - **Flow:** check `server/database/schema/` → **scaffold** (`create:module` + `create:page` from `server/`) → dict (no hardcoded enums) → frontend polish → single SQL at `server/database/sql/{module}-init.sql`
-- **Postgres MCP:** read-only for tables/dict/menu IDs; never DDL/write via MCP
-- **Menu SQL:** query DB before INSERT; permissions match `route.ts` and frontend auth
+- **Postgres MCP:** read-only for tables/dict/menu IDs; **MUST** prefer MCP over `pg.sql`; never DDL/write via MCP
+- **NEVER read** `server/database/sql/pg.sql` — backup; may not match live DB
+- **`db:push`:** after schema edits, check `.ai/dev-preferences.local.md`; ask once, then remember — see `.ai/AI_SCHEMA_GUIDE.md`
+- **Handoff SQL:** generate file only; developer runs manually; **NEVER** ad-hoc scripts/MCP execute
+- **Menu SQL:** query live DB before INSERT; permissions match `route.ts` and frontend auth
 - **Page quality:** `art-full-height`, `useDictStore`, see `AI_PAGE_QUALITY.md`
 - **Git:** AI read-only — no add/commit/push

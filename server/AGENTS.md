@@ -109,6 +109,21 @@ meta: {
 
 ---
 
+# Schema sync (db:push)
+
+After creating or editing files under `server/database/schema/`:
+
+1. Check `.ai/dev-preferences.local.md` for `db_push: allowed`
+2. If allowed → run `bun run db:push` in `server/` and report result
+3. If not set → ask developer once whether AI may run `db:push`; on yes, write preference file then run
+4. If developer declines → remind them to run manually; do not run
+
+**Handoff SQL (`server/database/sql/*-init.sql`):** generate file only. **NEVER** run via scripts, MCP write/execute, psql, or ad-hoc code.
+
+**DB facts (dict/menu/runtime data):** Postgres MCP read-only **first**; then `server/database/schema/`. **NEVER read** `server/database/sql/pg.sql` (stale backup).
+
+---
+
 # File Reading Rules for Backend Tasks
 
 - **New module**: read only `server/src/modules/system-api/` as reference, then use templates above

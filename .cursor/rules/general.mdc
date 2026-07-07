@@ -64,7 +64,7 @@ When the task matches **new CRUD module**, **business-***, **menu permission**, 
 
 For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md` **only if needed** — it does **not** replace `AI_CODE_EXAMPLES.md`.
 
-**Handoff SQL:** merge dict/menu/permission SQL into `server/database/sql/{module-name}-init.sql` for the developer to run manually (see `.ai/AI_HANDOFF_SQL.md`).
+**Handoff SQL:** merge dict/menu/permission SQL into `server/database/sql/{module-name}-init.sql` for the developer to run **manually only** (see `.ai/AI_HANDOFF_SQL.md`). **NEVER** run handoff SQL via scripts, psql, MCP write/execute, or ad-hoc code. **NEVER** pretend SQL was executed.
 
 **Git (read-only for AI):** `git status` / `git diff` / `git log` allowed. Do **not** `git add`, `commit`, `push`, or `stash` unless the user explicitly asks.
 
@@ -78,6 +78,7 @@ For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md
 **NEVER read these (ever):**
 - `node_modules/`
 - `dist/` or `build/`
+- `server/database/sql/pg.sql` (backup snapshot; may not match live DB — use Postgres MCP or schema files)
 - `admin/src/components/core/` (unless fixing a core component bug)
 - `server/src/core/` (unless the task explicitly touches infrastructure)
 - `database/schema/` other than the one table directly used in the current task

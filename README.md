@@ -153,6 +153,7 @@ elysia-admin/
 | `AGENTS.md` | Codex 及通用 AI 项目指引 | Codex 分层指令会缺失 |
 | `.ai/` | 任意 AI 辅助开发（模块 SOP、代码模板） | 不影响运行，AI 生成质量可能下降 |
 | `.cursor/` | Cursor 规则与 Skill | 仅 Cursor 失效 |
+| `.qoder/` | Qoder 规则与 Skill | 仅 Qoder 失效 |
 | `.claude/` | Claude Code 规则 | 仅 Claude Code 失效 |
 | `.codex/` | OpenAI Codex 说明 | 仅 Codex 失效 |
 | `.kiro/` | Kiro Steering | 仅 Kiro 失效 |

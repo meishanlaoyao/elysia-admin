@@ -1,3 +1,8 @@
+---
+description: Global architecture, dependency direction, file-reading discipline (always apply)
+alwaysApply: true
+---
+
 # Project Overview
 
 Full-stack admin system: **Vue 3 + TypeScript** frontend (Art Design Pro) + **Elysia + Bun** backend.
@@ -53,7 +58,7 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
-- Read `.ai/AI_MODULE_WORKFLOW.md` or use skill `.cursor/skills/elysia-module-dev/`
+- Read `.ai/AI_MODULE_WORKFLOW.md` or use skill `.qoder/skills/elysia-module-dev/`
 - **Standard single-table CRUD** with schema ready → read `.ai/AI_MODULE_SCAFFOLD.md`; prefer `bun run create:module` + `bun run create:page` from `server/` before hand-writing CRUD files
 - Sub-guides: `AI_SCHEMA_GUIDE.md`, `AI_HANDOFF_SQL.md`, `AI_PAGE_QUALITY.md`, `AI_UI_LAYOUT.md`, `AI_MCP_SETUP.md`
 
@@ -92,16 +97,3 @@ For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md
 - Scan entire directories to "understand the project"
 - Read all modules to find a pattern — use `.ai/AI_CODE_EXAMPLES.md` instead
 - Read `core/repository.ts` unless you need an obscure function not in the examples
-
----
-
-# `.ai` Doc Index
-
-- **`AI_MODULE_WORKFLOW.md`** — module dev main SOP
-- **`AI_MODULE_SCAFFOLD.md`** — `create:module` + `create:page` CRUD boilerplate (run from `server/`)
-- **`AI_CODE_EXAMPLES.md`** — code templates (primary for implementation)
-- **`AI_PAGE_QUALITY.md`** — list/search/dialog quality
-- **`AI_CONTEXT_CAPSULE.md`** — one-page quick ref
-- **`AI_SCHEMA_GUIDE.md`** / **`AI_HANDOFF_SQL.md`** / **`AI_UI_LAYOUT.md`** / **`AI_MCP_SETUP.md`**
-- **Cursor Skill:** `.cursor/skills/elysia-module-dev/SKILL.md`
-- Others: `AI_MODULE_STANDARD.md`, `AI_FRONTEND_RULES.md`, etc. — open when relevant only

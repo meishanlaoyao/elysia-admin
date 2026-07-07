@@ -1,3 +1,6 @@
 # Claude Code local overrides (not shared)
 CLAUDE.local.md
 .claude/settings.local.json
+
+# AI developer preferences (local, not shared)
+.ai/dev-preferences.local.md

@@ -9,8 +9,8 @@
 ## 0. MCP and Tooling
 
 - Recommend Postgres MCP — see [AI_MCP_SETUP.md](./AI_MCP_SETUP.md)
-- **Postgres MCP available:** query tables, dict, menu IDs read-only first
-- **No MCP:** read `server/database/schema/`; mark SQL placeholders; state "verify IDs before run"
+- **Postgres MCP available:** **MUST** query actual DB read-only first (dict, menu IDs, permissions) — **NEVER** read `server/database/sql/pg.sql` (stale backup)
+- **No MCP:** read `server/database/schema/` for structure; mark SQL placeholders; state "verify IDs before run"
 
 ---
 
@@ -32,6 +32,19 @@ Output (≤5 line plan + list):
 1. Search [`server/database/schema/`](../server/database/schema/) for related tables
 2. **No table:** design per [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md); **MUST ask developer** before editing drizzle files
 3. **Table exists:** read only that schema file for the current task
+
+---
+
+## 2.1 Apply schema (`db:push`)
+
+After editing Drizzle schema files (developer approved):
+
+1. Check `.ai/dev-preferences.local.md` for `db_push: allowed`
+2. If allowed → `bun run db:push` in `server/`; report result
+3. If not set → ask developer once; on yes, write preference file then run
+4. If declined → remind developer to run manually; do not run
+
+See [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md) and [dev-preferences.local.example.md](./dev-preferences.local.example.md).
 
 ---
 
@@ -93,9 +106,10 @@ Directory: `server/src/modules/{group}-{name}/`
 
 - **Path:** `server/database/sql/{module-name}-init.sql`
 - **Order:** dict → menu/buttons → role permissions → seed (optional)
-- Menu SQL **MUST** query DB first (MCP) — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
+- Menu SQL **MUST** query live DB first (Postgres MCP) — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 - File header: target env, `BEGIN`/`COMMIT`, MCP query summary
 - Developer runs manually — **NEVER** pretend SQL was executed
+- **NEVER** run handoff SQL via scripts, psql, MCP write/execute, ad-hoc code, temp API/CLI — see [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md) forbidden section
 
 ---
 

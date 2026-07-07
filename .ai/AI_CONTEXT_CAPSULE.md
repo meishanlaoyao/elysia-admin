@@ -22,8 +22,16 @@
 
 ## MCP
 
-- **Postgres (required):** read-only tables/dict/menu IDs; **NEVER** DDL/write via MCP → [AI_MCP_SETUP.md](./AI_MCP_SETUP.md)
+- **Postgres (required):** read-only tables/dict/menu IDs; **NEVER** DDL/write via MCP; **MUST** prefer MCP over `pg.sql` → [AI_MCP_SETUP.md](./AI_MCP_SETUP.md)
 - **Chrome DevTools (optional):** UI smoke after frontend
+
+---
+
+## Schema & SQL (Quick)
+
+- **`db:push`:** after schema edits, check `.ai/dev-preferences.local.md`; ask once, then remember — see [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md)
+- **Handoff SQL:** generate `server/database/sql/{module}-init.sql` only; developer runs manually; **NEVER** ad-hoc scripts or MCP execute
+- **NEVER read** `server/database/sql/pg.sql` (stale backup)
 
 ---
 

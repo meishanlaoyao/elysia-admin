@@ -33,4 +33,6 @@
 
 - 菜单/按钮写入前应先通过 Postgres MCP 只读查 `parent_id`、`sort`、permission 是否重复
 - 执行前请确认非生产环境
-- 已有全库初始化脚本见 `pg.sql`
+- **`pg.sql`：** 开发者全库备份快照，**可能与当前库不一致**；AI **禁止读取**作为 dict/menu 查证依据，应以 Postgres MCP 或实际库为准
+- **Handoff SQL：** AI 仅生成 `*-init.sql` 文件，**禁止**用脚本/MCP/psql/临时代码代跑；开发者手动执行
+- 偏好文件（如允许 AI 代跑 `db:push`）：见 `.ai/dev-preferences.local.example.md`

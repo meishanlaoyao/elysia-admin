@@ -10,6 +10,20 @@ Example: `server/database/sql/business-goods-init.sql`
 
 Developer runs manually in local/test — **NEVER** pretend SQL was executed.
 
+**NEVER read** `server/database/sql/pg.sql` for dict/menu/runtime data — it is a backup snapshot that may not match the live database. Use Postgres MCP (read-only) first; see [AI_MCP_SETUP.md](./AI_MCP_SETUP.md).
+
+---
+
+## Forbidden — AI must NOT execute handoff SQL
+
+AI **MUST NOT** run or apply handoff SQL on behalf of the developer:
+
+- Temporary scripts (bun, node, psql, shell one-liners, seed runners, one-off migration helpers)
+- Postgres MCP or any tool for **INSERT/UPDATE/DELETE/DDL** on handoff SQL content
+- Ad-hoc API endpoints, CLI wrappers, tests, or worker tasks created "just to apply SQL"
+
+**Only allowed:** generate/update the `*-init.sql` file, state the path, remind developer to run manually.
+
 ---
 
 ## File Structure (Fixed Order)
@@ -162,6 +176,7 @@ Example: `business:goods:create`, `business:goods:list`
 1. Header: `⚠ Postgres MCP unavailable — verify parent_id / path before run`
 2. Prefer subqueries on `system_menu.path`
 3. List manual verification items in delivery notes
+4. **Do NOT** read `server/database/sql/pg.sql` as a substitute — use schema files for structure only
 
 ---
 
