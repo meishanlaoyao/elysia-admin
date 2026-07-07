@@ -26,6 +26,7 @@ declare namespace Api {
         type OperLogList = Api.Common.PaginatedResponse<OperLogListItem>
 
         type OperLogSearchParams = Partial<
+            Pick<OperLogListItem, 'title' | 'action' | 'operName' | 'operIp' | 'requestMethod' | 'operatorType' | 'status'> &
             Api.Common.CommonSearchParams
         >
     }

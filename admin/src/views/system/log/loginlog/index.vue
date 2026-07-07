@@ -1,5 +1,6 @@
 <template>
     <div class="loginlog-page art-full-height">
+        <LoginLogSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams" />
         <ElCard class="art-table-card" shadow="never">
             <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
                 <template #left>
@@ -27,6 +28,7 @@ import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
 import { useDictStore } from '@/store/modules/dict'
 import { fetchGetLoginLogList, fetchDeleteLoginLog } from '@/api/system/loginlog'
+import LoginLogSearch from './modules/loginlog-search.vue'
 import LoginLogDetailDialog from './modules/loginlog-detail-dialog.vue'
 
 defineOptions({ name: 'LoginLog' })
@@ -42,13 +44,23 @@ const selectedRows = ref<LoginLogListItem[]>([])
 const detailDialogVisible = ref(false)
 const currentLogData = ref<LoginLogListItem | undefined>(undefined)
 
+const searchForm = ref({
+    loginName: undefined,
+    ipaddr: undefined,
+    loginType: undefined,
+    status: undefined,
+    daterange: undefined,
+})
+
 const {
     columns,
     columnChecks,
     data,
     loading,
     pagination,
+    getData,
     searchParams,
+    resetSearchParams,
     handleSizeChange,
     handleCurrentChange,
     refreshData
@@ -56,7 +68,7 @@ const {
     // 核心配置
     core: {
         apiFn: fetchGetLoginLogList,
-        apiParams: {},
+        apiParams: searchForm.value,
         paginationKey: { current: 'pageNum', size: 'pageSize' },
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
@@ -120,6 +132,13 @@ const {
         ]
     }
 })
+
+const handleSearch = (params: Record<string, any>) => {
+    const { daterange, ...filtersParams } = params
+    const [startTime, endTime] = Array.isArray(daterange) ? daterange : [null, null]
+    Object.assign(searchParams, { ...filtersParams, startTime, endTime })
+    getData()
+}
 
 /**
  * 处理表格行选择变化

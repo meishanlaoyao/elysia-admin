@@ -1,5 +1,6 @@
 <template>
     <div class="operlog-page art-full-height">
+        <OperLogSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams" />
         <ElCard class="art-table-card" shadow="never">
             <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
                 <template #left>
@@ -27,6 +28,7 @@ import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
 import { useTable } from '@/hooks/core/useTable'
 import { fetchGetOperLogList, fetchDeleteOperLog } from '@/api/system/operlog'
+import OperLogSearch from './modules/operlog-search.vue'
 import OperLogDetailDialog from './modules/operlog-detail-dialog.vue'
 import { useDictStore } from '@/store/modules/dict';
 
@@ -44,13 +46,26 @@ const selectedRows = ref<OperLogListItem[]>([])
 const detailDialogVisible = ref(false)
 const currentLogData = ref<OperLogListItem | undefined>(undefined)
 
+const searchForm = ref({
+    title: undefined,
+    action: undefined,
+    operName: undefined,
+    operIp: undefined,
+    requestMethod: undefined,
+    operatorType: undefined,
+    status: undefined,
+    daterange: undefined,
+})
+
 const {
     columns,
     columnChecks,
     data,
     loading,
     pagination,
+    getData,
     searchParams,
+    resetSearchParams,
     handleSizeChange,
     handleCurrentChange,
     refreshData
@@ -58,7 +73,7 @@ const {
     // 核心配置
     core: {
         apiFn: fetchGetOperLogList,
-        apiParams: {},
+        apiParams: searchForm.value,
         paginationKey: { current: 'pageNum', size: 'pageSize' },
         columnsFactory: () => [
             { type: 'selection' }, // 勾选列
@@ -140,6 +155,13 @@ const {
         ]
     }
 })
+
+const handleSearch = (params: Record<string, any>) => {
+    const { daterange, ...filtersParams } = params
+    const [startTime, endTime] = Array.isArray(daterange) ? daterange : [null, null]
+    Object.assign(searchParams, { ...filtersParams, startTime, endTime })
+    getData()
+}
 
 /**
  * 处理表格行选择变化

@@ -27,9 +27,17 @@ export async function findList(ctx: AppContext) {
         sortRule = "desc",
         startTime,
         endTime,
+        loginName,
+        ipaddr,
+        loginType,
+        status,
     } = ctx.query;
     const whereCondition = CreateQueryBuilder(systemLoginLogSchema)
         .eq('delFlag', false)
+        .like('loginName', loginName)
+        .like('ipaddr', ipaddr)
+        .eq('loginType', loginType)
+        .eq('status', status)
         .dateRange('createTime', startTime, endTime)
         .build();
     const res = await FindPage(systemLoginLogSchema, whereCondition, {

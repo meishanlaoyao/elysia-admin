@@ -28,9 +28,23 @@ export async function findList(ctx: AppContext) {
         sortRule = "desc",
         startTime,
         endTime,
+        title,
+        action,
+        operName,
+        operIp,
+        requestMethod,
+        operatorType,
+        status,
     } = ctx.query;
     const whereCondition = CreateQueryBuilder(systemOperLogSchema)
         .eq('delFlag', false)
+        .like('title', title)
+        .like('action', action)
+        .like('operName', operName)
+        .like('operIp', operIp)
+        .eq('requestMethod', requestMethod)
+        .eq('operatorType', operatorType)
+        .eq('status', status)
         .dateRange('createTime', startTime, endTime)
         .build();
     const res = await FindPage(systemOperLogSchema, whereCondition, {

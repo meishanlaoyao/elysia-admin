@@ -23,6 +23,7 @@ declare namespace Api {
         type LoginLogList = Api.Common.PaginatedResponse<LoginLogListItem>
 
         type LoginLogSearchParams = Partial<
+            Pick<LoginLogListItem, 'loginName' | 'ipaddr' | 'loginType' | 'status'> &
             Api.Common.CommonSearchParams
         >
     }
