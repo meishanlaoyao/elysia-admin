@@ -20,7 +20,7 @@ When the task matches **new CRUD module**, **business-***, **menu permission**, 
 
 - Read `.ai/AI_MODULE_WORKFLOW.md`
 - **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` — run `create:module` + `create:page` from `server/` when schema exists
-- Code templates: `.ai/AI_CODE_EXAMPLES.md` (primary — do not duplicate inline; skip full CRUD copy if scaffold ran)
+- Code templates: `.ai/AI_CODE_EXAMPLES_BACKEND.md` / `.ai/AI_CODE_EXAMPLES_FRONTEND.md` (section only; index: `AI_CODE_EXAMPLES.md`)
 - Handoff SQL output: `server/database/sql/{module-name}-init.sql`
 - Trigger phrases: `按 module dev workflow` / `走完整 SOP` / `先用脚手架` / `脚手架已生成`
 
@@ -38,7 +38,8 @@ Path-specific rules live in `.claude/rules/`:
 |------|---------|
 | `AI_MODULE_WORKFLOW.md` | Main SOP |
 | `AI_MODULE_SCAFFOLD.md` | CRUD scaffold CLI |
-| `AI_CODE_EXAMPLES.md` | Code templates |
+| `AI_CODE_EXAMPLES.md` | Template index |
+| `AI_CODE_EXAMPLES_BACKEND.md` / `_FRONTEND.md` | Code templates |
 | `AI_PAGE_QUALITY.md` | List/search/dialog quality |
 | `AI_SCHEMA_GUIDE.md` | Table design |
 | `AI_HANDOFF_SQL.md` | Menu/dict SQL |

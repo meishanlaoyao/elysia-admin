@@ -43,6 +43,6 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 
 #[[file:.ai/AI_CONTEXT_CAPSULE.md]]
 
-- **Module workflow:** `AI_MODULE_WORKFLOW.md`
-- **Code templates:** `AI_CODE_EXAMPLES.md`
+- **Module workflow:** `AI_MODULE_WORKFLOW.md` (prefer Skill checklist; full file only if ambiguous)
+- **Code templates:** `AI_CODE_EXAMPLES_BACKEND.md` / `AI_CODE_EXAMPLES_FRONTEND.md` (section only)
 - **Page quality + quick ref:** `AI_PAGE_QUALITY.md`, `AI_CONTEXT_CAPSULE.md` (on demand)

@@ -81,16 +81,47 @@ return BaseResultData.fail(404)      // not found
 
 ---
 
+# DTO Validation Error Messages (Required)
+
+`dto.ts` validation fields **MUST** include `error: '...'` with a readable Chinese user-facing message. Without it, `error-handler` returns JSON instead of readable text to the frontend.
+
+| Scenario | Rule |
+|---|---|
+| Required body fields (non-`t.Optional`) | `error: '${description}不能为空'` |
+| Constrained fields (`minLength` / `format` / `minimum` etc.) | Semantic `error`, e.g. `'用户名格式错误'` |
+| List query `t.Optional` fields | `error` optional (omitted values skip validation) |
+| Property name | Use **`error`**, never `errorMessage` |
+
+```ts
+// Good
+username: t.String({ description: '用户名', minLength: 1, error: '用户名不能为空' }),
+email: t.String({ error: '邮箱格式错误', format: 'email', minLength: 5 }),
+
+// Bad — frontend receives JSON validation detail
+username: t.String({ description: '用户名', minLength: 1 }),
+```
+
+Reference: `server/src/modules/auth/dto.ts`, `server/src/modules/system-user/dto.ts`.
+
+---
+
 # CrudDto (dto.ts shortcut)
 
 ```ts
 import { CrudDto } from '@/types/dto';
 import { InsertXxx, SelectXxx } from "@database/schema/xxx";
 
-export const CreateDto = CrudDto.create(InsertXxx, SelectXxx, ['requiredField1', 'requiredField2']);
+export const CreateDto = CrudDto.create(
+    InsertXxx,
+    SelectXxx,
+    ['requiredField1', 'requiredField2'],
+    { requiredField1: '字段1', requiredField2: '字段2' },  // fieldLabels → auto error
+);
 export const UpdateDto = CrudDto.update(SelectXxx, 'xxxId');
 export const ListDto   = CrudDto.list(SelectXxx, { extraField: t.Optional(t.String()) });
 ```
+
+When extending `dto.ts` manually (non-CrudDto body or extra validated fields), every `t.*()` with constraints **must** include `error`.
 
 ---
 
@@ -124,7 +155,7 @@ After creating or editing files under `server/database/schema/`:
 
 # File Reading Rules for Backend Tasks
 
-- **New module**: read only `server/src/modules/system-api/` as reference, then use templates above
+- **New module**: read only `server/src/modules/system-api/` as reference; templates → `.ai/AI_CODE_EXAMPLES_BACKEND.md` (matching section only)
 - **Modify module**: read only the specific file being changed
 - **Need schema**: read only `database/schema/{table}.ts` for the table used
 - **Need repository signature**: check the list above first; read `core/database/repository.ts` only if not listed

@@ -98,6 +98,25 @@ export const ParseDateFields = (data: any) => {
 };
 
 /**
+ * 根据字段类型与标签构建带 error 的必填校验 schema
+ */
+const buildRequiredFieldSchema = (
+    label: string,
+    tsType: 'string' | 'number' | 'boolean',
+) => {
+    const error = `${label}不能为空`;
+    const description = label;
+    switch (tsType) {
+        case 'number':
+            return t.Number({ description, error });
+        case 'boolean':
+            return t.Boolean({ description, error });
+        default:
+            return t.String({ description, minLength: 1, error });
+    }
+};
+
+/**
  * 标准 CRUD DTO 生成器
  */
 export const CrudDto = {
@@ -106,17 +125,37 @@ export const CrudDto = {
      * @param insertSchema Insert schema
      * @param selectSchema Select schema
      * @param requiredFields 必填字段数组
+     * @param fieldLabels 字段中文标签（传入后为必填字段生成 error）
+     * @param fieldTypes 字段 TS 类型（与 fieldLabels 配合使用）
      */
-    create: (insertSchema: any, selectSchema: any, requiredFields: string[]) => {
-        // 将 insertSchema 的所有字段变为可选
+    create: (
+        insertSchema: any,
+        selectSchema: any,
+        requiredFields: string[],
+        fieldLabels?: Record<string, string>,
+        fieldTypes?: Record<string, 'string' | 'number' | 'boolean'>,
+    ) => {
         const allOptional = t.Partial(insertSchema);
 
-        // 提取必填字段并设为必填
-        const required = t.Pick(insertSchema, requiredFields);
+        let body;
+        if (fieldLabels && Object.keys(fieldLabels).length > 0) {
+            const requiredObj: Record<string, ReturnType<typeof buildRequiredFieldSchema>> = {};
+            for (const field of requiredFields) {
+                const label = fieldLabels[field] ?? field;
+                const tsType = fieldTypes?.[field] ?? 'string';
+                requiredObj[field] = buildRequiredFieldSchema(label, tsType);
+            }
+            body = t.Composite([
+                t.Object(requiredObj),
+                t.Omit(allOptional, requiredFields),
+            ]);
+        } else {
+            const required = t.Pick(insertSchema, requiredFields);
+            body = t.Composite([required, allOptional]);
+        }
 
-        // 合并：必填字段 + 其他可选字段
         return {
-            body: t.Composite([required, allOptional]),
+            body,
             ...BaseResultDto(selectSchema),
         };
     },

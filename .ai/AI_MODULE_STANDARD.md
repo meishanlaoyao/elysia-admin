@@ -54,6 +54,8 @@ Forbidden:
 
 dto.ts must be pure and side-effect free.
 
+**Validation error (required):** every validated field in `dto.ts` must include `error: '中文提示'` (use `error`, not `errorMessage`). Required body fields: `'${description}不能为空'`; constrained fields: semantic messages like `'用户名格式错误'`. Without `error`, the frontend receives JSON instead of readable text. List query `t.Optional` fields may omit `error`.
+
 ---
 
 # handle.ts (Business Layer)

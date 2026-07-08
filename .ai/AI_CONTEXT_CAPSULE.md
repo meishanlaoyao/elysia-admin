@@ -1,6 +1,6 @@
 # AI Context Quick Reference
 
-**Does NOT replace** [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md). Full SOP: **[AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md)**.
+**Does NOT replace** [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) / [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md). Full SOP: **[AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md)** (prefer Skill checklist first).
 
 ---
 
@@ -10,7 +10,8 @@
 |----------|------|
 | New business module | [AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md) + Skill `.cursor/skills/elysia-module-dev/` |
 | Standard CRUD + schema exists | [AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md) — run `create:module` + `create:page` first |
-| Write code | [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md) |
+| Write backend code | [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) — section only |
+| Write frontend code | [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md) — section only |
 | Table design | [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md) |
 | Dict / menu SQL | [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md) |
 | Page quality | [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) |

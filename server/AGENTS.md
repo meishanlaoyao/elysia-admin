@@ -83,13 +83,33 @@ return BaseResultData.fail(404)      // not found
 
 ---
 
+# DTO Validation Error Messages (Required)
+
+`dto.ts` validation fields **MUST** include `error: '...'` with a readable Chinese user-facing message. Without it, `error-handler` returns JSON instead of readable text to the frontend.
+
+| Scenario | Rule |
+|---|---|
+| Required body fields (non-`t.Optional`) | `error: '${description}不能为空'` |
+| Constrained fields (`minLength` / `format` / `minimum` etc.) | Semantic `error`, e.g. `'用户名格式错误'` |
+| List query `t.Optional` fields | `error` optional (omitted values skip validation) |
+| Property name | Use **`error`**, never `errorMessage` |
+
+Reference: `server/src/modules/auth/dto.ts`, `server/src/modules/system-user/dto.ts`.
+
+---
+
 # CrudDto (dto.ts shortcut)
 
 ```ts
 import { CrudDto } from '@/types/dto';
 import { InsertXxx, SelectXxx } from "@database/schema/xxx";
 
-export const CreateDto = CrudDto.create(InsertXxx, SelectXxx, ['requiredField1', 'requiredField2']);
+export const CreateDto = CrudDto.create(
+    InsertXxx,
+    SelectXxx,
+    ['requiredField1', 'requiredField2'],
+    { requiredField1: '字段1', requiredField2: '字段2' },  // fieldLabels → 自动生成 error
+);
 export const UpdateDto = CrudDto.update(SelectXxx, 'xxxId');
 export const ListDto   = CrudDto.list(SelectXxx, { extraField: t.Optional(t.String()) });
 ```

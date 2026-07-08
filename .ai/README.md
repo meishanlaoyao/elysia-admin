@@ -32,7 +32,9 @@ This directory holds **Elysia Admin** AI development standards.
 
 | File | Content |
 |------|---------|
-| **[AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md)** | Copy-paste backend/frontend templates |
+| **[AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md)** | Template index (routes to backend/frontend files) |
+| **[AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md)** | Backend copy-paste templates |
+| **[AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md)** | Frontend copy-paste templates |
 | [AI_MODULE_STANDARD.md](./AI_MODULE_STANDARD.md) | Backend four-file roles |
 | [AI_FRONTEND_RULES.md](./AI_FRONTEND_RULES.md) | Frontend structure + naming |
 | [AI_STRUCTURE.md](./AI_STRUCTURE.md) | Layered architecture |

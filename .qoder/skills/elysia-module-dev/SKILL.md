@@ -53,7 +53,8 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 ### 5. Backend
 
 - **Scaffold already ran:** edit `handle.ts` / extend `dto.ts` only; do **not** regenerate `route.ts` from templates
-- **No scaffold:** `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional); `.ai/AI_CODE_EXAMPLES.md`; reference `system-api/` only
+- **No scaffold:** `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional); `.ai/AI_CODE_EXAMPLES_BACKEND.md` (section only); reference `system-api/` only
+- **`dto.ts` error (required):** every validated field must include `error` with a readable Chinese user-facing message (`error`, not `errorMessage`); scaffold `CreateDto` auto-generates via `fieldLabels`
 - `meta.permission`: `group:name:action`
 
 ### 6. Dict
@@ -104,7 +105,8 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 |-----|---------|
 | `.ai/AI_MODULE_WORKFLOW.md` | Full SOP |
 | `.ai/AI_MODULE_SCAFFOLD.md` | `create:module` + `create:page` CLI |
-| `.ai/AI_CODE_EXAMPLES.md` | Code templates |
+| `.ai/AI_CODE_EXAMPLES_BACKEND.md` | Backend code templates |
+| `.ai/AI_CODE_EXAMPLES_FRONTEND.md` | Frontend code templates |
 | `.ai/AI_PAGE_QUALITY.md` | List/search/dialog quality |
 | `.ai/AI_SCHEMA_GUIDE.md` | Table design |
 | `.ai/AI_HANDOFF_SQL.md` | SQL templates |

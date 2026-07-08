@@ -91,14 +91,15 @@ Routes auto-register in dev — **do not** edit `modules/index.ts`.
 - `index.vue` / `*-search.vue` / `*-dialog.vue` — column formatters, dict wiring, layout per [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) / [AI_UI_LAYOUT.md](./AI_UI_LAYOUT.md)
 - `server/database/sql/{module-name}-init.sql` — dict, menu, buttons, role permissions — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 - Extend `dto.ts` only when validation rules differ from generated CrudDto
+- Scaffold-generated `CreateDto` includes `fieldLabels` → auto `error` on required fields; when manually extending `dto.ts`, **every** validated field must still include `error: '中文提示'`
 
 **DO NOT:**
 
-- Regenerate full CRUD skeleton from [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md) when scaffold files already exist
+- Regenerate full CRUD skeleton from [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) when scaffold files already exist
 - Rewrite `route.ts` / `api/*.ts` unless route shape must change
 - Read reference modules `system-api/` or `system/user/` for boilerplate — read **generated files** + the one schema file instead
 
-**Templates note:** Use `AI_CODE_EXAMPLES.md` for DTO edge cases or non-CRUD patterns only — not to replace scaffold output.
+**Templates note:** Use `AI_CODE_EXAMPLES_BACKEND.md` / `AI_CODE_EXAMPLES_FRONTEND.md` for edge cases or non-CRUD patterns only — not to replace scaffold output.
 
 ---
 

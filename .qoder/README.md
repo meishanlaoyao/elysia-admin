@@ -1,6 +1,6 @@
 # Qoder 项目规则（`.qoder/`）
 
-本目录为 [Qoder IDE / CLI](https://docs.qoder.com/) 配置，规则语义与 [`.cursor/rules/`](../.cursor/rules/) 对齐。**详细代码模板以** [`.ai/AI_CODE_EXAMPLES.md`](../.ai/AI_CODE_EXAMPLES.md) **为唯一详版**。
+本目录为 [Qoder IDE / CLI](https://docs.qoder.com/) 配置，规则语义与 [`.cursor/rules/`](../.cursor/rules/) 对齐。**代码模板：** [`.ai/AI_CODE_EXAMPLES_BACKEND.md`](../.ai/AI_CODE_EXAMPLES_BACKEND.md) / [`.ai/AI_CODE_EXAMPLES_FRONTEND.md`](../.ai/AI_CODE_EXAMPLES_FRONTEND.md)（按需读章节）。
 
 ## 文件结构
 
@@ -45,6 +45,6 @@ Postgres MCP 配置见 [`.ai/AI_MCP_SETUP.md`](../.ai/AI_MCP_SETUP.md)（需在 
 - `.claude/rules/`
 - Codex 的 `AGENTS.md`（根 / `server/` / `admin/`）
 
-代码模板详版仍以 [`.ai/AI_CODE_EXAMPLES.md`](../.ai/AI_CODE_EXAMPLES.md) 为唯一来源。
+代码模板仍以 [`.ai/AI_CODE_EXAMPLES_BACKEND.md`](../.ai/AI_CODE_EXAMPLES_BACKEND.md) / [`.ai/AI_CODE_EXAMPLES_FRONTEND.md`](../.ai/AI_CODE_EXAMPLES_FRONTEND.md) 为准（按需读章节）。
 
 标准 CRUD 模块优先使用 [`.ai/AI_MODULE_SCAFFOLD.md`](../.ai/AI_MODULE_SCAFFOLD.md)（`server/` 下 `bun run create:module` + `create:page`），再由 AI 补业务逻辑与 handoff SQL。

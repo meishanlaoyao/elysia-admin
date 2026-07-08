@@ -61,6 +61,8 @@ In dto.ts:
 Use existing validation pattern.
 Follow naming convention.
 
+**Validation error (required):** all validated fields must include `error: '中文提示'` (`error`, not `errorMessage`). Required body: `'${description}不能为空'`; constrained fields: semantic error text. Reference `server/src/modules/auth/dto.ts`.
+
 ---
 
 # Step 4 - Business Logic Rules

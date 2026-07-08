@@ -1,6 +1,6 @@
 # Claude Code 项目规则（`.claude/`）
 
-本目录为 [Claude Code](https://code.claude.com/) 配置，规则语义与 [`.cursor/rules/`](../.cursor/rules/) 对齐。**详细代码模板以** [`.ai/AI_CODE_EXAMPLES.md`](../.ai/AI_CODE_EXAMPLES.md) **为唯一详版**。
+本目录为 [Claude Code](https://code.claude.com/) 配置，规则语义与 [`.cursor/rules/`](../.cursor/rules/) 对齐。**代码模板：** [`.ai/AI_CODE_EXAMPLES_BACKEND.md`](../.ai/AI_CODE_EXAMPLES_BACKEND.md) / [`.ai/AI_CODE_EXAMPLES_FRONTEND.md`](../.ai/AI_CODE_EXAMPLES_FRONTEND.md)（按需读章节）；索引 [`.ai/AI_CODE_EXAMPLES.md`](../.ai/AI_CODE_EXAMPLES.md)。
 
 ## 文件结构
 

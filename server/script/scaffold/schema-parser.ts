@@ -10,6 +10,7 @@ export interface SchemaField {
     drizzleType: string;
     isPrimaryKey: boolean;
     isNotNull: boolean;
+    label: string;
 }
 
 export interface ParsedSchema {
@@ -75,11 +76,14 @@ function parseFields(tableBody: string): SchemaField[] {
         const [, name, drizzleType] = match;
         const isPrimaryKey = line.includes('.primaryKey()');
         const isNotNull = line.includes('.notNull()');
+        const labelMatch = line.match(/\/\/\s*(.+?)\s*$/);
+        const label = labelMatch?.[1]?.trim() || name;
         fields.push({
             name,
             drizzleType,
             isPrimaryKey,
             isNotNull,
+            label,
             tsType: drizzleToTsType(drizzleType, isPrimaryKey, name),
         });
     }

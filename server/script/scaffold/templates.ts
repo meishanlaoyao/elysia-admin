@@ -5,16 +5,36 @@ import {
     slugToUrlPath,
 } from './naming';
 
-function fieldLabel(fieldName: string): string {
-    return fieldName;
+function toDtoTsType(tsType: SchemaField['tsType']): 'string' | 'number' | 'boolean' {
+    if (tsType === 'number') return 'number';
+    if (tsType === 'boolean') return 'boolean';
+    return 'string';
 }
 
 function listDtoField(field: SchemaField): string {
-    const desc = fieldLabel(field.name);
+    const desc = field.label;
     if (field.tsType === 'boolean') {
         return `${field.name}: t.Optional(t.Boolean({ description: "${desc}" }))`;
     }
     return `${field.name}: t.Optional(t.String({ description: "${desc}" }))`;
+}
+
+function buildFieldLabelsBlock(schema: ParsedSchema): string {
+    if (schema.requiredFields.length === 0) return '';
+    const lines = schema.requiredFields.map((name) => {
+        const field = schema.businessFields.find((f) => f.name === name)!;
+        return `        ${name}: '${field.label}',`;
+    });
+    return `,\n    {\n${lines.join('\n')}\n    }`;
+}
+
+function buildFieldTypesBlock(schema: ParsedSchema): string {
+    if (schema.requiredFields.length === 0) return '';
+    const lines = schema.requiredFields.map((name) => {
+        const field = schema.businessFields.find((f) => f.name === name)!;
+        return `        ${name}: '${toDtoTsType(field.tsType)}',`;
+    });
+    return `,\n    {\n${lines.join('\n')}\n    }`;
 }
 
 function queryBuilderLine(field: SchemaField): string {
@@ -65,6 +85,8 @@ export function renderDto(ctx: BackendTemplateContext): string {
     const { schema } = ctx;
     const required = schema.requiredFields.map((f) => `'${f}'`).join(', ');
     const listFields = schema.listQueryFields.map(listDtoField).join(',\n        ');
+    const fieldLabelsBlock = buildFieldLabelsBlock(schema);
+    const fieldTypesBlock = buildFieldTypesBlock(schema);
 
     const listBlock = listFields
         ? `,\n    {\n        ${listFields},\n    }`
@@ -77,7 +99,7 @@ import { CrudDto } from '@/types/dto';
 export const CreateDto = CrudDto.create(
     ${schema.insertName},
     ${schema.selectName},
-    [${required}]
+    [${required}]${fieldLabelsBlock}${fieldTypesBlock}
 );
 
 export const UpdateDto = CrudDto.update(${schema.selectName}, '${schema.pkField.name}');

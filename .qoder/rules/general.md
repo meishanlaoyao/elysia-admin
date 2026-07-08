@@ -1,23 +1,11 @@
 ---
-description: Global architecture, dependency direction, file-reading discipline (always apply)
-alwaysApply: true
+paths:
+  - "**"
 ---
 
 # Project Overview
 
-Full-stack admin system: **Vue 3 + TypeScript** frontend (Art Design Pro) + **Elysia + Bun** backend.
-
-```
-elysia-admin/
-├── admin/src/        # Frontend (Vue 3)
-└── server/src/       # Backend (Elysia + Bun)
-    ├── modules/      # Business logic — one folder per module
-    ├── worker-sandbox/  # Sandbox worker task registry (queue processor imports here only)
-    ├── types/        # Hand-written importable types (*.ts); types/ambient/ for *.d.ts only
-    ├── core/         # Infrastructure (DO NOT modify)
-    ├── shared/       # Pure utilities (stateless)
-    └── infrastructure/ # External clients
-```
+Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/`). Layer layout: [`.ai/AI_STRUCTURE.md`](.ai/AI_STRUCTURE.md).
 
 ---
 
@@ -32,12 +20,12 @@ modules → infrastructure
 
 core  ✗→ modules
 shared ✗→ modules
-infrastructure ✗→ modules   (sandbox processor registers via worker-sandbox/, not infrastructure → modules)
+infrastructure ✗→ modules   (sandbox via worker-sandbox/, not infrastructure → modules)
 
 shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/cron/cron-scheduler.ts)
 ```
 
-**Server types:** `server/src/types/*.ts` = importable business/shared types; `server/src/types/ambient/*.d.ts` = ambient declarations only — do not put large business interfaces in ambient/.
+**Server types:** `server/src/types/*.ts` = importable types; `server/src/types/ambient/*.d.ts` = ambient only.
 
 ---
 
@@ -46,11 +34,12 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 1. Explain plan in **max 5 lines** before writing code
 2. List files to create or modify
 3. Generate **minimal** code — no extra abstraction
-4. Follow existing patterns strictly (see `.ai/AI_CODE_EXAMPLES.md`)
+4. Follow existing patterns (backend → `.ai/AI_CODE_EXAMPLES_BACKEND.md`; frontend → `.ai/AI_CODE_EXAMPLES_FRONTEND.md`)
 5. Do NOT introduce new dependencies
 6. Do NOT refactor unrelated files
 7. Ask before modifying database schema
 8. No over-engineering
+9. **`dto.ts` validation:** every validated field must include `error` with a readable Chinese user-facing message (`error`, not `errorMessage`) — see `server/AGENTS.md` / backend examples
 
 ---
 
@@ -58,42 +47,68 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
-- Read `.ai/AI_MODULE_WORKFLOW.md` or use skill `.qoder/skills/elysia-module-dev/`
-- **Standard single-table CRUD** with schema ready → read `.ai/AI_MODULE_SCAFFOLD.md`; prefer `bun run create:module` + `bun run create:page` from `server/` before hand-writing CRUD files
-- Sub-guides: `AI_SCHEMA_GUIDE.md`, `AI_HANDOFF_SQL.md`, `AI_PAGE_QUALITY.md`, `AI_UI_LAYOUT.md`, `AI_MCP_SETUP.md`
+- **Prefer** Skill `.cursor/skills/elysia-module-dev/` checklist; read `.ai/AI_MODULE_WORKFLOW.md` **only** when scope is ambiguous or user asks for full SOP
+- **Standard single-table CRUD** with schema ready → `.ai/AI_MODULE_SCAFFOLD.md`; run `create:module` + `create:page` from `server/` before hand-writing CRUD
+- Sub-guides (open **one at a time** as needed): `AI_SCHEMA_GUIDE.md`, `AI_HANDOFF_SQL.md`, `AI_PAGE_QUALITY.md`, `AI_UI_LAYOUT.md`, `AI_MCP_SETUP.md`
 
-For built-in UI paths, MCP, dict/menu alignment: read `.ai/AI_CONTEXT_CAPSULE.md` **only if needed** — it does **not** replace `AI_CODE_EXAMPLES.md`.
+For built-in UI paths, MCP, dict/menu: `.ai/AI_CONTEXT_CAPSULE.md` **only if needed**.
 
-**Handoff SQL:** merge dict/menu/permission SQL into `server/database/sql/{module-name}-init.sql` for the developer to run **manually only** (see `.ai/AI_HANDOFF_SQL.md`). **NEVER** run handoff SQL via scripts, psql, MCP write/execute, or ad-hoc code. **NEVER** pretend SQL was executed.
+**Handoff SQL:** `server/database/sql/{module-name}-init.sql` — developer runs **manually only**. **NEVER** scripts/MCP/psql/ad-hoc execute. **NEVER** pretend SQL was executed.
 
-**Git (read-only for AI):** `git status` / `git diff` / `git log` allowed. Do **not** `git add`, `commit`, `push`, or `stash` unless the user explicitly asks.
+**Git (read-only for AI):** `status` / `diff` / `log` only — no `add` / `commit` / `push` / `stash` unless user asks.
 
 ---
 
 # File Reading Discipline (Token Budget)
 
-> Rules and `.ai/AI_CODE_EXAMPLES.md` contain enough context.
-> Read source files **only when strictly necessary**.
+> Scoped rules + targeted example sections contain enough context. Read source files **only when strictly necessary**.
+
+**Code template routing (do NOT read the wrong file):**
+
+| Task | Read |
+|------|------|
+| Backend only | `.ai/AI_CODE_EXAMPLES_BACKEND.md` — **matching section only** |
+| Frontend only | `.ai/AI_CODE_EXAMPLES_FRONTEND.md` — **matching section only** |
+| Full-stack module | Each side on demand — **never** both files in full by default |
+| Index / naming | `.ai/AI_CODE_EXAMPLES.md` (index only, ~40 lines) |
+
+**Doc budget per task (hard rules):**
+
+- **Edit one existing file:** injected rules + **target file only** — **no** workflow / examples unless a pattern is missing
+- **Backend small change (incl. dto):** `backend.mdc` already loaded → backend example section only — **no** frontend examples
+- **Scaffold CRUD done:** generated files + one schema only — **no** `AI_MODULE_WORKFLOW.md` full read (use Skill checklist)
+- **Full-stack new module:** Skill + **at most 2–3** `.ai` docs per turn — **never** open 5+ large docs at once
 
 **NEVER read these (ever):**
-- `node_modules/`
-- `dist/` or `build/`
-- `server/database/sql/pg.sql` (backup snapshot; may not match live DB — use Postgres MCP or schema files)
+
+- `node_modules/`, `dist/`, `build/`
+- `server/database/sql/pg.sql`
 - `admin/src/components/core/` (unless fixing a core component bug)
-- `server/src/core/` (unless the task explicitly touches infrastructure)
-- `database/schema/` other than the one table directly used in the current task
+- `server/src/core/` (unless task explicitly touches infrastructure)
+- `database/schema/` other than the one table used in the current task
 
 **Read at most ONE reference module/page** when creating something new **without scaffold**:
-- Backend new module → read only `server/src/modules/system-api/`
-- Frontend new page → read only `admin/src/views/system/user/`
 
-**After module scaffold (`create:module` / `create:page`):** read only generated module/view files + the one schema file — **do not** read `system-api/` or `system/user/` for boilerplate
+- Backend → `server/src/modules/system-api/`
+- Frontend → `admin/src/views/system/user/`
 
-**When modifying existing code:**
-- Read only the specific file being modified
-- Read direct imports only if their type signatures are needed
+**After scaffold:** read only generated files + one schema — **do not** read `system-api/` or `system/user/`
 
-**Do NOT:**
-- Scan entire directories to "understand the project"
-- Read all modules to find a pattern — use `.ai/AI_CODE_EXAMPLES.md` instead
-- Read `core/repository.ts` unless you need an obscure function not in the examples
+**When modifying existing code:** target file only; direct imports only if types are needed
+
+**Do NOT:** scan directories, read all modules for patterns, or read `core/repository.ts` unless not covered by rules/examples
+
+---
+
+# `.ai` Doc Index (quick)
+
+| File | Purpose |
+|------|---------|
+| `AI_CODE_EXAMPLES.md` | Template **index** (routing only) |
+| `AI_CODE_EXAMPLES_BACKEND.md` / `_FRONTEND.md` | Copy-paste templates |
+| `AI_MODULE_WORKFLOW.md` | Full SOP (when Skill is not enough) |
+| `AI_MODULE_SCAFFOLD.md` | `create:module` + `create:page` |
+| `AI_CONTEXT_CAPSULE.md` | One-page ops quick ref |
+| Skill | `.cursor/skills/elysia-module-dev/SKILL.md` |
+
+Full index: [`.ai/README.md`](.ai/README.md)

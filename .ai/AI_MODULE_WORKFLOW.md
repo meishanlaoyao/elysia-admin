@@ -1,6 +1,10 @@
 # AI Module Development Workflow (SOP)
 
-**Purpose:** Step-by-step process for new or extended business modules. Code style: `AI_CODE_EXAMPLES.md`. This file defines **what to do first, what next**.
+**Purpose:** Step-by-step process for new or extended business modules. Code templates: [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) / [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md) (section only). Index: [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md).
+
+**Skip-read:** If `create:module` + `create:page` already ran → **start at Step 3 (backend polish)**; use Skill `.cursor/skills/elysia-module-dev/` checklist instead of reading this file in full.
+
+**Prefer Skill over this file** unless scope is ambiguous or user asks for full SOP.
 
 **NEVER:** skip steps, redesign architecture, change schema without approval, git commit for the developer.
 
@@ -78,7 +82,7 @@ Directory: `server/src/modules/{group}-{name}/`
 | `task.ts` | Optional; empty export if no jobs |
 
 - **If Step 2.5 scaffold ran:** edit generated files only — extend `handle.ts` / `dto.ts` as needed; **do not** regenerate CRUD from templates
-- **If no scaffold:** templates [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md); reference `server/src/modules/system-api/` only
+- **If no scaffold:** templates [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) (section only); reference `server/src/modules/system-api/` only
 - Routes auto-register — **do not** edit `modules/index.ts`
 - **NEVER** hardcode business enums — see step 4
 
@@ -168,4 +172,4 @@ Consider only with clear performance need; **MUST** state why:
 - Quick ref: `AI_CONTEXT_CAPSULE.md`
 - Scaffold: `AI_MODULE_SCAFFOLD.md`
 
-**On conflict:** follow **existing module code** in repo, then this file + `AI_CODE_EXAMPLES.md`.
+**On conflict:** follow **existing module code** in repo, then this file + `AI_CODE_EXAMPLES_BACKEND.md` / `AI_CODE_EXAMPLES_FRONTEND.md`.

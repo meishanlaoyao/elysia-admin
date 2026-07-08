@@ -117,5 +117,5 @@ Long fields (remark, rich text): `span: 24`.
 ## Related
 
 - [AI_UI_LAYOUT.md](./AI_UI_LAYOUT.md) — form span rules
-- [AI_CODE_EXAMPLES.md](./AI_CODE_EXAMPLES.md) — copy-paste templates
+- [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) / [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md) — copy-paste templates (section only)
 - [AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md) — full SOP

@@ -9,7 +9,7 @@ fileMatchPattern:
 
 与 [`.cursor/rules/frontend.mdc`](.cursor/rules/frontend.mdc) 同源。详细代码模板：
 
-#[[file:.ai/AI_CODE_EXAMPLES.md]]
+#[[file:.ai/AI_CODE_EXAMPLES_FRONTEND.md]]
 
 # Frontend File Structure
 
@@ -221,7 +221,7 @@ const handleClosed = () => formRef.value?.reset()
 
 # File Reading Rules for Frontend Tasks
 
-- **New page**: read only `admin/src/views/system/user/` as reference, then use templates above
+- **New page**: read only `admin/src/views/system/user/` as reference; templates → `.ai/AI_CODE_EXAMPLES_FRONTEND.md` (matching section only)
 - **Modify a component**: read only the specific `.vue` file being changed
 - **Need types**: read only `types/api/{module}.d.ts` for the specific module
 - **Need API functions**: check templates above; read `api/{group}/{module}.ts` only if you need to verify existing function names
