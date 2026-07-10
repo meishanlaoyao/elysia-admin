@@ -3,6 +3,8 @@
  */
 export const SensitiveFields = [
     'password',
+    'oldPassword',
+    'newPassword',
     'token',
     'privateKey',
     'publicKey',

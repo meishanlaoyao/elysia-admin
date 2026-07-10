@@ -27,6 +27,7 @@ export async function CreateApp() {
         serve: {
             maxRequestBodySize,
             idleTimeout: timeout,
+            reusePort: false,
         }
     });
     app.use(cors({

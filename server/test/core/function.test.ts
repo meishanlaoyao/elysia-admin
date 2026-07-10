@@ -71,6 +71,13 @@ describe('SanitizeObject', () => {
         expect(out.user).toBe('a');
         expect(obj.Password).toBe('secret');
     });
+
+    it('masks update password body fields', () => {
+        const obj = { body: { oldPassword: 'old123', newPassword: 'new456' } };
+        const out = SanitizeObject(obj, ['password', 'oldPassword', 'newPassword']);
+        expect(out.body.oldPassword).toBe('***');
+        expect(out.body.newPassword).toBe('***');
+    });
 });
 
 describe('IsStringifiedObjectOrArray', () => {

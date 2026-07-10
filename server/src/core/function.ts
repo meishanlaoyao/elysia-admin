@@ -16,6 +16,9 @@ export interface TreeOptions {
     omitKeys?: string[];
 }
 
+/** 树节点：在原始项基础上附加 children 数组 */
+export type TreeNode<T extends Record<string, any>> = T & { children: TreeNode<T>[] };
+
 /**
  * 列表转树结构
  * @param list 扁平列表数据
@@ -25,7 +28,7 @@ export interface TreeOptions {
 export function ListToTree<T extends Record<string, any>>(
     list: T[],
     options: TreeOptions = {}
-): T[] {
+): TreeNode<T>[] {
     if (list.length === 0) return [];
     const {
         idKey = 'id',
@@ -38,7 +41,7 @@ export function ListToTree<T extends Record<string, any>>(
     const hasOmitKeys = omitKeys.length > 0;
     const omitKeysSet = hasOmitKeys ? new Set(omitKeys) : null;
     const map: Record<any, any> = {};
-    const result: T[] = [];
+    const result: TreeNode<T>[] = [];
     for (let i = 0; i < list.length; i++) {
         const original: any = list[i];
         const node: any = {};
@@ -69,10 +72,8 @@ export function ListToTree<T extends Record<string, any>>(
             nodes.sort((a, b) => (a[sortKey] ?? 0) - (b[sortKey] ?? 0));
             for (let i = 0; i < nodes.length; i++) {
                 const children = nodes[i][childrenKey];
-                if (children?.length > 0) {
-                    sortNodes(children);
-                }
-            }
+                if (children?.length > 0) sortNodes(children);
+            };
         };
         sortNodes(result);
     };
