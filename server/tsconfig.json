@@ -6,13 +6,18 @@
     "types": [
       "bun-types"
     ],
-    "baseUrl": "./",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "@database/*": [
-        "database/*"
+        "./database/*"
+      ],
+      "database/*": [
+        "./database/*"
+      ],
+      "script/*": [
+        "./script/*"
       ]
     },
     "esModuleInterop": true,

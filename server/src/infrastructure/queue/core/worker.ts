@@ -20,6 +20,8 @@ export function createWorker(config: WorkerConfig, appId: string): Worker {
         const yamlDir = appEnv === 'production'? process.cwd() : resolve(process.cwd(), 'src', 'config');
         const configPath = resolve(yamlDir, `${appEnv}.yaml`);
         process.env.CONFIG_PATH = configPath;
+        // 沙箱子进程继承：写 worker.log / worker-error.log
+        process.env.APP_ROLE = 'worker';
     };
     const worker = new Worker(
         queueName,

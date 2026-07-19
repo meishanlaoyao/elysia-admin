@@ -47,7 +47,7 @@ export function GlobalResponseMiddleware(app: Elysia) {
         (ctx as any).startTime = Date.now();
     });
     app.onAfterResponse(async (ctx) => {
-        process.env.NODE_ENV !== 'production' && logger.logRequest(ctx);
+        logger.logRequest(ctx);
         await AddOperLog(ctx);
         await IpRateLimitRecord(ctx);
     });

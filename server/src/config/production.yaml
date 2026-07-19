@@ -68,3 +68,7 @@ guard:
 
 orders:
   timeout: 900000
+
+log:
+  level: "info"
+  showRequestParams: true

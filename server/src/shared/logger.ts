@@ -1,7 +1,17 @@
 import { Context } from 'elysia';
-import { LogLevel } from "@/constants/enum";
-import Colors from "@/shared/color";
-import type { LastVersionPayload } from "@/types/last-version";
+import pino, { type Logger as PinoLogger } from 'pino';
+import config from '@/config';
+import Colors from '@/shared/color';
+import {
+    DailyRotatingStream,
+    appendFatalLog,
+    getLogDir,
+    isDistRuntime,
+    isWorkerRole,
+} from '@/shared/log-stream';
+import type { LastVersionPayload } from '@/types/last-version';
+
+export { appendFatalLog } from '@/shared/log-stream';
 
 const LAST_VERSION_JSON_URL = 'https://elysia-admin.top/last-version.json';
 const STARTUP_TITLE_VERSION_GAP = 1;
@@ -9,6 +19,15 @@ const LAST_VERSION_FETCH_TIMEOUT_MS = 2000;
 
 const STARTUP_REMOTE_DESC_MAX = 100;
 const STARTUP_REMOTE_URL_MAX = 76;
+
+const isProduction = (process.env.NODE_ENV || 'development') === 'production';
+const isWorker = isWorkerRole();
+/** 仅 dist 运行时写文件；build 脚本等 production 上下文走 stdout */
+const useFileLogs = isProduction && isDistRuntime();
+const logLevel = config.log.level;
+const showRequestParams = config.log.showRequestParams;
+
+const fileStreams: DailyRotatingStream[] = [];
 
 function collapseOneLine(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
@@ -109,7 +128,7 @@ async function resolveStartupTitle(
     return { titleLine: joinStartupTitle(left, right), remoteInfo };
 };
 
-function printStartupBanner(config: {
+function printStartupBanner(banner: {
     titleLine: string;
     baseUrl: string;
     env: string;
@@ -117,7 +136,7 @@ function printStartupBanner(config: {
     bunVersion?: string;
     openApiEnabled?: boolean;
 }): void {
-    const { titleLine, baseUrl, env, pid, bunVersion, openApiEnabled } = config;
+    const { titleLine, baseUrl, env, pid, bunVersion, openApiEnabled } = banner;
     console.log('\n' + '='.repeat(60));
     console.log(titleLine);
     console.log('='.repeat(60) + Colors.reset);
@@ -133,40 +152,112 @@ function printStartupBanner(config: {
     console.log('='.repeat(60) + Colors.reset);
 };
 
-class Logger {
-    private formatMessage(level: LogLevel, message: string, meta?: Record<string, any>): string {
-        const timestamp = new Date().toISOString();
-        const metaStr = meta ? `\n${JSON.stringify(meta, null, 2)}` : '';
-        return `${Colors.gray}[${timestamp}]${Colors.reset} [${level}] ${message}${metaStr}`;
+function createAppLogger(): PinoLogger {
+    const base = {
+        level: logLevel,
+        timestamp: pino.stdTimeFunctions.isoTime,
+        base: { pid: process.pid },
+    };
+
+    if (!useFileLogs) {
+        if (!isProduction) {
+            const pretty = require('pino-pretty') as typeof import('pino-pretty');
+            const stream = pretty({
+                colorize: true,
+                translateTime: 'SYS:standard',
+                ignore: 'pid,hostname',
+            });
+            return pino(base, stream);
+        }
+        // production 但非 dist 运行时（如 build 脚本）：直写 stdout
+        return pino(base);
     }
 
+    const logDir = getLogDir();
+    const appFile = isWorker ? 'worker.log' : 'app.log';
+    const errFile = isWorker ? 'worker-error.log' : 'error.log';
+    const appStream = new DailyRotatingStream(logDir, appFile);
+    const errStream = new DailyRotatingStream(logDir, errFile);
+    fileStreams.push(appStream, errStream);
+    return pino(
+        base,
+        pino.multistream(
+            [
+                { level: logLevel as pino.Level, stream: appStream },
+                // warn + error 进错误文件，info 留在 app/worker（dedupe）
+                { level: 'warn', stream: errStream },
+            ],
+            { dedupe: true },
+        ),
+    );
+};
+
+function createHttpLogger(appLogger: PinoLogger): PinoLogger {
+    if (!useFileLogs || isWorker) return appLogger;
+    const httpStream = new DailyRotatingStream(getLogDir(), 'http.log');
+    fileStreams.push(httpStream);
+    return pino(
+        {
+            level: 'info',
+            timestamp: pino.stdTimeFunctions.isoTime,
+            base: { pid: process.pid },
+        },
+        httpStream,
+    );
+};
+
+const appLogger = createAppLogger();
+const httpLogger = createHttpLogger(appLogger);
+
+/** 进程退出前尽量刷盘，避免致命错误丢失最后几行 */
+export function flushLogs(): void {
+    try {
+        (appLogger as unknown as { flush?: () => void }).flush?.();
+        (httpLogger as unknown as { flush?: () => void }).flush?.();
+        for (const s of fileStreams) s.flushSync();
+    } catch {
+        // ignore
+    };
+};
+
+function write(
+    level: 'info' | 'warn' | 'error' | 'debug',
+    message: string,
+    meta?: Record<string, any>,
+): void {
+    if (meta && Object.keys(meta).length > 0) {
+        appLogger[level](meta, message);
+    } else {
+        appLogger[level](message);
+    }
+};
+
+class Logger {
     info(message: string, meta?: Record<string, any>): void {
-        console.log(`${Colors.blue}${this.formatMessage(LogLevel.INFO, message, meta)}${Colors.reset}`);
+        write('info', message, meta);
     }
 
     success(message: string): void {
-        console.log(`${Colors.green}${message}${Colors.reset}`);
+        appLogger.info(message);
     }
 
     warn(message: string, meta?: Record<string, any>): void {
-        console.warn(`${Colors.yellow}${this.formatMessage(LogLevel.WARN, message, meta)}${Colors.reset}`);
+        write('warn', message, meta);
     }
 
     error(message: string, meta?: Record<string, any>): void {
-        console.error(`${Colors.red}${this.formatMessage(LogLevel.ERROR, message, meta)}${Colors.reset}`);
+        write('error', message, meta);
     }
 
     debug(message: string, meta?: Record<string, any>): void {
-        console.debug(`${Colors.gray}${this.formatMessage(LogLevel.DEBUG, message, meta)}${Colors.reset}`);
+        write('debug', message, meta);
     }
 
     group(title: string): void {
-        console.log(`\n${Colors.cyan}${'─'.repeat(60)}`);
-        console.log(`  ${title}`);
-        console.log(`${'─'.repeat(60)}${Colors.reset}`);
+        appLogger.info(`── ${title} ──`);
     };
 
-    async logStartup(config: {
+    async logStartup(startup: {
         appId: string;
         port: number | string;
         prefix: string;
@@ -176,7 +267,7 @@ class Logger {
         openApiEnabled?: boolean;
         bunVersion?: string;
     }): Promise<void> {
-        const { appId, port, prefix, env, pid, openApiEnabled, bunVersion, appVersion } = config;
+        const { appId, port, prefix, env, pid, openApiEnabled, bunVersion, appVersion } = startup;
         const baseUrl = `http://localhost:${port}${prefix}`;
         const { titleLine, remoteInfo } = await resolveStartupTitle(
             `🚀 ${appId} 启动成功`,
@@ -184,33 +275,38 @@ class Logger {
             appVersion,
             (msg) => this.debug('官方版本信息拉取失败: ' + msg),
         );
+        // 终端彩色横幅；文件日志模式下额外写一条结构化启动摘要到 app.log
         printStartupBanner({ titleLine, baseUrl, env, pid, bunVersion, openApiEnabled });
         if (remoteInfo) logStartupRemoteSummary(remoteInfo);
+        if (useFileLogs) {
+            this.info(`${appId} 启动成功`, {
+                baseUrl,
+                env,
+                pid,
+                bunVersion: bunVersion || 'N/A',
+                openApiEnabled: !!openApiEnabled,
+                ...(appVersion !== undefined ? { appVersion } : {}),
+            });
+        }
     }
 
     logRequest(ctx: Context) {
-        const { path, request, startTime, response, set } = ctx as any;
-        const duration = Date.now() - startTime;
-        const method = request.method;
+        const { path, request, startTime, response, set, query, body, params } = ctx as any;
+        const duration = Date.now() - (startTime || Date.now());
+        const method = request?.method || 'GET';
         const code = response?.code || set?.status || 500;
-        let statusColor = Colors.green;
-        if (code >= 500) statusColor = Colors.red;
-        else if (code >= 400) statusColor = Colors.yellow;
-        else if (code >= 300) statusColor = Colors.cyan;
-        let methodColor = Colors.blue;
-        if (method === 'POST') methodColor = Colors.green;
-        else if (method === 'PUT') methodColor = Colors.yellow;
-        else if (method === 'DELETE') methodColor = Colors.red;
-        else if (method === 'PATCH') methodColor = Colors.magenta;
-        let durationColor = Colors.green;
-        if (duration > 1000) durationColor = Colors.red;
-        else if (duration > 500) durationColor = Colors.yellow;
-        this.debug(
-            `${methodColor}${method.padEnd(7)}${Colors.reset} ` +
-            `${statusColor}${code}${Colors.reset} ` +
-            `${Colors.bright}${path}${Colors.reset} ` +
-            `${durationColor}${duration}ms${Colors.reset}`
-        );
+        const fields: Record<string, any> = {
+            method,
+            path,
+            status: code,
+            duration,
+        };
+        if (showRequestParams) {
+            if (query !== undefined) fields.query = query;
+            if (body !== undefined) fields.body = body;
+            if (params !== undefined) fields.params = params;
+        }
+        httpLogger.info(fields, `${method} ${path} ${code} ${duration}ms`);
     }
 };
 

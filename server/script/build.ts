@@ -60,9 +60,11 @@ if (existsSync(publicDir)) {
 cpSync('./src/config/production.yaml', join(distDir, 'production.yaml'));
 logger.info('✓ production.yaml 已复制');
 
-// PM2 配置
+// PM2 配置：业务/启动失败日志由 pino + appendFatalLog 写入 ./logs/YYYYMMDD/，不再采集 stdout/stderr
+const nullLog = process.platform === 'win32' ? 'NUL' : '/dev/null';
 const ecosystemConfig = `// PM2 配置文件
 // 使用方式: pm2 start ecosystem.config.cjs
+// 业务日志与启动失败详见 ./logs/YYYYMMDD/（app|error|http|worker*.log）
 module.exports = {
   apps: [
     {
@@ -75,10 +77,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: ${appConfig.app.port}
       },
-      error_file: './logs/app/err.log',
-      out_file: './logs/app/out.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss',
-      merge_logs: true,
+      error_file: '${nullLog}',
+      out_file: '${nullLog}',
       autorestart: true,
       max_restarts: 10,
       min_uptime: '10s'
@@ -90,12 +90,11 @@ module.exports = {
       watch: false,
       max_memory_restart: '300M',
       env: {
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        APP_ROLE: 'worker'
       },
-      error_file: './logs/workers/err.log',
-      out_file: './logs/workers/out.log',
-      log_date_format: 'YYYY-MM-DD HH:mm:ss',
-      merge_logs: true,
+      error_file: '${nullLog}',
+      out_file: '${nullLog}',
       autorestart: true,
       max_restarts: 10,
       min_uptime: '10s'

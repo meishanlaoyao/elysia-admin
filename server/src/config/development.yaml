@@ -64,3 +64,7 @@ guard:
 
 orders:
   timeout: 900000
+
+log:
+  level: "debug"
+  showRequestParams: true

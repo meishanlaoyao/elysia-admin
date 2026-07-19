@@ -30,4 +30,4 @@ COPY --from=build /app/dist ./
 ENV NODE_ENV=production
 EXPOSE 3000
 
-CMD ["sh", "-c", "trap 'kill -TERM $(jobs -p) 2>/dev/null; wait' TERM INT; bun run workers.js & bun run index.js & wait"]
+CMD ["sh", "-c", "trap 'kill -TERM $(jobs -p) 2>/dev/null; wait' TERM INT; APP_ROLE=worker bun run workers.js & bun run index.js & wait"]

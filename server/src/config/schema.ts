@@ -118,6 +118,14 @@ const OrdersSchema = t.Object({
     timeout: t.Number(),
 }, strict);
 
+/** 日志配置 */
+const LogSchema = t.Object({
+    /** pino 日志级别：trace / debug / info / warn / error / fatal */
+    level: t.String(),
+    /** 是否在 HTTP 请求日志中记录 query / body / params */
+    showRequestParams: t.Boolean(),
+}, strict);
+
 /** 完整应用配置结构，与 development.yaml / production.yaml 对应 */
 export const ConfigSchema = t.Object({
     app: AppSchema,
@@ -127,6 +135,7 @@ export const ConfigSchema = t.Object({
     smtp: SmtpSchema,
     guard: GuardSchema,
     orders: OrdersSchema,
+    log: LogSchema,
 }, strict);
 
 export type IConfig = Static<typeof ConfigSchema>;

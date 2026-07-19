@@ -10,7 +10,12 @@ export function ConfigureErrorHandler(app: Elysia) {
     app.onError(({ code, error, set }) => {
         if (code === 'VALIDATION') {
             const errorMessage = (error as any).message || '验证失败';
-            logger.warn('请求验证失败：' + errorMessage);
+            const on = typeof (error as any)?.on === 'string' ? (error as any).on : 'unknown';
+            // 不 dump 整段 response/body；详情以 http.log 状态码为准
+            const brief = errorMessage.length > 200
+                ? errorMessage.slice(0, 200) + '…'
+                : errorMessage;
+            logger.warn(`请求验证失败 on=${on}: ${brief}`);
             if (errorMessage === '请先登陆后访问') {
                 set.status = 401;
                 return BaseResultData.fail(401, errorMessage);

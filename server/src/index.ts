@@ -1,6 +1,6 @@
 ﻿import config from "@/config";
 import { CreateApp } from '@/app';
-import { logger } from '@/shared/logger';
+import { appendFatalLog, flushLogs, logger } from '@/shared/logger';
 import { InitSeedData } from 'script/seed.prod';
 import { StopAllCronJobs } from '@/infrastructure/cron/cron-scheduler';
 import { quitRedis } from '@/core/database/redis';
@@ -29,11 +29,23 @@ async function gracefulShutdown(signal: string) {
         logger.warn('HTTP 服务停止时异常: ' + e);
     }
     await quitRedis();
+    flushLogs();
     process.exit(0);
+};
+
+function fatalAndExit(label: string, error: unknown): void {
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    appendFatalLog(`${label}: ${message}${stack ? `\n${stack}` : ''}`);
+    logger.error(label, { error: message, stack });
+    flushLogs();
+    process.exit(1);
 };
 
 process.on('SIGINT', () => { void gracefulShutdown('SIGINT'); });
 process.on('SIGTERM', () => { void gracefulShutdown('SIGTERM'); });
+process.on('uncaughtException', (err) => fatalAndExit('uncaughtException', err));
+process.on('unhandledRejection', (reason) => fatalAndExit('unhandledRejection', reason));
 
 /** 应用启动入口 */
 async function bootstrap() {
@@ -65,11 +77,7 @@ async function bootstrap() {
             bunVersion: process.versions.bun || 'N/A',
         });
     } catch (error) {
-        logger.error('应用启动失败', {
-            error: error instanceof Error ? error.message : String(error),
-            stack: error instanceof Error ? error.stack : undefined,
-        });
-        process.exit(1);
+        fatalAndExit('应用启动失败', error);
     }
 };
 
