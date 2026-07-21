@@ -17,11 +17,13 @@ admin → server (HTTP only)
 modules → core
 modules → shared
 modules → infrastructure
+modules → other modules' exported handle functions (PascalCase cross-module API only)
 
 core  ✗→ modules
 shared ✗→ modules
 infrastructure ✗→ modules   (sandbox via worker-sandbox/, not infrastructure → modules)
 
+modules ✗→ other modules' @database/schema   (cross-table data via owner exported handle function)
 shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/cron/cron-scheduler.ts)
 ```
 

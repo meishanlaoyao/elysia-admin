@@ -64,7 +64,6 @@ logger.info('✓ production.yaml 已复制');
 const nullLog = process.platform === 'win32' ? 'NUL' : '/dev/null';
 const ecosystemConfig = `// PM2 配置文件
 // 使用方式: pm2 start ecosystem.config.cjs
-// 业务日志与启动失败详见 ./logs/YYYYMMDD/（app|error|http|worker*.log）
 module.exports = {
   apps: [
     {

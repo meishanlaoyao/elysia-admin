@@ -5,6 +5,10 @@ admin → server (via http only)
 modules → core
 modules → shared
 modules → infrastructure
+modules → other modules' exported `handle.ts` functions (PascalCase cross-module API only)
+
+modules must NOT import another module's `@database/schema` for cross-table access
+(use the owning module's exported handle function instead)
 
 core must NOT depend on modules
 shared must NOT depend on modules

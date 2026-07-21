@@ -11,8 +11,9 @@ Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/
 
 ```
 admin → server (HTTP only)
-modules → core | shared | infrastructure
+modules → core | shared | infrastructure | other modules' exported handle functions
 core/shared/infrastructure ✗→ modules
+modules ✗→ other modules' @database/schema   (cross-table data via owner exported handle function)
 shared ✗→ core/database
 ```
 

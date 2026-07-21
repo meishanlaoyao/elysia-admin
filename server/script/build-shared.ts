@@ -79,7 +79,7 @@ async function runBunBuild(entrypoints: string[], outdir: string): Promise<void>
         target: 'bun',
         minify: true,
         splitting: true,
-        naming: { chunk: 'chunk-[hash].[ext]' },
+        naming: { chunk: 'chunks/chunk-[hash].[ext]' },
         external: ['pino-pretty'],
     });
     if (!result.success) {

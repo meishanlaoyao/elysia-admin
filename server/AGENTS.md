@@ -21,7 +21,13 @@ No extra files. No renaming. Route auto-registers on startup.
 
 **`task.ts`**：仅当模块需要向 `server/src/worker-sandbox/` 注册队列/定时任务时添加。
 
-**跨模块 `handle`**：系统域（auth / user / role / menu / dept 等）允许 `handle` 之间互相 `import` 已导出的查询或命令；新业务模块优先单模块内聚，避免网状依赖。
+**跨模块 `handle`（跨表数据访问）：**
+
+- 每个模块只能直接查询**自己拥有**的表 schema。
+- 需要访问其他模块的表时，必须调用**表所属模块** `handle.ts` 导出的 PascalCase 函数 — **禁止**直接 `import` 该模块的 `@database/schema` 跨表查询。
+- 路由处理函数 = 小写驼峰（`create`、`findList`）；跨模块导出函数 = 首字母大写驼峰（`GetUserBy`、`GetDeptInfoById`）。
+- 若所需函数尚不存在，先在所属模块 `handle.ts` 中实现并导出，再在调用方 `import`。
+- 新业务模块优先单模块内聚，避免网状依赖。
 
 ---
 
@@ -30,7 +36,7 @@ No extra files. No renaming. Route auto-registers on startup.
 | File | Allowed | Forbidden |
 |---|---|---|
 | `dto.ts` | Elysia schema、响应 DTO、可选 `afterHandle` 等 hook | 复杂业务编排、直接 DB |
-| `handle.ts` | repository、QueryBuilder、shared、infrastructure；系统域可调其他模块已导出函数 | raw SQL、直连 pg、在 handle 里 new Elysia |
+| `handle.ts` | 本模块 schema + repository、QueryBuilder、shared、infrastructure；其他模块已导出的 handle 函数 | raw SQL、直连 pg、在 handle 里 new Elysia、为跨表查询直接 import 其他模块的 `@database/schema` |
 | `route.ts` | bind dto+handle, return result | business logic, DB access |
 | `task.ts` | export plain functions, call handle functions | duplicate business logic, direct DB access |
 

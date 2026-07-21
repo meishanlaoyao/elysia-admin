@@ -9,6 +9,7 @@ import { BunAdapter } from 'elysia/adapter/bun';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
 import { ConfigureErrorHandler } from '@/middleware/error-handler';
 import { ConfigureOpenAPI } from '@/infrastructure/openapi';
+import { getDistRoot } from '@/shared/log-stream';
 
 /**
  * 创建并配置 Elysia 应用实例
@@ -36,7 +37,10 @@ export async function CreateApp() {
         allowedHeaders: corsAllowedHeaders,
     }));
     app.use(await staticPlugin({
-        assets: resolve(import.meta.dirname, isProduction ? staticDir : `../${staticDir}`),
+        assets: resolve(
+            isProduction ? (getDistRoot() ?? import.meta.dirname) : import.meta.dirname,
+            isProduction ? staticDir : `../${staticDir}`,
+        ),
         prefix: staticPrefix,    
     }));
     if (!isProduction) await ConfigureOpenAPI(app);

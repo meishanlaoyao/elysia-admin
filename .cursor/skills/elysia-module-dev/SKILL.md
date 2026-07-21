@@ -55,6 +55,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **Scaffold already ran:** edit `handle.ts` / extend `dto.ts` only; do **not** regenerate `route.ts` from templates
 - **No scaffold:** `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional); `.ai/AI_CODE_EXAMPLES_BACKEND.md` (section only); reference `system-api/` only
 - **`dto.ts` error (required):** every validated field must include `error` with a readable Chinese user-facing message (`error`, not `errorMessage`); scaffold `CreateDto` auto-generates via `fieldLabels`
+- **Cross-table data:** call the owning module's exported PascalCase function from its `handle.ts`; do **NOT** import another module's `@database/schema` for cross-table queries
 - `meta.permission`: `group:name:action`
 
 ### 6. Dict

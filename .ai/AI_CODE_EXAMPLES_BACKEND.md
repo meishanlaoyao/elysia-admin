@@ -155,6 +155,39 @@ CreateQueryBuilder(xxxSchema)
 
 ---
 
+## handle.ts — Cross-Table Data Access (Correct vs Wrong)
+
+When a module needs data from a table owned by another module, call the owning module's exported PascalCase function — do **NOT** import that table's schema.
+
+```ts
+// Correct — consumer (e.g. system-user/handle.ts)
+import { GetDeptInfoById } from '@/modules/system-dept/handle';
+
+export async function findOne(ctx: Context) {
+    const user = await FindOneByKey(systemUserSchema, 'userId', ctx.params.id);
+    const dept = await GetDeptInfoById(user.deptId);
+    return BaseResultData.ok({ ...user, dept });
+}
+
+// Wrong — directly importing another module's schema
+import { systemDeptSchema } from '@database/schema/system_dept';
+
+const dept = await FindOneByKey(systemDeptSchema, 'deptId', user.deptId);
+```
+
+Owner module exports PascalCase helpers:
+
+```ts
+// system-dept/handle.ts
+export async function GetDeptInfoById(deptId: string) {
+    return FindOneByKey(systemDeptSchema, 'deptId', deptId);
+}
+```
+
+Route handlers stay lower camelCase (`create`, `findList`); cross-module exports use PascalCase (`GetUserBy`, `GetDeptInfoById`).
+
+---
+
 ## route.ts — Declarative Route Module
 
 ```ts

@@ -21,7 +21,13 @@ No extra files. No renaming. Routes auto-register on startup.
 
 **`task.ts`:** add only when registering queue/cron jobs in `server/src/worker-sandbox/`.
 
-**Cross-module `handle`:** system domain (auth, user, role, menu, dept) may import exported functions from each other; new business modules should stay self-contained.
+**Cross-module `handle` (Cross-Table Data Access):**
+
+- Each module may directly query **only its own** table schemas.
+- To access another module's table, call the **owning** module's exported PascalCase function from its `handle.ts` — do **NOT** import that module's `@database/schema`.
+- Route handlers = lower camelCase (`create`, `findList`); cross-module exports = PascalCase (`GetUserBy`, `GetDeptInfoById`).
+- If the helper is missing, add it in the owning module first, then import it from the consumer.
+- New business modules should stay self-contained; avoid mesh dependencies.
 
 ---
 
@@ -30,7 +36,7 @@ No extra files. No renaming. Routes auto-register on startup.
 | File | Allowed | Forbidden |
 |---|---|---|
 | `dto.ts` | Elysia schema, response DTO, optional hooks | complex orchestration, direct DB |
-| `handle.ts` | repository, QueryBuilder, shared, infrastructure; system domain cross-imports | raw SQL, direct pg, new Elysia in handle |
+| `handle.ts` | own-module schema + repository, QueryBuilder, shared, infrastructure; other modules' exported handle functions | raw SQL, direct pg, new Elysia in handle, importing other modules' `@database/schema` for cross-table queries |
 | `route.ts` | bind dto+handle, return result | business logic, DB access |
 | `task.ts` | export plain functions, call handle | duplicate business logic, direct DB |
 

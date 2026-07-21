@@ -72,6 +72,7 @@ Allowed:
 - shared utilities
 - infrastructure clients
 - transaction wrapper
+- import exported functions from other modules' `handle.ts` (see Cross-Table Data Access below)
 
 Forbidden:
 - direct pg usage
@@ -79,13 +80,51 @@ Forbidden:
 - Elysia instance usage
 - route definition
 - modifying core layer
-- cross-module import
+- importing another module's `@database/schema` for cross-table queries
 
 All database operations MUST use existing repository functions.
 
 Do NOT introduce new ORM.
 Do NOT rewrite repository.
 Do NOT replace QueryBuilder.
+
+---
+
+# Cross-Table Data Access (STRICT)
+
+When a module needs data from a table owned by another module:
+
+1. **Table ownership:** each module may directly `import` and query only its own table schemas (e.g. `system-user` owns tables in `system_user.ts`).
+2. **Cross-table access:** to read or write another module's table, do **NOT** import that table's schema in your `handle.ts`. Instead, call an exported function from the owning module's `handle.ts`: `import { GetXxx } from '@/modules/{owner}/handle'`.
+3. **Naming convention:**
+   - Route handler functions (internal) = lower camelCase (`create`, `findList`, `update`, `remove`)
+   - Cross-module exported functions (public API) = PascalCase (`GetUserBy`, `GetDeptInfoById`, `RegisterUser`)
+
+Correct (consumer — e.g. `system-user/handle.ts`):
+
+```ts
+import { GetDeptInfoById } from '@/modules/system-dept/handle';
+
+const dept = await GetDeptInfoById(user.deptId);
+```
+
+Wrong (consumer directly imports another module's schema):
+
+```ts
+import { systemDeptSchema } from '@database/schema/system_dept';
+
+const dept = await FindOneByKey(systemDeptSchema, 'deptId', user.deptId);
+```
+
+Owner module (e.g. `system-dept/handle.ts`) exports PascalCase helpers:
+
+```ts
+export async function GetDeptInfoById(deptId: string) {
+    return FindOneByKey(systemDeptSchema, 'deptId', deptId);
+}
+```
+
+If the required helper does not exist yet, add it in the **owning** module's `handle.ts` first, then import it from the consumer.
 
 ---
 
