@@ -1,4 +1,4 @@
-import { Get, Set, Del } from '@/core/database/redis';
+import { Get, Set } from '@/core/database/redis';
 import config from '@/config';
 import { logger } from '@/shared/logger';
 import { RedisLock } from '@/core/database/redis-lock';
@@ -59,78 +59,5 @@ export async function WithCache<T>(
         };
         logger.warn(`获取锁失败且重试超时 [${cacheKey}]，直接查询数据库`);
         return await dbQueryFn();
-    }
-};
-
-/**
- * 更新缓存-插入新数据
- * @param cacheKey - Redis 缓存的 key
- * @param data - 要插入的数据
- * @returns 是否插入成功
- */
-export async function CacheInsert(
-    cacheKey: string,
-    data: any,
-): Promise<boolean> {
-    try {
-        const oldData = await Get(cacheKey);
-        let newData = oldData?.length ? [...oldData, data] : [data];
-        return await Set(cacheKey, newData);
-    }
-    catch (error) {
-        logger.error('更新缓存-插入新数据失败' + error);
-        return false;
-    }
-};
-
-/**
- * 更新缓存-删除指定数据
- * @param cacheKey - Redis 缓存的 key
- * @param key - 判断数据的key
- * @param values - 判断数据的value数组
- * @returns 是否删除成功
- */
-export async function CacheDelete(
-    cacheKey: string,
-    key: string,
-    values: number[],
-): Promise<boolean> {
-    try {
-        const oldData = await Get(cacheKey);
-        if (!oldData?.length) return await Del(cacheKey);
-        let newData = oldData.filter((item: any) => !values.includes(item[key]));
-        if (newData?.length) return await Set(cacheKey, newData);
-        return await Del(cacheKey);
-    }
-    catch (error) {
-        logger.error('更新缓存-删除指定数据失败' + error);
-        return false;
-    }
-};
-
-/**
- * 更新缓存-更新指定数据
- * @param cacheKey - Redis 缓存的 key
- * @param key - 判断数据的key
- * @param data - 要更新的数据
- * @returns 是否更新成功
- */
-export async function CacheUpdate(
-    cacheKey: string,
-    key: string,
-    data: any,
-): Promise<boolean> {
-    try {
-        const oldData = await Get(cacheKey);
-        if (!oldData?.length) return await Set(cacheKey, [data]);
-        let newData = oldData.map((item: any) => {
-            if (item[key] === data[key]) return { ...item, ...data };
-            return item;
-        });
-        return await Set(cacheKey, newData);
-    }
-    catch (error) {
-        logger.error('更新缓存-更新指定数据失败' + error);
-        return false;
     }
 };

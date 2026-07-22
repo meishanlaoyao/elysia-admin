@@ -8,5 +8,6 @@ import { queueManager } from '../core';
 import '../queues/system-cron/queue';
 import '../queues/flow-buffer/queue';
 import '../queues/trade-order/queue';
+import '../queues/system-oper-log/queue';
 
 export { queueManager };

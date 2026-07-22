@@ -2,7 +2,7 @@ import type { AppContext } from '@/types/app-context';
 import { BaseResultData } from '@/core/result';
 import { GenerateToken, VerifyToken } from '@/shared/jwt';
 import { BcryptCompare } from '@/shared/bcrypt';
-import { GetUserBy, RegisterUser, SetUserPassword } from '@/modules/system-user/handle';
+import { GetUserBy, RegisterUser, SetUserPassword, InvalidateUserSession } from '@/modules/system-user/handle';
 import { GenerateUUID } from '@/shared/uuid';
 import { GetNowTime, ConvertTimeToSecond } from '@/shared/time';
 import { CacheEnum } from '@/constants/enum';
@@ -13,6 +13,7 @@ import config from '@/config';
 import { GetUserRoleAndPermission } from '@/modules/system-role/handle';
 import { InsertIpBlack } from '@/modules/system-ip-black/handle';
 import { GetClientInfo, GetClientIp } from '@/shared/ip';
+import { SetOnlineUserL1 } from '@/shared/online-user-l1';
 import type { IAccountType } from '@/types/common';
 
 function isPublicRegisterAllowed(): boolean {
@@ -25,12 +26,12 @@ function isPublicRegisterAllowed(): boolean {
 export async function accountPasswordLogin(ctx: AppContext) {
         const { username, password } = ctx.body as any;
         const user = await GetUserBy('username', username);
-        if (!user) return BaseResultData.fail(404, '用户不存在');
+        if (!user) return BaseResultData.fail(400, '用户名或密码错误');
         if (!user?.status) return BaseResultData.fail(403, '用户已停用');
         if (user?.delFlag) return BaseResultData.fail(410, '用户已删除');
-        if (!BcryptCompare(password, user?.password || '')) {
+        if (!(await BcryptCompare(password, user?.password || ''))) {
             await addPasswordErrorTimes(ctx);
-            return BaseResultData.fail(400, '密码错误');
+            return BaseResultData.fail(400, '用户名或密码错误');
         };
         const payload = { userId: user.userId };
         const baseKey = CacheEnum.REFRESH_TOKEN + `${user.userId}:`;
@@ -39,6 +40,8 @@ export async function accountPasswordLogin(ctx: AppContext) {
             const isDel = await Del(oldkeys);
             if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
         };
+        const usedKeys = await Keys(CacheEnum.REFRESH_USED + `${user.userId}:`);
+        if (usedKeys.length) await Del(usedKeys);
         const tokens = await generateAndStoreTokens(payload);
         if ('error' in tokens) return tokens.error;
         const { roles, permissions } = await GetUserRoleAndPermission(user.userId);
@@ -54,14 +57,17 @@ export async function accountPasswordLogin(ctx: AppContext) {
             loginLocation: clientInfo.loginLocation, // 登录地点 [必须]
             ipaddr: clientInfo.ipaddr, // 客户端 IP 地址 [必须]
             roles, // 角色列表 [必须]
-            permissions, // 权限列表 [必须]
             userType: 'admin' as IAccountType, // 用户类型 [必须]
             loginTime: GetNowTime(), // 登录时间 [必须]
         };
         const onlineKey = CacheEnum.ONLINE_USER + user.userId;
         const isSetOnline = await Set(onlineKey, userInfo);
         if (!isSetOnline) return BaseResultData.fail(500, '在线用户设置失败');
-        ctx.user = userInfo;
+        const isSetPerm = await Set(CacheEnum.USER_PERM + user.userId, permissions);
+        if (!isSetPerm) return BaseResultData.fail(500, '用户权限缓存设置失败');
+        const sessionUser = { ...userInfo, permissions };
+        SetOnlineUserL1(user.userId, sessionUser);
+        ctx.user = sessionUser;
         return BaseResultData.ok(tokens);
 };
 
@@ -72,9 +78,19 @@ export async function refreshToken(ctx: AppContext) {
         if (!payload) return BaseResultData.fail(400, '刷新令牌无效');
         const oldKey = CacheEnum.REFRESH_TOKEN + `${payload.userId}:${payload.uuid}`;
         const oldPayload = await Get(oldKey);
-        if (!oldPayload) return BaseResultData.fail(400, '刷新令牌无效');
+        if (!oldPayload) {
+            const usedKey = CacheEnum.REFRESH_USED + `${payload.userId}:${payload.uuid}`;
+            if (await Get(usedKey)) {
+                await InvalidateUserSession(payload.userId);
+                return BaseResultData.fail(401, '会话已失效，请重新登录');
+            };
+            return BaseResultData.fail(400, '刷新令牌无效');
+        };
         const isDel = await Del(oldKey);
         if (!isDel) return BaseResultData.fail(500, '刷新令牌删除失败');
+        const refreshExpiresIn = ConvertTimeToSecond(config.jwt.refreshToken.expiresIn);
+        const usedKey = CacheEnum.REFRESH_USED + `${payload.userId}:${payload.uuid}`;
+        await Set(usedKey, 1, refreshExpiresIn);
         const tokens = await generateAndStoreTokens(oldPayload);
         if ('error' in tokens) return tokens.error;
         return BaseResultData.ok(tokens);
@@ -132,11 +148,7 @@ export async function resetPassword(ctx: AppContext) {
 export async function logout(ctx: AppContext) {
     const userId = ctx?.user?.userId;
     if (!userId) return BaseResultData.ok();
-    const refreshKey = CacheEnum.REFRESH_TOKEN + `${userId}:`;
-    const oldKeys = await Keys(refreshKey) || [];
-    const onlineKey = CacheEnum.ONLINE_USER + `${userId}`;
-    const menuKey = CacheEnum.ADMIN_MENU + `${userId}`;
-    await Del([...oldKeys, onlineKey, menuKey]);
+    await InvalidateUserSession(userId);
     return BaseResultData.ok();
 };
 

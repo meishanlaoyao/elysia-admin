@@ -11,12 +11,14 @@ import { systemOperLogSchema } from '@database/schema/system_oper_log';
 import { SanitizeObject } from '@/core/function';
 import { logServerError } from '@/shared/server-error';
 import { SensitiveFields } from '@/constants/base';
+import { queueManager, RetryPresets } from '@/infrastructure/queue';
 
 export async function create(data: typeof systemOperLogSchema.$inferInsert) {
     try {
         await InsertOne(systemOperLogSchema, null, data);
     } catch (error) {
         logServerError('插入操作日志失败', error);
+        throw error;
     }
 };
 
@@ -93,5 +95,18 @@ export async function AddOperLog(ctx: AppContext) {
         operParam,
         jsonResult,
     };
-    create(data);
+    try {
+        const queue = queueManager.getQueue('system-oper-log-queue');
+        if (!queue) {
+            logServerError('操作日志队列未注册', new Error('system-oper-log-queue'));
+            return;
+        }
+        await queue.add('操作日志落库', data, {
+            ...RetryPresets.standard,
+            removeOnComplete: 1000,
+            removeOnFail: 5000,
+        });
+    } catch (error) {
+        logServerError('操作日志投递失败', error);
+    }
 };

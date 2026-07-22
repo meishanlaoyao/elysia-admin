@@ -7,6 +7,7 @@ import { RegisterRoutes } from '@/modules';
 import { staticPlugin } from '@elysiajs/static';
 import { BunAdapter } from 'elysia/adapter/bun';
 import { GlobalMiddleware, GlobalResponseMiddleware } from "@/middleware";
+import { SecurityHeadersMiddleware } from '@/middleware/security-headers';
 import { ConfigureErrorHandler } from '@/middleware/error-handler';
 import { ConfigureOpenAPI } from '@/infrastructure/openapi';
 import { getDistRoot } from '@/shared/log-stream';
@@ -44,6 +45,7 @@ export async function CreateApp() {
         prefix: staticPrefix,    
     }));
     if (!isProduction) await ConfigureOpenAPI(app);
+    SecurityHeadersMiddleware(app);
     GlobalMiddleware(app);
     GlobalResponseMiddleware(app);
     ConfigureErrorHandler(app);

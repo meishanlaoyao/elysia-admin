@@ -1,6 +1,6 @@
 {
   "name": "elysia-admin",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "一个基于 ElysiaJS + Bun + Vue 3 构建的全栈管理后台。",
   "keywords": [
     "Elysia Admin",

@@ -15,6 +15,7 @@ const raw = YAML.parse(text) as Record<string, unknown>;
     trustProxy: false,
     trustedProxyCidrs: [] as string[],
     corsOrigin: true,
+    hsts: false,
     geoIpTimeoutMs: 1500,
     ...(raw.app as Record<string, unknown> | undefined),
 };

@@ -16,6 +16,7 @@ app:
   corsOrigin: true
   corsMethods: "*"
   corsAllowedHeaders: "*"
+  hsts: false
   geoIpTimeoutMs: 1500
 
 jwt:

@@ -13,7 +13,12 @@ import { logServerError } from '@/shared/server-error';
 import { systemIpBlackSchema } from '@database/schema/system_ip_black';
 import { IsIpAddress } from '@/core/check';
 import { CacheEnum } from '@/constants/enum';
-import { CacheDelete, CacheInsert, CacheUpdate, WithCache } from '@/core/cache';
+import { WithCache } from '@/core/cache';
+import { Del } from '@/core/database/redis';
+
+async function invalidateIpBlackCache() {
+    if (config.guard.ipBlacklist) await Del(CacheEnum.IP_BLACK);
+};
 
 export async function create(ctx: AppContext) {
     const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
@@ -43,15 +48,14 @@ export async function findAll(ctx: AppContext) {
 export async function update(ctx: AppContext) {
     const data = ctx.body as typeof systemIpBlackSchema.$inferInsert;
     if (data.ipAddress && !IsIpAddress(data.ipAddress)) return BaseResultData.fail(400, 'IP地址格式错误');
-    const res = await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', ctx, data);
-    config.guard.ipBlacklist && await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res);
+    await UpdateByKeyAndRes(systemIpBlackSchema, 'ipBlackId', ctx, data);
+    await invalidateIpBlackCache();
     return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
-    const ids = ctx.params.ids.split(',').map(Number) as number[];
     await SoftDeleteByKeys(systemIpBlackSchema, 'ipBlackId', ctx);
-    config.guard.ipBlacklist && await CacheDelete(CacheEnum.IP_BLACK, 'ipBlackId', ids);
+    await invalidateIpBlackCache();
     return BaseResultData.ok();
 };
 
@@ -77,18 +81,16 @@ export async function InsertIpBlack(data: typeof systemIpBlackSchema.$inferInser
             const ipList = await tx.select().from(systemIpBlackSchema).where(eq(systemIpBlackSchema.ipAddress, data.ipAddress));
             const ipInfo = ipList[0] || null;
             if (ipInfo) {
-                const res = await tx.update(systemIpBlackSchema).set({
+                await tx.update(systemIpBlackSchema).set({
                     status: true,
                     remark: data.remark,
                     updateTime: new Date()
                 }).where(eq(systemIpBlackSchema.ipBlackId, ipInfo.ipBlackId)).returning();
-                if (config.guard.ipBlacklist) await CacheUpdate(CacheEnum.IP_BLACK, 'ipBlackId', res[0]);
+                await invalidateIpBlackCache();
                 return;
             };
-            const res = await tx.insert(systemIpBlackSchema).values(data).returning();
-            if (data.status) {
-                config.guard.ipBlacklist && await CacheInsert(CacheEnum.IP_BLACK, res);
-            };
+            await tx.insert(systemIpBlackSchema).values(data).returning();
+            await invalidateIpBlackCache();
         });
     }
     catch (error) {

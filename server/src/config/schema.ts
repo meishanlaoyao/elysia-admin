@@ -39,6 +39,8 @@ const AppSchema = t.Object({
     corsMethods: t.Union([t.Array(t.String()), t.String()]),
     /** CORS allowedHeaders */
     corsAllowedHeaders: t.Union([t.Array(t.String()), t.String()]),
+    /** 是否下发 HSTS（仅在 HTTPS / 前置 TLS 终结后开启） */
+    hsts: t.Boolean(),
     /** IP 归属地查询（ipinfo.io）超时（毫秒），失败时降级为「未知」 */
     geoIpTimeoutMs: t.Number(),
 }, strict);

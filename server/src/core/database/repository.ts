@@ -323,6 +323,8 @@ export interface PaginationResult<T> {
  * @param options - 分页选项
  * @returns 分页查询结果
  */
+const MAX_PAGE_SIZE = 100;
+
 export async function FindPage<T extends PgTable>(
     schema: T,
     where: SQL | undefined,
@@ -334,8 +336,10 @@ export async function FindPage<T extends PgTable>(
         orderByColumn,
         sortRule = 'desc'
     } = options;
-    const offset = (Number(pageNum) - 1) * Number(pageSize);
-    const limit = Number(pageSize);
+    const page = Math.max(1, Number(pageNum) || 1);
+    const size = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(pageSize) || 10));
+    const offset = (page - 1) * size;
+    const limit = size;
     const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
     // 使用窗口函数 COUNT(*) OVER() 将总数与列表合并为单次查询
     const columns = getTableColumns(schema as any);

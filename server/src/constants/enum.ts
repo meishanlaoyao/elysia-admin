@@ -6,9 +6,17 @@ export const CacheEnum = {
      */
     REFRESH_TOKEN: `${config.app.id}:refreshToken:`,
     /**
+     * 已轮换作废的 refresh uuid 墓碑
+     */
+    REFRESH_USED: `${config.app.id}:refreshUsed:`,
+    /**
      * 在线用户缓存key
      */
     ONLINE_USER: `${config.app.id}:onlineUser:`,
+    /**
+     * 用户权限码缓存key
+     */
+    USER_PERM: `${config.app.id}:userPerm:`,
     /**
      * 管理员后台菜单缓存key
      */

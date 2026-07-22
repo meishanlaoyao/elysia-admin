@@ -14,8 +14,8 @@ import { logServerError } from '@/shared/server-error';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { RunTransaction } from '@/core/database/transaction';
-import { RefreshRoutes } from '@/modules/system-menu/handle';
-import { Keys, Get, Set as RedisSet } from '@/core/database/redis';
+import { Get, Set as RedisSet, Del } from '@/core/database/redis';
+import { DeleteOnlineUserL1 } from '@/shared/online-user-l1';
 import { systemUserRoleSchema } from '@database/schema/system_user';
 import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
 import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
@@ -156,6 +156,24 @@ export async function GetUserRoleAndPermission(userId: string): Promise<{
     }
 };
 
+/** 按需加载用户权限码（USER_PERM 缓存） */
+export async function GetOrLoadUserPermissions(userId: string): Promise<string[]> {
+    if (!userId) return [];
+    const cached = await Get(CacheEnum.USER_PERM + userId);
+    if (Array.isArray(cached)) return cached;
+    const { permissions } = await GetUserRoleAndPermission(userId);
+    await RedisSet(CacheEnum.USER_PERM + userId, permissions);
+    return permissions;
+};
+
+/** 失效用户权限与菜单缓存（本机 L1 一并清理） */
+export async function InvalidateUserPermissionCache(userId: string): Promise<void> {
+    if (!userId) return;
+    await Del(CacheEnum.USER_PERM + userId);
+    await Del(CacheEnum.ADMIN_MENU + userId);
+    DeleteOnlineUserL1(userId);
+};
+
 // 获取角色菜单Ids和按钮Ids
 export async function GetRoleMenuIdsAndBtnIds(userId: string) {
     try {
@@ -186,25 +204,17 @@ export async function GetRoleMenuIdsAndBtnIds(userId: string) {
     }
 };
 
-// 批量更新在线用户的权限
+/** 角色权限变更后：仅失效绑定该角色的用户权限缓存 */
 async function updateUserPermission(roleId: number) {
     try {
-        const userKeys = await Keys(CacheEnum.ONLINE_USER + '*') || [];
-        if (!userKeys?.length) return;
-        const roleInfo = await FindOneByKey(systemRoleSchema, 'roleId', roleId);
-        if (!roleInfo) return;
-        for (const key of userKeys) {
-            const userInfo = await Get(key);
-            if (!userInfo) continue;
-            if (!userInfo?.roles?.includes(roleInfo?.roleCode)) continue;
-            const { roles, permissions } = await GetUserRoleAndPermission(userInfo?.userId);
-            userInfo.roles = roles;
-            userInfo.permissions = permissions;
-            await RedisSet(key, userInfo);
-            await RefreshRoutes(userInfo?.userId);
+        const where = CreateQueryBuilder(systemUserRoleSchema).eq('roleId', roleId).build();
+        const rows = await FindAll(systemUserRoleSchema, where);
+        for (const row of rows) {
+            if (!row.userId) continue;
+            await InvalidateUserPermissionCache(row.userId);
         }
     } catch (error) {
-        logServerError('批量更新在线用户的权限失败', error);
+        logServerError('失效角色关联用户权限缓存失败', error);
         throw error;
     }
 };

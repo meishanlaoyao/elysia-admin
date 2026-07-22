@@ -20,6 +20,7 @@ app:
     # - "https://elysia-admin.top"
   corsMethods: "GET, PUT, POST, DELETE"
   corsAllowedHeaders: "authorization, content-type, accept"
+  hsts: true
   geoIpTimeoutMs: 1500
 
 jwt:
@@ -71,4 +72,4 @@ orders:
 
 log:
   level: "info"
-  showRequestParams: true
+  showRequestParams: false

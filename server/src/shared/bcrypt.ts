@@ -1,10 +1,10 @@
 /**
  * 加密
  * @param str 字符串
- * @returns 
+ * @returns
  */
-export const BcryptHash = (str: string): string => {
-    return Bun.password.hashSync(str, {
+export const BcryptHash = async (str: string): Promise<string> => {
+    return Bun.password.hash(str, {
         algorithm: 'bcrypt',
         cost: 10
     });
@@ -14,8 +14,8 @@ export const BcryptHash = (str: string): string => {
  * 比较
  * @param str 字符串
  * @param hash 加密后的字符串
- * @returns 
+ * @returns
  */
-export const BcryptCompare = (str: string, hash: string): boolean => {
-    return Bun.password.verifySync(str, hash);
+export const BcryptCompare = async (str: string, hash: string): Promise<boolean> => {
+    return Bun.password.verify(str, hash);
 };

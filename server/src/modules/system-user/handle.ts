@@ -1,8 +1,8 @@
 import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
-import { Get } from '@/core/database/redis';
 import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
+import { Get, Keys, Del, Set as RedisSet } from '@/core/database/redis';
 import { systemUserSchema, systemUserRoleSchema } from '@database/schema/system_user';
 import { BcryptHash, BcryptCompare } from '@/shared/bcrypt';
 import {
@@ -14,16 +14,22 @@ import {
     FindPage,
     SoftDeleteByKeys,
 } from '@/core/database/repository';
+import { 
+    GetUserRoleIds,
+    GetUserRoleAndPermission, 
+    InvalidateUserPermissionCache, 
+    GetOrLoadUserPermissions 
+} from '@/modules/system-role/handle';
 import { ParseDateFields } from '@/types/dto';
-import { GetUserRoleIds } from '@/modules/system-role/handle';
 import { RunTransaction } from '@/core/database/transaction';
 import { logServerError } from '@/shared/server-error';
+import { DeleteOnlineUserL1 } from '@/shared/online-user-l1';
 import { GetDeptInfoById } from '@/modules/system-dept/handle';
 
 export async function create(ctx: AppContext) {
     const { roles, ...rest } = ctx.body as any;
     const data = rest as typeof systemUserSchema.$inferInsert;
-    data.password = BcryptHash(data.password);
+    data.password = await BcryptHash(data.password);
     await RunTransaction(async (tx) => {
         const [user] = await tx.insert(systemUserSchema).values(data).returning();
         if (!roles?.length) return;
@@ -74,8 +80,9 @@ export async function findPerm(ctx: AppContext) {
     const userId = ctx?.user?.userId as string;
     const user = await Get(CacheEnum.ONLINE_USER + userId);
     if (!user) return BaseResultData.fail(404);
+    const permissions = await GetOrLoadUserPermissions(userId);
     const { loginLocation, ipaddr, userType, loginTime, ...rest } = user;
-    return BaseResultData.ok(rest);
+    return BaseResultData.ok({ ...rest, permissions });
 };
 
 export async function findBasic(ctx: AppContext) {
@@ -109,6 +116,18 @@ export async function update(ctx: AppContext) {
             roleId
         })));
     });
+    if (user.status === false) {
+        await InvalidateUserSession(user.userId);
+    } else if (roles !== undefined) {
+        await InvalidateUserPermissionCache(user.userId);
+        const online = await Get(CacheEnum.ONLINE_USER + user.userId);
+        if (online) {
+            const { roles: newRoles } = await GetUserRoleAndPermission(user.userId);
+            online.roles = newRoles;
+            delete online.permissions;
+            await RedisSet(CacheEnum.ONLINE_USER + user.userId, online);
+        };
+    };
     return BaseResultData.ok();
 };
 
@@ -126,14 +145,16 @@ export async function updatePassword(ctx: AppContext) {
     const userId = ctx?.user?.userId as string;
     const user = await GetUserBy('userId', userId);
     if (!user || user.delFlag) return BaseResultData.fail(404);
-    const isSame = BcryptCompare(oldPassword, user.password);
+    const isSame = await BcryptCompare(oldPassword, user.password);
     if (!isSame) return BaseResultData.fail(400, '旧密码错误');
     await SetUserPassword(userId, newPassword);
     return BaseResultData.ok();
 };
 
 export async function remove(ctx: AppContext) {
+    const ids = String(ctx.params.ids ?? '').split(',').filter(Boolean);
     await SoftDeleteByKeys(systemUserSchema, 'userId', ctx);
+    for (const userId of ids) await InvalidateUserSession(userId);
     return BaseResultData.ok();
 };
 
@@ -155,7 +176,7 @@ export async function RegisterUser(username: string, password: string): Promise<
         e.httpStatus = 409;
         throw e;
     };
-    const hash = BcryptHash(password);
+    const hash = await BcryptHash(password);
     try {
         await InsertOne(systemUserSchema, null, { username, password: hash });
     } catch (error: any) {
@@ -172,11 +193,24 @@ export async function RegisterUser(username: string, password: string): Promise<
 
 // 设置用户密码
 export async function SetUserPassword(userId: string, password: string): Promise<void> {
-    const hash = BcryptHash(password);
+    const hash = await BcryptHash(password);
     const row = await UpdateByKeyAndRes(systemUserSchema, 'userId', null, { password: hash, userId });
     if (!row) {
         const e = new Error('密码更新失败') as Error & { httpStatus?: number };
         e.httpStatus = 500;
         throw e;
     };
+    await InvalidateUserSession(userId);
+};
+
+/** 失效用户会话：清理 ONLINE_USER、权限、refresh、菜单缓存与 refresh 墓碑 */
+export async function InvalidateUserSession(userId: string): Promise<void> {
+    await Del(CacheEnum.ONLINE_USER + userId);
+    await Del(CacheEnum.USER_PERM + userId);
+    DeleteOnlineUserL1(userId);
+    const refreshKeys = await Keys(CacheEnum.REFRESH_TOKEN + `${userId}:`);
+    if (refreshKeys.length) await Del(refreshKeys);
+    const usedKeys = await Keys(CacheEnum.REFRESH_USED + `${userId}:`);
+    if (usedKeys.length) await Del(usedKeys);
+    await Del(CacheEnum.ADMIN_MENU + userId);
 };
