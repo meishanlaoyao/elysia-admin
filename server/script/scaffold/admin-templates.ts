@@ -17,7 +17,7 @@ export interface AdminTemplateContext {
 function searchFormField(field: SchemaField): string {
     if (field.tsType === 'boolean') {
         return `    {
-        label: '${field.name}',
+        label: '${field.label}',
         key: '${field.name}',
         type: 'select',
         props: {
@@ -31,10 +31,10 @@ function searchFormField(field: SchemaField): string {
     }`;
     }
     return `    {
-        label: '${field.name}',
+        label: '${field.label}',
         key: '${field.name}',
         type: 'input',
-        props: { placeholder: '请输入${field.name}' },
+        props: { placeholder: '请输入${field.label}' },
         clearable: true,
     }`;
 };
@@ -42,16 +42,16 @@ function searchFormField(field: SchemaField): string {
 function dialogFormField(field: SchemaField): string {
     if (field.tsType === 'boolean') {
         return `    {
-        label: '${field.name}',
+        label: '${field.label}',
         key: '${field.name}',
         type: 'switch',
     }`;
     };
     return `    {
-        label: '${field.name}',
+        label: '${field.label}',
         key: '${field.name}',
         type: 'input',
-        props: { placeholder: '请输入${field.name}' },
+        props: { placeholder: '请输入${field.label}' },
     }`;
 };
 
@@ -59,14 +59,14 @@ function tableColumn(field: SchemaField): string {
     if (field.tsType === 'boolean') {
         return `            {
                 prop: '${field.name}',
-                label: '${field.name}',
+                label: '${field.label}',
                 align: 'center',
                 formatter: (row) => h(ElTag, {
                     type: row.${field.name} ? 'success' : 'danger',
                 }, () => row.${field.name} ? '是' : '否'),
             }`;
     };
-    return `            { prop: '${field.name}', label: '${field.name}', align: 'center' }`;
+    return `            { prop: '${field.name}', label: '${field.label}', align: 'center' }`;
 };
 
 function formDataInit(fields: SchemaField[], pk: SchemaField): string {
@@ -99,11 +99,15 @@ function formDataReset(fields: SchemaField[], pk: SchemaField): string {
     return lines.join(',\n');
 };
 
-function validationRules(requiredFields: string[]): string {
-    if (requiredFields.length === 0) return 'const rules: FormRules = {}';
-    const lines = requiredFields.map((field) => `    ${field}: [
-        { required: true, message: '请输入${field}', trigger: 'blur' },
-    ]`);
+function validationRules(schema: ParsedSchema): string {
+    if (schema.requiredFields.length === 0) return 'const rules: FormRules = {}';
+    const lines = schema.requiredFields.map((name) => {
+        const field = schema.businessFields.find((f) => f.name === name);
+        const label = field?.label ?? name;
+        return `    ${name}: [
+        { required: true, message: '请输入${label}', trigger: 'blur' },
+    ]`;
+    });
     return `const rules: FormRules = {\n${lines.join(',\n')}\n}`;
 };
 
@@ -455,7 +459,7 @@ const formItems = computed<FormItem[]>(() => [
 ${formItems}
 ])
 
-${validationRules(ctx.schema.requiredFields)}
+${validationRules(ctx.schema)}
 
 const initFormData = () => {
     loading.value = false

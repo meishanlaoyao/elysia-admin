@@ -111,7 +111,7 @@ export const ListDto = CrudDto.list(
 }
 
 export function renderHandle(ctx: BackendTemplateContext): string {
-    const { schema } = ctx;
+    const { schema, tag } = ctx;
     const pk = schema.pkField;
     const idParse = pk.tsType === 'number'
         ? 'Number(ctx.params.id)'
@@ -132,11 +132,21 @@ import {
 } from '@/core/database/repository';
 import { ${schema.schemaVarName} } from '@database/schema/${schema.schemaImportPath}';
 
+/**
+ * 创建${tag}
+ * @param ctx 请求上下文，body 见 CreateDto
+ * @returns BaseResultData.ok()
+ */
 export async function create(ctx: AppContext) {
     await InsertOne(${schema.schemaVarName}, ctx);
     return BaseResultData.ok();
 }
 
+/**
+ * 分页查询${tag}列表（排除软删）
+ * @param ctx 请求上下文，query 见 ListDto
+ * @returns BaseResultData.ok({ list, total })
+ */
 export async function findList(ctx: AppContext) {
     const {
         pageNum = 1,
@@ -161,6 +171,11 @@ ${listDestructure}
     return BaseResultData.ok(res);
 }
 
+/**
+ * 按主键查询${tag}详情（软删视为不存在）
+ * @param ctx 请求上下文，params.id 为主键
+ * @returns BaseResultData.ok(data) 或 fail(404)
+ */
 export async function findOne(ctx: AppContext) {
     const id = ${idParse};
     const data = await FindOneByKey(${schema.schemaVarName}, '${pk.name}', id);
@@ -168,11 +183,21 @@ export async function findOne(ctx: AppContext) {
     return BaseResultData.ok(data);
 }
 
+/**
+ * 按主键更新${tag}
+ * @param ctx 请求上下文，body 见 UpdateDto
+ * @returns BaseResultData.ok()
+ */
 export async function update(ctx: AppContext) {
     await UpdateByKey(${schema.schemaVarName}, '${pk.name}', ctx);
     return BaseResultData.ok();
 }
 
+/**
+ * 软删除${tag}（设置 delFlag=true）
+ * @param ctx 请求上下文，params.ids 为主键（可批量）
+ * @returns BaseResultData.ok()
+ */
 export async function remove(ctx: AppContext) {
     await SoftDeleteByKeys(${schema.schemaVarName}, '${pk.name}', ctx);
     return BaseResultData.ok();

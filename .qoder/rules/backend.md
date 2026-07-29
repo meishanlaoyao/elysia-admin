@@ -151,7 +151,28 @@ After creating or editing files under `server/database/schema/`:
 
 **Handoff SQL (`server/database/sql/*-init.sql`):** generate file only. **NEVER** run via scripts, MCP write/execute, psql, or ad-hoc code.
 
-**DB facts (dict/menu/runtime data):** Postgres MCP read-only **first**; then `server/database/schema/`. **NEVER read** `server/database/sql/pg.sql` (stale backup).
+**DB facts (dict/menu/runtime data):** Postgres MCP read-only **first**; then `server/database/schema/`. **NEVER read or modify** `server/database/sql/pg.sql` (stale backup only).
+
+---
+
+# Soft delete & unique constraints
+
+- List/detail: `.eq('delFlag', false)`; `findOne` rejects soft-deleted rows
+- Uniqueness checks MUST account for soft-deleted rows and return Chinese tips — NEVER silent failure
+- **New tables:** partial unique index `WHERE del_flag = false` — not column `.unique()` — see `.ai/AI_SCHEMA_GUIDE.md`
+- Existing `.unique()` changes = schema change: ask developer; DDL only in handoff SQL
+
+# handle.ts JSDoc (Required)
+
+Every exported function MUST have JSDoc: one-line purpose, `@param`, `@returns`. Non-trivial flows list numbered steps. PascalCase cross-module exports note callers / return shape.
+
+# Options endpoint + cache
+
+Entity dropdowns → `GET /group/xxx/options` with `WithCache(CacheEnum.BASE_OPTIONS + 'xxx', …)` and `Del` after write. **NEVER** paginated `/list`. Exception to "no default Redis for CRUD".
+
+# Response DTO completeness
+
+`response` schema strips undeclared fields. Join/assembled fields MUST be in dto `response` (e.g. `t.Composite([SelectXxx, t.Object({ deptName: t.Optional(t.String()) })])`). Sync dto when changing handle return shape; prefer omitting incomplete response DTO.
 
 ---
 

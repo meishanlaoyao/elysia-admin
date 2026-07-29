@@ -42,6 +42,9 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 7. Ask before modifying database schema
 8. No over-engineering
 9. **`dto.ts` validation:** every validated field must include `error` with a readable Chinese user-facing message (`error`, not `errorMessage`) — see `server/AGENTS.md` / backend examples
+10. **Soft delete & uniqueness:** uniqueness checks MUST account for soft-deleted rows; new unique constraints → partial unique index `WHERE del_flag = false`
+11. **Form validation both sides:** frontend `rules` + backend `dto.ts` with Chinese `error`
+12. **`handle.ts` JSDoc:** every exported function needs purpose + `@param` / `@returns`; non-trivial flows list numbered steps
 
 ---
 
@@ -84,7 +87,7 @@ For built-in UI paths, MCP, dict/menu: `.ai/AI_CONTEXT_CAPSULE.md` **only if nee
 **NEVER read these (ever):**
 
 - `node_modules/`, `dist/`, `build/`
-- `server/database/sql/pg.sql`
+- `server/database/sql/pg.sql` (**NEVER read or modify** — backup snapshot only)
 - `admin/src/components/core/` (unless fixing a core component bug)
 - `server/src/core/` (unless task explicitly touches infrastructure)
 - `database/schema/` other than the one table used in the current task

@@ -75,6 +75,12 @@ fetchGet{Module}List
 fetchUpdate{Module}
 fetchDelete{Module}
 
+When the page needs an entity dropdown (not dict enum), also add:
+
+fetchGet{Module}Options
+
+— maps to backend cached `GET /group/module/options`. **NEVER** use `fetchGet{Module}List` with a large pageSize for selects.
+
 Example pattern:
 
 export function fetchCreateXXX(data: Api.GroupXXX.XXXListItem) {
@@ -181,6 +187,7 @@ Must:
 - Reset form on close
 - Initialize data on open
 - Call fetchCreateXXX / fetchUpdateXXX
+- `rules` MUST mirror backend `dto.ts` constraints field-by-field with aligned Chinese tips; backend must not rely on frontend validation alone
 
 Forbidden:
 - Table refresh logic

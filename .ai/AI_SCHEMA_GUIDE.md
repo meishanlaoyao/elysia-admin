@@ -19,6 +19,33 @@
 - When ordering is needed, field name **MUST** be `sort` (`integer`, default `0`)
 - **NEVER** `orderNum`, `sortOrder`, `displayOrder`, etc.
 
+**Soft delete & unique constraints:**
+
+- Soft delete uses `del_flag` / `delFlag` via `SoftDeleteByKeys`
+- **NEVER** use column-level `.unique()` for business codes that must be reusable after soft delete
+- **New tables:** use a **partial unique index** so only active rows conflict:
+
+```ts
+import { sql } from 'drizzle-orm';
+import { uniqueIndex } from 'drizzle-orm/pg-core';
+
+export const businessGoodsSchema = pgTable(
+    'business_goods',
+    {
+        // ...columns including ...BaseSchema
+        code: varchar('code', { length: 64 }).notNull(),
+    },
+    (table) => [
+        uniqueIndex('uk_business_goods_code')
+            .on(table.code)
+            .where(sql`${table.delFlag} = false`),
+    ],
+);
+```
+
+- **Existing column `.unique()` tables:** changing indexes is a schema change — **MUST ask the developer first**. Put DDL only in `server/database/sql/{module}-init.sql` (e.g. `CREATE UNIQUE INDEX ... WHERE del_flag = false`); developer runs manually. **NEVER** sync that change into `pg.sql`.
+- Handle-layer uniqueness checks MUST still account for soft-deleted rows and return readable Chinese messages — see [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md).
+
 **Naming:**
 
 - Keep table and column names short and clear
@@ -89,9 +116,9 @@ When verifying dict, menu, permissions, or other **live DB state**:
 |----------|--------|-----|
 | 1 | **Postgres MCP** (read-only SELECT) | Actual database — **MUST use first** when available |
 | 2 | `server/database/schema/` | Table/column structure when MCP unavailable |
-| — | **`server/database/sql/pg.sql`** | **NEVER read** — backup snapshot; may not match live DB |
+| — | **`server/database/sql/pg.sql`** | **NEVER read, modify, write, regenerate, or sync** — backup snapshot only; may not match live DB |
 
-**NEVER** use `pg.sql` as a substitute for MCP or live queries. See [AI_MCP_SETUP.md](./AI_MCP_SETUP.md), [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
+**NEVER** use `pg.sql` as a substitute for MCP or live queries. **NEVER** update `pg.sql` when changing drizzle schema or handoff SQL. See [AI_MCP_SETUP.md](./AI_MCP_SETUP.md), [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
 
 ---
 
@@ -100,5 +127,7 @@ When verifying dict, menu, permissions, or other **live DB state**:
 - [ ] Checked `server/database/schema/` for existing tables
 - [ ] Main table has `BaseSchema`; pure junction does not
 - [ ] Sort field named `sort` if needed
+- [ ] Soft-delete-safe uniqueness: partial unique index (new tables) or developer-approved DDL (existing)
+- [ ] Did **not** touch `server/database/sql/pg.sql`
 - [ ] Names not excessively long
 - [ ] Junction deletes use hard delete

@@ -26,7 +26,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 ### 1. MCP
 
 - **MUST** use **Postgres MCP** read-only for tables, dict, menu IDs (`.ai/AI_MCP_SETUP.md`) — **first** for runtime data
-- **NEVER** read `server/database/sql/pg.sql` (stale backup; use MCP or schema files)
+- **NEVER** read or modify `server/database/sql/pg.sql` (stale backup only; use MCP or schema files)
 - If unavailable: declare fallback; use SQL subqueries or placeholders
 
 ### 2. Schema
@@ -34,6 +34,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **MUST** check `server/database/schema/` first
 - Main table: `...BaseSchema`; sort field name **MUST** be `sort`
 - Pure junction table: two FKs only; hard delete
+- **Soft delete & unique:** new unique constraints → partial unique index `WHERE del_flag = false` (not column `.unique()`); existing `.unique()` changes require developer approval + handoff SQL only
 - **MUST** ask developer before changing drizzle schema
 - After schema edits: `db:push` per `.ai/AI_SCHEMA_GUIDE.md` — check `.ai/dev-preferences.local.md`; ask once, then remember
 - See `.ai/AI_SCHEMA_GUIDE.md`
@@ -55,6 +56,10 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **Scaffold already ran:** edit `handle.ts` / extend `dto.ts` only; do **not** regenerate `route.ts` from templates
 - **No scaffold:** `dto.ts` / `handle.ts` / `route.ts` / `task.ts` (optional); `.ai/AI_CODE_EXAMPLES_BACKEND.md` (section only); reference `system-api/` only
 - **`dto.ts` error (required):** every validated field must include `error` with a readable Chinese user-facing message (`error`, not `errorMessage`); scaffold `CreateDto` auto-generates via `fieldLabels`
+- **Response DTO completeness:** join/assembled fields MUST be declared in dto `response` or they are stripped; sync dto when changing handle return shape
+- **`handle.ts` JSDoc:** every exported function needs purpose + `@param` / `@returns`; non-trivial flows list numbered steps
+- **Soft delete & uniqueness:** list/detail filter `delFlag`; uniqueness checks MUST account for soft-deleted rows with Chinese tips
+- **Entity dropdowns:** dedicated cached `GET /options` (`WithCache` + `Del` on write) — **NEVER** paginated `/list`
 - **Cross-table data:** call the owning module's exported PascalCase function from its `handle.ts`; do **NOT** import another module's `@database/schema` for cross-table queries
 - `meta.permission`: `group:name:action`
 
@@ -69,6 +74,8 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **Scaffold already ran:** polish generated vue files; dict + layout per `.ai/AI_PAGE_QUALITY.md` / `.ai/AI_UI_LAYOUT.md`
 - **No scaffold:** reference `admin/src/views/system/user/` only
 - Permission strings **MUST** match backend
+- **Form validation both sides:** frontend `rules` + backend `dto.ts` with Chinese `error` for the same fields
+- **Options:** dict enums → `useDictStore`; entity dropdowns → `/options` API — **NEVER** `/list`
 - **MUST** read `.ai/AI_PAGE_QUALITY.md` and `.ai/AI_UI_LAYOUT.md` before finishing
 
 ### 8. Handoff SQL
@@ -89,6 +96,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - Default: no indexes/cache
 - Only when clear performance need; state reason
 - **NEVER** auto-add Redis for boilerplate CRUD
+- **Exception:** entity `/options` endpoints **MUST** use `WithCache` (e.g. `CacheEnum.BASE_OPTIONS + 'xxx'`) and invalidate on write
 
 ## Delivery Format — MUST output in this order
 

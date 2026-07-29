@@ -34,11 +34,18 @@ For business types backed by dict — use `getDictLabel` instead (see below).
 
 ---
 
-## Dict Integration — MUST (no hardcoded business enums)
+## Options Data Sources — MUST
 
-**NEVER** hardcode business enum `options` in search or dialog when a dict type exists.
+| Source | Use when | How |
+|--------|----------|-----|
+| `useDictStore` | Business enums backed by `system_dict_*` | `getDictData` / `getDictLabel` |
+| Dedicated `/options` API | Entity dropdowns (merchant, goods, …) | Cached backend endpoint; fetch once on page init |
+| Fixed true/false | Boolean enable/disable only | Inline options OK |
 
-### Setup (index, search, dialog)
+**NEVER** hardcode business enum `options` when a dict type exists.
+**NEVER** load dropdown data via paginated `/list` + large `pageSize`.
+
+### Dict setup (index, search, dialog)
 
 ```ts
 import { useDictStore } from '@/store/modules/dict'
@@ -53,7 +60,7 @@ const { business_goods_status } = dictStore.getDictData(['business_goods_status'
 formatter: (row) => dictStore.getDictLabel('business_goods_status', row.status)
 ```
 
-### Search / dialog select
+### Search / dialog select (dict)
 
 ```ts
 props: {
@@ -66,6 +73,13 @@ props: {
 ```
 
 Align `dict_type` with Postgres `system_dict_type` / handoff SQL. See [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
+Entity options API pattern: [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) / [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md).
+
+## Form Validation — Both Sides MUST
+
+- Frontend `rules` (required / length / format / range) **and** backend `dto.ts` with Chinese `error` for the same fields
+- Backend must not rely on frontend alone; uniqueness / FK / state machine live in `handle.ts`
+- Tip wording should stay aligned; missing or mismatched validation = defect
 
 ---
 
@@ -98,6 +112,8 @@ Long fields (remark, rich text): `span: 24`.
 - Table without `art-full-height` / `art-table-card` shell
 - Operation column not fixed right on wide tables
 - Business enum hardcoded in `formItems` while dict exists in DB
+- Entity dropdown loaded from `/list` pagination
+- Dialog form without `rules`, or rules out of sync with backend `dto.ts`
 - Dialog `width="600px"` with 10+ fields all `span: 24`
 - Missing `v-auth` on create button when route has permission
 
@@ -108,6 +124,8 @@ Long fields (remark, rich text): `span: 24`.
 - [ ] Page shell matches user reference layout
 - [ ] Columns sensible widths; operation fixed right
 - [ ] Dict fields use `useDictStore` (not hardcoded options)
+- [ ] Entity dropdowns use `/options` (not `/list`)
+- [ ] Dialog `rules` present and aligned with backend `dto.ts` / `error`
 - [ ] Dialog span / width balanced (see AI_UI_LAYOUT.md)
 - [ ] Permission strings match backend `meta.permission`
 - [ ] (Optional) Chrome DevTools MCP smoke test

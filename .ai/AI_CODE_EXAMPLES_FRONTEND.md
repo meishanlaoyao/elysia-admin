@@ -86,6 +86,20 @@ export function fetchDeleteXxx(ids: number | string) {
 
 ---
 
+## Frontend — Form validation (both sides Required)
+
+Form fields **MUST** be validated on **both** frontend and backend:
+
+| Side | Where | What |
+|------|-------|------|
+| Frontend | `rules` in `*-dialog.vue` / `*-search.vue` | required / length / format / number range; Chinese `message` |
+| Backend | `dto.ts` | Same semantic constraints + Chinese `error` |
+
+- Backend **MUST NOT** rely on frontend validation alone
+- Uniqueness / FK existence / status transitions / ownership → `handle.ts` only
+- Keep tip wording aligned (e.g. frontend `'请输入编码'` ↔ backend `'编码不能为空'`)
+- Missing frontend `rules` or mismatched dto constraints = defect
+
 ## Frontend — useDictStore (dict-backed fields)
 
 Business status/type fields **MUST** use dict store — never hardcode enum options when `dict_type` exists in DB.
@@ -105,7 +119,7 @@ const dictStore = useDictStore()
 }
 ```
 
-### xxx-search.vue / xxx-dialog.vue — select options
+### xxx-search.vue / xxx-dialog.vue — select options (dict)
 
 ```ts
 import { useDictStore } from '@/store/modules/dict'
@@ -130,6 +144,26 @@ const { business_goods_status } = dictStore.getDictData(['business_goods_status'
 
 Add missing dict rows in `server/database/sql/{module}-init.sql`. See [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md).
 
+### Business entity dropdown — dedicated options API (NOT /list)
+
+Dict enums → `useDictStore`. **Entity** dropdowns (merchant list, goods list, etc.) → dedicated cached options endpoint — **NEVER** paginated `/list` with a large `pageSize`.
+
+```ts
+// api/group/xxx.ts
+export function fetchGetXxxOptions() {
+  return request.get<Array<{ label: string; value: number }>>({
+    url: '/api/group/xxx/options',
+  })
+}
+
+// in dialog / search setup:
+const xxxOptions = ref<Array<{ label: string; value: number }>>([])
+onMounted(async () => {
+  xxxOptions.value = (await fetchGetXxxOptions()) ?? []
+})
+```
+
+Backend pattern: [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) — options endpoint + cache.
 ---
 
 ## views/{group}/{module}/index.vue — Page Container
@@ -395,6 +429,7 @@ const formItems = computed<FormItem[]>(() => [
 ])
 
 const rules = computed<FormRules>(() => ({
+  // MUST mirror backend dto.ts constraints (Chinese tips aligned)
   name: [
     { required: true, message: '请输入名称', trigger: 'blur' },
     { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }

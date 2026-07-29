@@ -56,6 +56,8 @@ dto.ts must be pure and side-effect free.
 
 **Validation error (required):** every validated field in `dto.ts` must include `error: '中文提示'` (use `error`, not `errorMessage`). Required body fields: `'${description}不能为空'`; constrained fields: semantic messages like `'用户名格式错误'`. Without `error`, the frontend receives JSON instead of readable text. List query `t.Optional` fields may omit `error`.
 
+**Response DTO completeness (required):** the `response` schema is a filter — fields not declared there are stripped before reaching the frontend. Join / aggregate / assembled fields MUST be declared explicitly (e.g. `t.Composite([SelectXxx, t.Object({ deptName: t.Optional(t.String()) })])`). When changing `handle.ts` return shape, sync the matching dto `response` in the same change. If unsure, omit response DTO for that route rather than shipping an incomplete one.
+
 ---
 
 # handle.ts (Business Layer)
@@ -88,6 +90,9 @@ Do NOT introduce new ORM.
 Do NOT rewrite repository.
 Do NOT replace QueryBuilder.
 
+**JSDoc (required):** every exported function MUST have a JSDoc block with a one-line purpose, `@param`, and `@returns`. Non-trivial flows (transactions, cache invalidation, cross-module calls, external side effects) MUST list numbered steps in the comment. PascalCase cross-module exports SHOULD note callers and return shape.
+
+**Soft delete & uniqueness:** list/detail queries MUST use `.eq('delFlag', false)` (or reject soft-deleted rows in `findOne`). Uniqueness checks MUST explicitly decide how soft-deleted rows are treated and return a readable Chinese message — NEVER silent failure. Dropdown/select data MUST use a dedicated cached options endpoint (`WithCache` + `Del` on write) — NEVER the paginated `/list` endpoint.
 ---
 
 # Cross-Table Data Access (STRICT)

@@ -32,19 +32,21 @@
 
 - **`db:push`:** after schema edits, check `.ai/dev-preferences.local.md`; ask once, then remember — see [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md)
 - **Handoff SQL:** generate `server/database/sql/{module}-init.sql` only; developer runs manually; **NEVER** ad-hoc scripts or MCP execute
-- **NEVER read** `server/database/sql/pg.sql` (stale backup)
+- **NEVER read or modify** `server/database/sql/pg.sql` (stale backup only)
 
 ---
 
 ## Core Rules (Quick)
 
 1. **Schema first:** check `server/database/schema/`; main table + `BaseSchema`; junction = two FKs only; sort field name `sort`
-2. **Standard CRUD scaffold:** when schema exists and module is new → [AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md) (`bun run create:module` + `create:page` from `server/`) before hand-writing CRUD files
-3. **No hardcoded enums:** align `system_dict_*`; missing → `server/database/sql/{module}-init.sql`
-4. **Permissions ×3:** `route.ts` ↔ frontend auth ↔ SQL `permission`
-5. **Menu SQL:** query DB (MCP) before INSERT; one merged SQL file
-6. **Git read-only:** status/diff/log OK; no add/commit/push unless user asks
-7. **Optimize on demand:** no default indexes/Redis for CRUD boilerplate
+2. **Soft delete & unique:** uniqueness checks include soft-deleted rows; new unique constraints → partial unique index `WHERE del_flag = false`
+3. **Standard CRUD scaffold:** when schema exists and module is new → [AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md) (`bun run create:module` + `create:page` from `server/`) before hand-writing CRUD files
+4. **No hardcoded enums:** align `system_dict_*`; missing → `server/database/sql/{module}-init.sql`
+5. **Form validation both sides:** frontend `rules` + backend `dto.ts` Chinese `error`; entity dropdowns → cached `/options` (not `/list`)
+6. **Permissions ×3:** `route.ts` ↔ frontend auth ↔ SQL `permission`
+7. **Menu SQL:** query DB (MCP) before INSERT; one merged SQL file
+8. **Git read-only:** status/diff/log OK; no add/commit/push unless user asks
+9. **Optimize on demand:** no default indexes/Redis for CRUD boilerplate — **except** options endpoints (always cache)
 
 ---
 

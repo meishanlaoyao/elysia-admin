@@ -19,18 +19,19 @@ Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
 - Read `.ai/AI_MODULE_WORKFLOW.md`
-- **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` — run `create:module` + `create:page` from `server/` when schema exists
+- **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` �?run `create:module` + `create:page` from `server/` when schema exists
 - Code templates: `.ai/AI_CODE_EXAMPLES_BACKEND.md` / `.ai/AI_CODE_EXAMPLES_FRONTEND.md` (section only; index: `AI_CODE_EXAMPLES.md`)
 - Handoff SQL output: `server/database/sql/{module-name}-init.sql`
-- Trigger phrases: `按 module dev workflow` / `走完整 SOP` / `先用脚手架` / `脚手架已生成`
+- Trigger phrases: `�?module dev workflow` / `走完�?SOP` / `先用脚手架` / `脚手架已生成`
+- Soft delete & uniqueness; form validation both sides; `handle.ts` JSDoc; entity `/options` + cache; response DTO completeness; **NEVER modify** `pg.sql`
 
 ## Scoped rules
 
 Path-specific rules live in `.claude/rules/`:
 
-- `general.md` — always apply
-- `backend.md` — `server/src/**`
-- `frontend.md` — `admin/src/**`
+- `general.md` �?always apply
+- `backend.md` �?`server/src/**`
+- `frontend.md` �?`admin/src/**`
 
 ## `.ai/` doc index
 
@@ -47,3 +48,5 @@ Path-specific rules live in `.claude/rules/`:
 | `AI_CONTEXT_CAPSULE.md` | One-page quick ref |
 
 **Git (read-only for AI):** no `git add` / `commit` / `push` unless the user explicitly asks.
+
+**NEVER read or modify** `server/database/sql/pg.sql` (backup snapshot only).

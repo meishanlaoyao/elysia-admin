@@ -213,6 +213,20 @@ See `.ai/AI_PAGE_QUALITY.md` and `.ai/AI_UI_LAYOUT.md`.
 - Business enums: **NEVER** hardcode — use `useDictStore` + `getDictData` / `getDictLabel`
 - Dialog: `align-center`, `:span="12"`, balanced width (600–800px)
 
+# Form validation — both sides (Required)
+
+Frontend `rules` (required / length / format / range) **MUST** mirror backend `dto.ts` constraints with aligned Chinese tips. Backend must not rely on frontend alone; uniqueness / FK / state machine live in `handle.ts`. Missing or mismatched validation = defect.
+
+# Options data sources
+
+| Source | Use |
+|--------|-----|
+| `useDictStore` | Dict-backed enums |
+| `GET /group/xxx/options` | Entity dropdowns (cached backend) |
+| Fixed true/false | Boolean enable/disable only |
+
+**NEVER** load entity dropdowns via paginated `/list`.
+
 ---
 
 # Forbidden in Frontend

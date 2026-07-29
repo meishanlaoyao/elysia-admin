@@ -208,6 +208,22 @@ const handleClosed = () => formRef.value?.reset()
 
 ---
 
+# Form validation — both sides (Required)
+
+Frontend `rules` (required / length / format / range) **MUST** mirror backend `dto.ts` constraints with aligned Chinese tips. Backend must not rely on frontend alone; uniqueness / FK / state machine live in `handle.ts`. Missing or mismatched validation = defect.
+
+# Options data sources
+
+| Source | Use |
+|--------|-----|
+| `useDictStore` | Dict-backed enums |
+| `GET /group/xxx/options` | Entity dropdowns (cached backend) |
+| Fixed true/false | Boolean enable/disable only |
+
+**NEVER** load entity dropdowns via paginated `/list`. See `.ai/AI_PAGE_QUALITY.md`.
+
+---
+
 # Forbidden in Frontend
 
 - Business logic in components or search components

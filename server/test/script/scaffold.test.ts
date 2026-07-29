@@ -10,7 +10,7 @@ import {
 } from '../../script/scaffold/naming';
 import { parseSchemaFile, resolveSchemaPath } from '../../script/scaffold/schema-parser';
 import { renderAdminPage } from '../../script/scaffold/admin-templates';
-import { renderDto } from '../../script/scaffold/templates';
+import { renderDto, renderHandle } from '../../script/scaffold/templates';
 
 describe('scaffold naming', () => {
     test('slugToParts', () => {
@@ -87,6 +87,19 @@ describe('scaffold backend-templates', () => {
         expect(bodySchema).toContain('API路径不能为空');
         expect(bodySchema).toContain('API方法不能为空');
     });
+
+    test('renderHandle 为每个导出函数生成 JSDoc', () => {
+        const schema = parseSchemaFile(systemApiPath, 'system_api');
+        const handle = renderHandle({ slug: 'system-api', tag: '系统API', schema });
+        expect(handle).toContain('/**');
+        expect(handle).toContain('@param ctx');
+        expect(handle).toContain('@returns');
+        expect(handle).toContain('创建系统API');
+        expect(handle).toContain('分页查询系统API列表（排除软删）');
+        expect(handle).toContain('按主键查询系统API详情（软删视为不存在）');
+        expect(handle).toContain('按主键更新系统API');
+        expect(handle).toContain('软删除系统API（设置 delFlag=true）');
+    });
 });
 
 describe('scaffold admin-templates', () => {
@@ -105,5 +118,24 @@ describe('scaffold admin-templates', () => {
         expect(files['src/types/api/system-api.d.ts']).toContain('namespace SystemApi');
         expect(files['src/api/system/api.ts']).toContain("url: '/api/system/api/list'");
         expect(files['src/views/system/api/index.vue']).toContain('art-full-height');
+    });
+
+    test('renderAdminPage 使用中文标签', () => {
+        const schema = parseSchemaFile(systemApiPath, 'system_api');
+        const files = renderAdminPage({
+            group: 'system',
+            name: 'api',
+            tag: '系统API',
+            schema,
+        });
+        const indexVue = files['src/views/system/api/index.vue'];
+        const dialogVue = files['src/views/system/api/modules/api-dialog.vue'];
+        const searchVue = files['src/views/system/api/modules/api-search.vue'];
+        expect(indexVue).toContain("label: 'API名称'");
+        expect(indexVue).not.toContain("label: 'apiName'");
+        expect(dialogVue).toContain("message: '请输入API名称'");
+        expect(dialogVue).toContain("label: 'API路径'");
+        expect(searchVue).toContain("placeholder: '请输入API路径'");
+        expect(searchVue).not.toContain("placeholder: '请输入apiPath'");
     });
 });

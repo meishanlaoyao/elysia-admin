@@ -25,6 +25,8 @@ shared ✗→ core/database
 2. Patterns: backend → `.ai/AI_CODE_EXAMPLES_BACKEND.md`; frontend → `.ai/AI_CODE_EXAMPLES_FRONTEND.md` (**section only**)
 3. No new deps; no unrelated refactors; ask before schema changes
 4. **`dto.ts`:** validated fields need `error` with Chinese user-facing text (`error`, not `errorMessage`)
+5. **Soft delete & uniqueness:** uniqueness checks account for soft-deleted rows; new unique → partial index `WHERE del_flag = false`
+6. **Form validation both sides:** frontend `rules` + backend `dto.ts`; **`handle.ts` JSDoc** on every export
 
 ---
 
@@ -44,7 +46,7 @@ shared ✗→ core/database
 
 **Doc budget:** edit one file → target file only; scaffold done → generated files + schema only; full-stack → ≤3 `.ai` docs per turn.
 
-**Never:** `node_modules/`, `dist/`, `pg.sql`, `server/src/core/`, scan all modules.
+**Never:** `node_modules/`, `dist/`, `pg.sql` (never read or modify — backup only), `server/src/core/`, scan all modules.
 
 **After scaffold:** no `system-api/` / `system/user/` reference reads.
 

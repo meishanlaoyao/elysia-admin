@@ -21,7 +21,10 @@ Module workflow: prefer Skill `.cursor/skills/elysia-module-dev/`; [AI_MODULE_WO
 | `dto.ts — Validation error` | Any validated `dto.ts` field |
 | `dto.ts — Using CrudDto` | Standard CRUD create/list/update DTO |
 | `dto.ts — Manual body` | Non-CrudDto or custom validation |
+| `dto.ts — Response DTO completeness` | Join / aggregate / assembled response fields |
 | `handle.ts — Standard CRUD` | Module business logic |
+| `handle.ts — Uniqueness check (include soft-deleted rows)` | Unique business codes on soft-delete tables |
+| `handle.ts — Options endpoint + cache` | Entity dropdown data |
 | `route.ts` | Route binding |
 | `task.ts` | Queue/cron exports |
 
@@ -31,7 +34,9 @@ Module workflow: prefer Skill `.cursor/skills/elysia-module-dev/`; [AI_MODULE_WO
 |---------|------|
 | `types/api/{module}.d.ts` | API types |
 | `api/{group}/{module}.ts` | HTTP client |
+| `Form validation (both sides)` | Any form field |
 | `useDictStore` | Dict-backed columns/forms |
+| `Business entity dropdown — options API` | Entity select in search / dialog |
 | `index.vue` | List page |
 | `xxx-search.vue` | Search bar |
 | `xxx-dialog.vue` | Create/edit dialog |

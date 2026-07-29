@@ -10,7 +10,7 @@ Example: `server/database/sql/business-goods-init.sql`
 
 Developer runs manually in local/test — **NEVER** pretend SQL was executed.
 
-**NEVER read** `server/database/sql/pg.sql` for dict/menu/runtime data — it is a backup snapshot that may not match the live database. Use Postgres MCP (read-only) first; see [AI_MCP_SETUP.md](./AI_MCP_SETUP.md).
+**NEVER read or modify** `server/database/sql/pg.sql` for dict/menu/runtime data — it is a backup snapshot that may not match the live database. Use Postgres MCP (read-only) first; see [AI_MCP_SETUP.md](./AI_MCP_SETUP.md).
 
 ---
 
@@ -176,7 +176,7 @@ Example: `business:goods:create`, `business:goods:list`
 1. Header: `⚠ Postgres MCP unavailable — verify parent_id / path before run`
 2. Prefer subqueries on `system_menu.path`
 3. List manual verification items in delivery notes
-4. **Do NOT** read `server/database/sql/pg.sql` as a substitute — use schema files for structure only
+4. **Do NOT** read or modify `server/database/sql/pg.sql` as a substitute — use schema files for structure only
 
 ---
 

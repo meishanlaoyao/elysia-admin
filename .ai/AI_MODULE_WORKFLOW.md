@@ -13,7 +13,7 @@
 ## 0. MCP and Tooling
 
 - Recommend Postgres MCP — see [AI_MCP_SETUP.md](./AI_MCP_SETUP.md)
-- **Postgres MCP available:** **MUST** query actual DB read-only first (dict, menu IDs, permissions) — **NEVER** read `server/database/sql/pg.sql` (stale backup)
+- **Postgres MCP available:** **MUST** query actual DB read-only first (dict, menu IDs, permissions) — **NEVER** read or modify `server/database/sql/pg.sql` (stale backup only)
 - **No MCP:** read `server/database/schema/` for structure; mark SQL placeholders; state "verify IDs before run"
 
 ---
@@ -85,6 +85,10 @@ Directory: `server/src/modules/{group}-{name}/`
 - **If no scaffold:** templates [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) (section only); reference `server/src/modules/system-api/` only
 - Routes auto-register — **do not** edit `modules/index.ts`
 - **NEVER** hardcode business enums — see step 4
+- **Soft delete & uniqueness:** list/detail filter `delFlag`; uniqueness checks MUST account for soft-deleted rows; new unique constraints → partial unique index (`WHERE del_flag = false`) — [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md)
+- **`handle.ts` JSDoc:** every exported function needs purpose + `@param` / `@returns`; non-trivial flows list numbered steps
+- **Response DTO:** join/assembled fields MUST be declared in dto `response` or they are stripped
+- **Entity dropdowns:** dedicated cached `/options` endpoint (`WithCache` + `Del` on write) — **NEVER** paginated `/list`
 
 ---
 
@@ -103,6 +107,8 @@ Directory: `server/src/modules/{group}-{name}/`
 - **If no scaffold:** reference `admin/src/views/system/user/` only
 - Permissions: `v-auth` / `auth.hasAuth` **MUST** match backend `meta.permission`
 - **MUST** apply [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) and [AI_UI_LAYOUT.md](./AI_UI_LAYOUT.md)
+- **Form validation both sides:** frontend `rules` + backend `dto.ts` with Chinese `error` for the same fields
+- **Options:** dict enums → `useDictStore`; entity dropdowns → `/options` API — **NEVER** `/list` for selects
 
 ---
 
@@ -137,6 +143,8 @@ Consider only with clear performance need; **MUST** state why:
 - **Redis:** read-heavy + existing cache pattern to reuse
 
 **NEVER** auto-add cache/index for boilerplate CRUD.
+
+**Exception — options endpoints:** entity dropdown `/options` APIs **MUST** use `WithCache` (e.g. `CacheEnum.BASE_OPTIONS + 'xxx'`) and invalidate on write. This is required, not optional optimization.
 
 ---
 
