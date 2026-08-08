@@ -47,7 +47,7 @@ declare namespace Api {
         /** 重置密码参数 */
         interface ResetPasswordParams {
             token: string
-            uid: string
+            uid: number
             password: string
         }
     }

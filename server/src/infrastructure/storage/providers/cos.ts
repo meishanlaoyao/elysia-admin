@@ -1,4 +1,3 @@
-import { FormatTime } from '@/shared/time';
 import type { StorageConfig, PresignedUrlOptions, StorageProvider } from '../types';
 
 /**
@@ -15,13 +14,10 @@ export class COSProvider implements StorageProvider {
      * 生成 COS 预签名 URL
      */
     async getPresignedUrl(options: PresignedUrlOptions): Promise<string> {
-        let { key, expires = 60, method = 'get' } = options;
-        const time = Date.now();
-        key = `${time}_${key}`;
-        const timeStr = FormatTime(time, "YYYYMMDD");
-        const now = Math.floor(time / 1000);
+        const { key, expires = 60, method = 'get' } = options;
+        const now = Math.floor(Date.now() / 1000);
         const expireTime = now + expires;
-        const path = `/${timeStr}/${key}`;
+        const path = `/${key}`;
         const signature = await this.generateSignature({ method, path, expireTime, });
         const url = new URL(`https://${this.config.bucket}.${this.config.endpoint}`);
         url.pathname = path;

@@ -9,6 +9,8 @@ import {
     FindOneByKey,
 } from '@/core/database/repository';
 import { Pay } from '@/infrastructure/clients/payment';
+import { GenerateBizNo } from '@/core/biz-no';
+import { BizNoPrefix } from '@/constants/enum';
 import { RunTransaction } from '@/core/database/transaction';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
@@ -96,7 +98,7 @@ export async function payOrder(ctx: AppContext) {
     const result = await Pay(paymentMethod, platform).create(
         merchantConfig,
         {
-            paymentNo: payment?.paymentNo,
+            paymentNo: payment?.paymentNo || await GenerateBizNo(BizNoPrefix.PAYMENT),
             title: orderInfo.title,
             amount: orderInfo.amount + '',
             currency: orderInfo.currency,

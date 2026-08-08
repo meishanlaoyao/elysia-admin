@@ -19,6 +19,6 @@ export const ListDto = CrudDto.list(
 
 export const PresignDto = {
     query: t.Object({
-        fileName: t.String({ description: '文件名' }),
+        fileName: t.String({ description: '文件名', error: '文件名不能为空' }),
     })
 };

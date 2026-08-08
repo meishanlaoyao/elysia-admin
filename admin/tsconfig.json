@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
@@ -18,31 +18,34 @@
       "element-plus/global"
     ],
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
+      ],
+      // 该包 package.json 的 exports 未声明 types，bundler 解析下需手动指向声明文件
+      "@wangeditor/editor-for-vue": [
+        "./node_modules/@wangeditor/editor-for-vue/dist/src/index.d.ts"
       ],
       "@views/*": [
-        "src/views/*"
+        "./src/views/*"
       ],
       "@imgs/*": [
-        "src/assets/images/*"
+        "./src/assets/images/*"
       ],
       "@icons/*": [
-        "src/assets/icons/*"
+        "./src/assets/icons/*"
       ],
       "@utils/*": [
-        "src/utils/*"
+        "./src/utils/*"
       ],
       "@stores/*": [
-        "src/store/*"
+        "./src/store/*"
       ],
       "@plugins/*": [
-        "src/plugins/*"
+        "./src/plugins/*"
       ],
       "@styles/*": [
-        "src/assets/styles/*"
+        "./src/assets/styles/*"
       ]
     }
   },

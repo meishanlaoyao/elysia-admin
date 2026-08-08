@@ -101,23 +101,21 @@ const formItems = computed<FormItem[]>(() => [
     },
     {
         label: '私钥',
-        span: 12,
         key: 'privateKey',
         type: 'input',
-        props: { placeholder: '请输入私钥', clearable: true }
+        props: { type: 'textarea', rows: 3, placeholder: '请输入私钥', autosize: { minRows: 3, maxRows: 10 } }
     },
     {
         label: '公钥',
-        span: 12,
         key: 'publicKey',
         type: 'input',
-        props: { placeholder: '请输入公钥', clearable: true }
+        props: { type: 'textarea', rows: 3, placeholder: '请输入公钥', autosize: { minRows: 3, maxRows: 10 } }
     },
     {
         label: '扩展配置',
         key: 'config',
         type: 'input',
-        props: { type: 'textarea', rows: 2, placeholder: '请输入扩展配置', clearable: true }
+        props: { type: 'textarea', rows: 3, placeholder: '请输入扩展配置', clearable: true }
     },
     {
         label: '状态',

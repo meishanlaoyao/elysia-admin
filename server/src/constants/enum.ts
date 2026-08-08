@@ -57,7 +57,23 @@ export const CacheEnum = {
      * 接口ip限流
      */
     IP_RATE_LIMIT: `${config.app.id}:ipRateLimit:`,
+    /**
+     * 业务编号日递增序号
+     */
+    BIZ_NO: `${config.app.id}:bizNo:`,
 };
+
+/**
+ * 业务编号前缀
+ */
+export const BizNoPrefix = {
+    /** 订单号 */
+    ORDER: 'ORD',
+    /** 支付单号 */
+    PAYMENT: 'PAY',
+    /** 退款单号 */
+    REFUND: 'REF',
+} as const;
 
 /**
  * 日志级别

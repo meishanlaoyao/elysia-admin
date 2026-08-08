@@ -26,7 +26,9 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "bun",
-        "pattern": { "regexp": "^$" },
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -49,7 +51,9 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "bun",
-        "pattern": { "regexp": "^$" },
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -72,7 +76,9 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "bun",
-        "pattern": { "regexp": "^$" },
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -111,7 +117,9 @@
       "isBackground": true,
       "problemMatcher": {
         "owner": "vite",
-        "pattern": { "regexp": "^$" },
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
@@ -138,7 +146,10 @@
     },
     {
       "label": "Dev: Full Stack",
-      "dependsOn": ["Server: dev", "Admin: dev"],
+      "dependsOn": [
+        "Server: dev",
+        "Admin: dev"
+      ],
       "dependsOrder": "parallel",
       "problemMatcher": [],
       "group": {

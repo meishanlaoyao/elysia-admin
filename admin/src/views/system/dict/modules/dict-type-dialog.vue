@@ -1,172 +1,164 @@
 <template>
-    <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加字典类型' : '编辑字典类型'" width="500px" align-center
-        @closed="handleClosed">
-        <ArtForm ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="24" label-width="80px"
-            :show-reset="false" :show-submit="false" />
-        <template #footer>
-            <div class="dialog-footer">
-                <ElButton @click="dialogVisible = false">取消</ElButton>
-                <ElButton type="primary" :loading="loading" @click="handleSubmit">提交</ElButton>
-            </div>
-        </template>
-    </ElDialog>
+  <ElDialog
+    v-model="dialogVisible"
+    :title="dialogType === 'add' ? '添加字典类型' : '编辑字典类型'"
+    width="500px"
+    align-center
+    @closed="handleClosed"
+  >
+    <ArtForm
+      ref="formRef"
+      v-model="formData"
+      :items="formItems"
+      :rules="rules"
+      :span="24"
+      label-width="80px"
+      :show-reset="false"
+      :show-submit="false"
+    />
+    <template #footer>
+      <div class="dialog-footer">
+        <ElButton @click="dialogVisible = false">取消</ElButton>
+        <ElButton type="primary" :loading="loading" @click="handleSubmit">提交</ElButton>
+      </div>
+    </template>
+  </ElDialog>
 </template>
 
 <script setup lang="ts">
-import type { FormRules } from 'element-plus'
-import type { FormItem } from '@/components/core/forms/art-form/index.vue'
-import ArtForm from '@/components/core/forms/art-form/index.vue'
-import {
-    fetchCreateDictType,
-    fetchUpdateDictType,
-} from '@/api/system/dict';
+  import type { FormRules } from 'element-plus'
+  import type { FormItem } from '@/components/core/forms/art-form/index.vue'
+  import ArtForm from '@/components/core/forms/art-form/index.vue'
+  import { fetchCreateDictType, fetchUpdateDictType } from '@/api/system/dict'
 
-interface Props {
+  interface Props {
     visible: boolean
     type: string
     data?: Partial<Api.SystemDict.DictTypeListItem>
-}
+  }
 
-interface Emits {
+  interface Emits {
     (e: 'update:visible', value: boolean): void
     (e: 'submit', payload?: { oldDictType: string; newDictType: string }): void
-}
+  }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+  const props = defineProps<Props>()
+  const emit = defineEmits<Emits>()
 
-// 对话框显示控制
-const dialogVisible = computed({
+  const dialogVisible = computed({
     get: () => props.visible,
     set: (value) => emit('update:visible', value)
-})
+  })
 
-const dialogType = computed(() => props.type)
-const loading = ref(false)
-const originalDictType = ref('')
+  const dialogType = computed(() => props.type)
+  const loading = ref(false)
+  const originalDictType = ref('')
+  const formRef = ref()
 
-// 表单实例
-const formRef = ref()
-
-function getDefaultFormData() {
+  function getDefaultFormData() {
     return {
-        dictId: undefined as number | undefined,
-        dictName: '',
-        dictType: '',
+      dictId: undefined as number | undefined,
+      dictName: '',
+      dictType: ''
     }
-}
+  }
 
-// 表单数据
-const formData = reactive(getDefaultFormData())
+  const formData = reactive(getDefaultFormData())
 
-// 表单项配置
-const formItems: FormItem[] = [
+  const formItems: FormItem[] = [
     {
-        label: '字典名称',
-        key: 'dictName',
-        type: 'input',
-        props: { placeholder: '请输入字典名称' }
+      label: '字典名称',
+      key: 'dictName',
+      type: 'input',
+      props: { placeholder: '请输入字典名称' }
     },
     {
-        label: '字典类型',
-        key: 'dictType',
-        type: 'input',
-        props: { placeholder: '请输入字典类型' }
+      label: '字典类型',
+      key: 'dictType',
+      type: 'input',
+      props: { placeholder: '请输入字典类型' }
     }
-]
+  ]
 
-// 表单验证规则
-const rules: FormRules = {
+  const rules: FormRules = {
     dictName: [
-        { required: true, message: '请输入字典名称', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+      { required: true, message: '请输入字典名称', trigger: 'blur' },
+      { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ],
     dictType: [
-        { required: true, message: '请输入字典类型', trigger: 'blur' },
-        { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+      { required: true, message: '请输入字典类型', trigger: 'blur' },
+      { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
     ]
-}
+  }
 
-/**
- * 初始化表单数据
- * 根据对话框类型（新增/编辑）填充表单
- */
-const initFormData = () => {
+  const initFormData = () => {
     loading.value = false
     const isEdit = props.type === 'edit' && props.data
     const row = props.data
-    // 先重置为干净默认值，避免上次编辑字段（如 dictId、createTime）残留到新增请求
     Object.assign(formData, getDefaultFormData())
     if (isEdit && row) {
-        originalDictType.value = row.dictType || ''
-        Object.assign(formData, {
-            dictId: row.dictId,
-            dictName: row.dictName || '',
-            dictType: row.dictType || '',
-        })
+      originalDictType.value = row.dictType || ''
+      Object.assign(formData, {
+        dictId: row.dictId,
+        dictName: row.dictName || '',
+        dictType: row.dictType || ''
+      })
     } else {
-        originalDictType.value = ''
+      originalDictType.value = ''
     }
-}
+  }
 
-/**
- * 监听对话框状态变化
- * 当对话框打开时初始化表单数据
- */
-watch(
+  watch(
     () => props.visible,
     (visible) => {
-        if (visible) {
-            nextTick(() => {
-                initFormData()
-            })
-        }
+      if (visible) {
+        nextTick(() => {
+          initFormData()
+        })
+      }
     }
-)
+  )
 
-/**
- * 提交表单
- * 验证通过后触发提交事件
- */
-const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!formRef.value) return
-    formRef.value.validate().then(async () => {
+    formRef.value
+      .validate()
+      .then(async () => {
         try {
-            loading.value = true
-            if (dialogType.value == 'add') {
-                await fetchCreateDictType({
-                    dictName: formData.dictName,
-                    dictType: formData.dictType,
-                })
-            } else {
-                await fetchUpdateDictType({
-                    dictId: formData.dictId,
-                    dictName: formData.dictName,
-                    dictType: formData.dictType,
-                })
-            }
-            const payload = dialogType.value === 'edit'
-                && originalDictType.value
-                && originalDictType.value !== formData.dictType
-                ? { oldDictType: originalDictType.value, newDictType: formData.dictType }
-                : undefined
-            emit('submit', payload)
-            dialogVisible.value = false
+          loading.value = true
+          if (dialogType.value == 'add') {
+            await fetchCreateDictType({
+              dictName: formData.dictName,
+              dictType: formData.dictType
+            })
+          } else {
+            await fetchUpdateDictType({
+              dictId: formData.dictId,
+              dictName: formData.dictName,
+              dictType: formData.dictType
+            })
+          }
+          const payload =
+            dialogType.value === 'edit' &&
+            originalDictType.value &&
+            originalDictType.value !== formData.dictType
+              ? { oldDictType: originalDictType.value, newDictType: formData.dictType }
+              : undefined
+          emit('submit', payload)
+          dialogVisible.value = false
         } catch {
-            loading.value = false
+          loading.value = false
         }
-    }).catch(() => {
+      })
+      .catch(() => {
         ElMessage.error('表单校验失败，请检查输入')
-    })
-}
+      })
+  }
 
-/**
- * 对话框关闭后的回调
- */
-const handleClosed = () => {
+  const handleClosed = () => {
     formRef.value?.reset()
     Object.assign(formData, getDefaultFormData())
-}
+  }
 </script>
 
-<style scoped lang='scss'></style>
+<style scoped lang="scss"></style>

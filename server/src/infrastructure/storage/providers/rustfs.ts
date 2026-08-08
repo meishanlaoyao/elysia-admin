@@ -1,4 +1,3 @@
-import { FormatTime } from '@/shared/time';
 import type { StorageConfig, PresignedUrlOptions, StorageProvider } from '../types';
 
 /**
@@ -15,11 +14,8 @@ export class RustFSProvider implements StorageProvider {
      * 生成 RustFS 预签名 URL
      */
     async getPresignedUrl(options: PresignedUrlOptions): Promise<string> {
-        let { key, expires = 60, method = 'GET' } = options;
-        const time = Date.now();
-        key = `${time}_${key}`;
-        const timeStr = FormatTime(time, "YYYYMMDD");
-        const objectKey = `${timeStr}/${key}`;
+        const { key, expires = 60, method = 'GET' } = options;
+        const objectKey = key;
         const now = new Date();
         const amzDate = this.getAmzDate(now);
         const dateStamp = this.getDateStamp(now);

@@ -7,7 +7,8 @@ import {
     FindPage,
     FindOneByKey,
 } from '@/core/database/repository';
-import { GenerateUUID } from '@/shared/uuid';
+import { GenerateBizNo } from '@/core/biz-no';
+import { BizNoPrefix } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
 import { RunTransaction } from '@/core/database/transaction';
 import { businessRefundSchema } from '@database/schema/business_refund';
@@ -67,8 +68,7 @@ export async function create(ctx: AppContext) {
     }).then(res => res.list);
     if (existing && (existing.status === '0' || existing.status === '1')) return BaseResultData.fail(400, '退款申请已存在，请勿重复提交');
     // 9. 生成退款单号
-    let refundNo = GenerateUUID();
-    if (refundNo.length > 64) refundNo = refundNo.substring(0, 64);
+    const refundNo = await GenerateBizNo(BizNoPrefix.REFUND);
     // 10. 创建退款记录
     const refundData: any = {
         orderId,

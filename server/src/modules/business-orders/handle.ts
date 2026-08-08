@@ -11,9 +11,10 @@ import {
     FindAll,
     FindOneByKey,
 } from '@/core/database/repository';
-import { GenerateUUID } from '@/shared/uuid';
 import { BaseResultData } from '@/core/result';
 import { queueManager, } from '@/infrastructure/queue';
+import { GenerateBizNo } from '@/core/biz-no';
+import { BizNoPrefix } from '@/constants/enum';
 import { RunTransaction } from '@/core/database/transaction';
 import { businessOrdersSchema } from '@database/schema/business_orders';
 import { businessPaymentsSchema } from '@database/schema/business_payments';
@@ -203,9 +204,8 @@ async function generateOrder(data: {
     currency?: string;
     extra?: any;
 }): Promise<string> {
-    let orderNo = GenerateUUID();
+    const orderNo = await GenerateBizNo(BizNoPrefix.ORDER);
     const { timeout } = config.orders;
-    if (orderNo.length > 64) orderNo = orderNo.substring(0, 64);
     const amount = Number(data.amount);
     let extra: any = data.extra ?? {};
     if (typeof extra === 'string') {

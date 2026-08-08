@@ -1,6 +1,6 @@
 {
   "name": "elysia-admin",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "一个基于 ElysiaJS + Bun + Vue 3 构建的全栈管理后台。",
   "keywords": [
     "Elysia Admin",
@@ -27,7 +27,8 @@
   "homepage": "https://elysia-admin.top",
   "bugs": "https://gitee.com/nian-qian/elysia-admin/issues",
   "scripts": {
-    "dev": "NODE_ENV=development bun run --watch src/index.ts",
+    "dev": "NODE_ENV=development bun run script/dev-watch-modules.ts",
+    "dev:plain": "NODE_ENV=development bun run --watch src/index.ts",
     "dev:debug": "NODE_ENV=development bun --inspect=6499 src/index.ts",
     "dev:debug:browser": "NODE_ENV=development bun script/dev-debug.ts",
     "dev:debug:watch": "NODE_ENV=development bun --inspect=6499 --watch src/index.ts",
