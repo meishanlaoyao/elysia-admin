@@ -47,10 +47,16 @@ export async function findAllData(ctx: AppContext) {
                 .eq('delFlag', false)
                 .eq('dictType', dictType)
                 .build();
-            return await FindAll(systemDictDataSchema, where);
+            return await FindAll(systemDictDataSchema, where, {
+                orderByColumn: 'dictSort',
+                sortRule: 'asc',
+            });
         }
     );
-    return BaseResultData.ok(data);
+    // 兼容旧缓存未按 dictSort 排序的数据
+    const list = Array.isArray(data) ? [...data] : [];
+    list.sort((a, b) => Number(a.dictSort ?? 0) - Number(b.dictSort ?? 0));
+    return BaseResultData.ok(list);
 };
 
 export async function findListType(ctx: AppContext) {
