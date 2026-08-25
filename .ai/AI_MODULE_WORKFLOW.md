@@ -96,6 +96,7 @@ Directory: `server/src/modules/{group}-{name}/`
 
 - Status/type/options **MUST** align with `system_dict_type` / `system_dict_data`
 - With Postgres MCP: read-only query for existing `dict_type` and items
+- **`dict_type` naming:** short semantic English `snake_case` (prefer 2–3 segments / `{entity}_{attr}` like `goods_status`); reuse existing; **do not** create a dict for pure boolean enable/disable — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 - **Missing:** add INSERTs to handoff SQL — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 - Frontend: dict API / `useDictStore` — **NEVER** hardcoded `options` arrays for business types
 

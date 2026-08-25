@@ -40,6 +40,22 @@ describe('QueryBuilder', () => {
         expect(where).toBeDefined();
     });
 
+    it('trims like value before matching', () => {
+        const where = CreateQueryBuilder(systemDictDataSchema)
+            .eq('delFlag', false)
+            .like('dictLabel', '  男  ')
+            .build();
+        expect(where).toBeDefined();
+    });
+
+    it('skips like for whitespace-only value', () => {
+        const where = CreateQueryBuilder(systemDictDataSchema)
+            .eq('delFlag', false)
+            .like('dictLabel', '   ')
+            .build();
+        expect(where).toBeDefined();
+    });
+
     it('skips in for empty array', () => {
         const where = CreateQueryBuilder(systemDictDataSchema)
             .in('dictCode', [])

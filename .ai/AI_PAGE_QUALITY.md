@@ -40,7 +40,7 @@ For business types backed by dict — use `getDictLabel` instead (see below).
 |--------|----------|-----|
 | `useDictStore` | Business enums backed by `system_dict_*` | `getDictData` / `getDictLabel` |
 | Dedicated `/options` API | Entity dropdowns (merchant, goods, …) | Cached backend endpoint; fetch once on page init |
-| Fixed true/false | Boolean enable/disable only | Inline options OK |
+| Fixed true/false | Boolean enable/disable only | Inline options OK — **do not** create a dict |
 
 **NEVER** hardcode business enum `options` when a dict type exists.
 **NEVER** load dropdown data via paginated `/list` + large `pageSize`.
@@ -51,13 +51,13 @@ For business types backed by dict — use `getDictLabel` instead (see below).
 import { useDictStore } from '@/store/modules/dict'
 
 const dictStore = useDictStore()
-const { business_goods_status } = dictStore.getDictData(['business_goods_status'])
+const { goods_status } = dictStore.getDictData(['goods_status'])
 ```
 
 ### Table column
 
 ```ts
-formatter: (row) => dictStore.getDictLabel('business_goods_status', row.status)
+formatter: (row) => dictStore.getDictLabel('goods_status', row.status)
 ```
 
 ### Search / dialog select (dict)
@@ -65,14 +65,14 @@ formatter: (row) => dictStore.getDictLabel('business_goods_status', row.status)
 ```ts
 props: {
   placeholder: '请选择状态',
-  options: business_goods_status.value.map((item) => ({
+  options: goods_status.value.map((item) => ({
     label: item.dictLabel,
     value: item.dictValue
   }))
 }
 ```
 
-Align `dict_type` with Postgres `system_dict_type` / handoff SQL. See [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
+Align `dict_type` with Postgres `system_dict_type` / handoff SQL. Prefer short semantic keys (`goods_status`); see [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md) **dict_type naming**.
 Entity options API pattern: [AI_CODE_EXAMPLES_BACKEND.md](./AI_CODE_EXAMPLES_BACKEND.md) / [AI_CODE_EXAMPLES_FRONTEND.md](./AI_CODE_EXAMPLES_FRONTEND.md).
 
 ## Form Validation — Both Sides MUST

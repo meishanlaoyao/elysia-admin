@@ -1,6 +1,8 @@
 # `.ai/` Documentation Index
  
 > **AI-facing docs below are in English** for better agent comprehension and skill matching.
+>
+> **When editing these files:** match the file’s primary language — add or change rule prose in **English**. Do not bulk-translate existing Chinese product-copy examples. Human maintainer notes (e.g. `.claude/README.md`, `elysia-admin-docs`) may stay Chinese.
 
 This directory holds **Elysia Admin** AI development standards.
 
@@ -20,7 +22,7 @@ This directory holds **Elysia Admin** AI development standards.
 | [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) | List / search / dialog quality |
 | [AI_MCP_SETUP.md](./AI_MCP_SETUP.md) | Postgres + Chrome DevTools MCP |
 | [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md) | Main / junction / child tables |
-| [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md) | Merged SQL + query-first menus |
+| [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md) | Merged SQL + query-first menus + **dict_type naming** |
 | [AI_UI_LAYOUT.md](./AI_UI_LAYOUT.md) | Dialog/drawer form span |
 | [AI_CONTEXT_CAPSULE.md](./AI_CONTEXT_CAPSULE.md) | One-page quick ref |
 

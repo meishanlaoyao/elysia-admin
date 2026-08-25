@@ -41,7 +41,7 @@
 1. **Schema first:** check `server/database/schema/`; main table + `BaseSchema`; junction = two FKs only; sort field name `sort`
 2. **Soft delete & unique:** uniqueness checks include soft-deleted rows; new unique constraints → partial unique index `WHERE del_flag = false`
 3. **Standard CRUD scaffold:** when schema exists and module is new → [AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md) (`bun run create:module` + `create:page` from `server/`) before hand-writing CRUD files
-4. **No hardcoded enums:** align `system_dict_*`; missing → `server/database/sql/{module}-init.sql`
+4. **No hardcoded enums:** align `system_dict_*`; missing → `server/database/sql/{module}-init.sql`; `dict_type` short + semantic (`goods_status`); skip dict for pure boolean — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 5. **Form validation both sides:** frontend `rules` + backend `dto.ts` Chinese `error`; entity dropdowns → cached `/options` (not `/list`)
 6. **Permissions ×3:** `route.ts` ↔ frontend auth ↔ SQL `permission`
 7. **Menu SQL:** query DB (MCP) before INSERT; one merged SQL file

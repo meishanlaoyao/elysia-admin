@@ -27,6 +27,8 @@ shared ✗→ core/database
 4. **`dto.ts`:** validated fields need `error` with Chinese user-facing text (`error`, not `errorMessage`)
 5. **Soft delete & uniqueness:** uniqueness checks account for soft-deleted rows; new unique → partial index `WHERE del_flag = false`
 6. **Form validation both sides:** frontend `rules` + backend `dto.ts`; **`handle.ts` JSDoc** on every export
+7. **Rule-file language:** English AI docs → new/changed prose in English (this edit only); Chinese OK for product copy / trigger phrases
+8. **`dict_type`:** short semantic `snake_case` (e.g. `goods_status`); reuse via MCP; skip dict for pure boolean — `.ai/AI_HANDOFF_SQL.md`
 
 ---
 

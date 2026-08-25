@@ -67,7 +67,8 @@ SELECT dict_code, dict_label, dict_value FROM system_dict_data WHERE dict_type =
 ```
 
 - Exists: skip or comment only in handoff file
-- Missing: generate `INSERT` aligned with [`system_dict.ts`](../server/database/schema/system_dict.ts)
+- Missing: generate `INSERT` aligned with [`system_dict.ts`](../server/database/schema/system_dict.ts); follow **dict_type naming** below
+- Pure boolean enable/disable: do **not** create a dict — use switch / fixed options
 
 ### Menu
 
@@ -126,21 +127,45 @@ SELECT menu_id, '删除', 3, true, 'business:goods:delete', false, NOW() FROM ne
 
 ---
 
+## dict_type naming
+
+`dict_type` is an English code key (`varchar(64)`). Keep it **short and semantic**. Prefer reuse via Postgres MCP before creating a new type.
+
+| Rule | Detail |
+|------|--------|
+| Format | English `snake_case` only — never Chinese or pinyin piles as the key |
+| Length | Prefer **2–3** segments; soft target **≤32** chars (hard max 64) |
+| Prefer short | Prefer `{entity}_{attr}` when unique (`goods_status`); add `system_` / a short scope only for disambiguation |
+| Do not mirror module path | Do **not** pad with group slug just to match `business-goods` — avoid forcing `business_goods_status` when `goods_status` is clear |
+| Semantic | Name must state what is enumerated (`goods_status`, `pay_platform`) |
+| Reuse | Query existing `dict_type` first; reuse when meaning matches — no synonym duplicates |
+| When not to create | Pure boolean enable/disable (`true`/`false`) → switch / fixed options — **do not** create a dict |
+| Avoid | Module-path dumps, redundant `_type` / `_dict` / `_enum`, long prefixes |
+
+**Good:** `goods_status`, `pay_platform`, `system_user_sex`, `api_request_method`  
+**Acceptable (≤3 segs):** `business_goods_status`  
+**Bad:** `business_goods_order_item_shelf_status_type`, `商品状态`
+
+- `dict_name` / `dict_label`: Chinese (UI)
+- `dict_type` / `dict_value`: English/code keys — keep `dict_value` short (`'0'`/`'1'` or a short business code)
+
+---
+
 ## Dictionary INSERT Example
 
 ```sql
 INSERT INTO system_dict_type (dict_name, dict_type, status, del_flag, create_time)
-VALUES ('商品状态', 'business_goods_status', true, false, NOW())
+VALUES ('商品状态', 'goods_status', true, false, NOW())
 ON CONFLICT (dict_type) DO NOTHING;
 
 INSERT INTO system_dict_data (dict_sort, dict_label, dict_value, dict_type, status, del_flag, create_time)
 VALUES
-    (1, '上架', '1', 'business_goods_status', true, false, NOW()),
-    (2, '下架', '0', 'business_goods_status', true, false, NOW())
+    (1, '上架', '1', 'goods_status', true, false, NOW()),
+    (2, '下架', '0', 'goods_status', true, false, NOW())
 ON CONFLICT DO NOTHING;
 ```
 
-> Use `WHERE NOT EXISTS` if no unique constraint for idempotency.
+> Prefer short `dict_type` like `goods_status` over `business_goods_status`. Use `WHERE NOT EXISTS` if no unique constraint for idempotency.
 
 ---
 

@@ -67,6 +67,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 
 - **NEVER** hardcode business enums in backend or frontend
 - MCP query `system_dict_type` / `system_dict_data`
+- **`dict_type`:** short semantic English `snake_case` (prefer 2–3 segments / `goods_status`); reuse existing; **do not** create a dict for pure boolean enable/disable — `.ai/AI_HANDOFF_SQL.md`
 - Missing items → handoff SQL
 
 ### 7. Frontend (if needed)

@@ -14,11 +14,11 @@ import {
     FindPage,
     SoftDeleteByKeys,
 } from '@/core/database/repository';
-import { 
+import {
     GetUserRoleIds,
-    GetUserRoleAndPermission, 
-    InvalidateUserPermissionCache, 
-    GetOrLoadUserPermissions 
+    GetUserRoleAndPermission,
+    InvalidateUserPermissionCache,
+    GetOrLoadUserPermissions
 } from '@/modules/system-role/handle';
 import { ParseDateFields } from '@/types/dto';
 import { RunTransaction } from '@/core/database/transaction';

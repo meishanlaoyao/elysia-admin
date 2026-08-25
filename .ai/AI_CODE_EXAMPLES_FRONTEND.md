@@ -103,6 +103,7 @@ Form fields **MUST** be validated on **both** frontend and backend:
 ## Frontend — useDictStore (dict-backed fields)
 
 Business status/type fields **MUST** use dict store — never hardcode enum options when `dict_type` exists in DB.
+Prefer short semantic `dict_type` keys (`goods_status`); skip dict for pure boolean enable/disable — [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md).
 
 ### index.vue — table label
 
@@ -115,7 +116,7 @@ const dictStore = useDictStore()
 {
   prop: 'status',
   label: '状态',
-  formatter: (row) => dictStore.getDictLabel('business_goods_status', row.status)
+  formatter: (row) => dictStore.getDictLabel('goods_status', row.status)
 }
 ```
 
@@ -125,7 +126,7 @@ const dictStore = useDictStore()
 import { useDictStore } from '@/store/modules/dict'
 
 const dictStore = useDictStore()
-const { business_goods_status } = dictStore.getDictData(['business_goods_status'])
+const { goods_status } = dictStore.getDictData(['goods_status'])
 
 // in formItems:
 {
@@ -134,7 +135,7 @@ const { business_goods_status } = dictStore.getDictData(['business_goods_status'
   type: 'select',
   props: {
     placeholder: '请选择状态',
-    options: business_goods_status.value.map((item) => ({
+    options: goods_status.value.map((item) => ({
       label: item.dictLabel,
       value: item.dictValue
     }))

@@ -43,6 +43,8 @@ shared ✗→ core/database       (cron + Redis lock: server/src/infrastructure/
 10. **Soft delete & uniqueness:** uniqueness checks MUST account for soft-deleted rows; new unique constraints → partial unique index `WHERE del_flag = false`
 11. **Form validation both sides:** frontend `rules` + backend `dto.ts` with Chinese `error`
 12. **`handle.ts` JSDoc:** every exported function needs purpose + `@param` / `@returns`; non-trivial flows list numbered steps
+13. **Rule-file language:** when editing English AI rule docs (`.ai/`, IDE rules), write new/changed prose in **English** (this edit only — no bulk translate). Chinese OK for product copy and listed trigger phrases; identifiers (`dict_type`, `permission`, `path`, …) stay English
+14. **`dict_type` naming:** short semantic English `snake_case` (prefer 2–3 segments / `goods_status`); reuse via MCP; skip dict for pure boolean — `.ai/AI_HANDOFF_SQL.md`
 
 ---
 

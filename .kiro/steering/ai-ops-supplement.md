@@ -23,7 +23,8 @@ Sub-guides:
 
 ## Key points
 
-- **Flow:** check `server/database/schema/` → **scaffold** (`create:module` + `create:page` from `server/`) → dict (no hardcoded enums) → frontend polish → single SQL at `server/database/sql/{module}-init.sql`
+- **Flow:** check `server/database/schema/` → **scaffold** (`create:module` + `create:page` from `server/`) → dict (no hardcoded enums; short semantic `dict_type` e.g. `goods_status`; skip dict for pure boolean — `.ai/AI_HANDOFF_SQL.md`) → frontend polish → single SQL at `server/database/sql/{module}-init.sql`
+- **Rule-file language:** when editing English AI rule docs, write new/changed prose in **English** (this edit only — no bulk translate)
 - **Postgres MCP:** read-only for tables/dict/menu IDs; **MUST** prefer MCP over `pg.sql`; never DDL/write via MCP
 - **NEVER read or modify** `server/database/sql/pg.sql` — backup snapshot only; may not match live DB
 - **Soft delete & uniqueness:** uniqueness checks include soft-deleted rows; new unique → partial index `WHERE del_flag = false`

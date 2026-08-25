@@ -15,6 +15,8 @@ When generating code:
 11. soft-delete-safe uniqueness (checks include soft-deleted rows; new unique → partial index `WHERE del_flag = false`)
 12. form validation on both sides (frontend `rules` + backend `dto.ts` with Chinese `error`)
 13. every exported `handle.ts` function needs JSDoc (purpose, `@param`, `@returns`; non-trivial flows list numbered steps)
+14. **Rule-file language:** when adding or editing prose in English AI rule docs (`.ai/`, `.cursor/rules/`, synced IDE rules), write in **English**. Scope = this edit only — do **not** bulk-translate existing Chinese paragraphs. Chinese is OK only for product copy (`dto`/`form` `error`, UI labels, `dict_name`/`dict_label`) and listed Chinese trigger phrases. Code-side identifiers (`dict_type`, `permission`, `path`, `component`, `name`) stay English.
+15. **`dict_type` naming:** short semantic English `snake_case` (prefer 2–3 segments, ≤32 chars); prefer `{entity}_{attr}` (`goods_status`); reuse via MCP; **do not** create a dict for pure boolean enable/disable — see [AI_HANDOFF_SQL.md](./AI_HANDOFF_SQL.md)
 
 ---
 

@@ -404,6 +404,14 @@ export class QueryBuilder<T extends PgTable = any> {
     };
 
     /**
+     * 模糊查询关键字归一化：去除字符串首尾空格
+     */
+    private normalizeLikeValue(value: unknown): unknown {
+        if (typeof value !== 'string') return value;
+        return value.trim();
+    };
+
+    /**
      * 精准匹配
      * @param column - 字段名或字段对象
      * @param value - 值
@@ -449,7 +457,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     like(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `%${value}%`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(like(this.getColumn(column), `%${v}%`));
         return this;
     };
 
@@ -459,7 +468,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     notLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(notLike(this.getColumn(column), `%${value}%`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(notLike(this.getColumn(column), `%${v}%`));
         return this;
     };
 
@@ -469,7 +479,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     ilike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(ilike(this.getColumn(column), `%${value}%`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(ilike(this.getColumn(column), `%${v}%`));
         return this;
     };
 
@@ -479,7 +490,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     notIlike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(notIlike(this.getColumn(column), `%${value}%`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(notIlike(this.getColumn(column), `%${v}%`));
         return this;
     };
 
@@ -489,7 +501,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     leftLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `%${value}`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(like(this.getColumn(column), `%${v}`));
         return this;
     };
 
@@ -499,7 +512,8 @@ export class QueryBuilder<T extends PgTable = any> {
      * @param value - 值
      */
     rightLike(column: string | PgColumn, value: any): this {
-        if (value !== undefined && value !== null && value !== '') this.conditions.push(like(this.getColumn(column), `${value}%`));
+        const v = this.normalizeLikeValue(value);
+        if (v !== undefined && v !== null && v !== '') this.conditions.push(like(this.getColumn(column), `${v}%`));
         return this;
     };
 
