@@ -127,6 +127,37 @@ export async function FindOneByKey<T extends PgTable>(
     return data.length > 0 ? (data[0] as InferSelectModel<T>) : null;
 };
 
+/** 从 schema 解析主键列 */
+function getPrimaryKeyColumn(schema: PgTable): PgColumn | undefined {
+    const columns = getTableColumns(schema as any);
+    for (const col of Object.values(columns)) {
+        if ((col as PgColumn & { primary?: boolean }).primary) {
+            return col as PgColumn;
+        }
+    }
+    return undefined;
+}
+
+/**
+ * 构建稳定排序：主排序列 + 主键 asc 作为 tie-breaker，避免并列值下 LIMIT/OFFSET 漏行或重复
+ */
+function buildStableOrderBy(
+    schema: PgTable,
+    orderByColumn?: string | PgColumn,
+    sortRule: string = 'desc'
+): SQL[] {
+    if (!orderByColumn) return [];
+    const column = typeof orderByColumn === 'string'
+        ? (schema as any)[orderByColumn]
+        : orderByColumn;
+    if (!column) return [];
+    const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
+    const orders: SQL[] = [sortFn(column)];
+    const pk = getPrimaryKeyColumn(schema);
+    if (pk && pk !== column) orders.push(asc(pk));
+    return orders;
+};
+
 /**
  * 查询选项
  */
@@ -149,16 +180,8 @@ export async function FindAll<T extends PgTable>(
     options?: QueryOptions<T>
 ): Promise<InferSelectModel<T>[]> {
     let query = pg.select().from(schema as any).where(where);
-    // 添加排序
-    if (options?.orderByColumn) {
-        const column = typeof options.orderByColumn === 'string'
-            ? (schema as any)[options.orderByColumn]
-            : options.orderByColumn;
-        if (column) {
-            const sortFn = options.sortRule === 'asc' ? asc : desc;
-            query = query.orderBy(sortFn(column)) as any;
-        };
-    };
+    const orderBy = buildStableOrderBy(schema, options?.orderByColumn, options?.sortRule ?? 'desc');
+    if (orderBy.length) query = query.orderBy(...orderBy) as any;
     // 添加限制
     if (options?.limit) query = query.limit(options.limit) as any;
     const data = await query;
@@ -340,19 +363,14 @@ export async function FindPage<T extends PgTable>(
     const size = Math.min(MAX_PAGE_SIZE, Math.max(1, Number(pageSize) || 10));
     const offset = (page - 1) * size;
     const limit = size;
-    const sortFn = String(sortRule).toLowerCase() === 'asc' ? asc : desc;
     // 使用窗口函数 COUNT(*) OVER() 将总数与列表合并为单次查询
     const columns = getTableColumns(schema as any);
     let query = pg
         .select({ ...columns, _total: sql<number>`COUNT(*) OVER()` })
         .from(schema as any)
         .where(where) as any;
-    if (orderByColumn) {
-        const column = typeof orderByColumn === 'string'
-            ? (schema as any)[orderByColumn]
-            : orderByColumn;
-        if (column) query = query.orderBy(sortFn(column));
-    };
+    const orderBy = buildStableOrderBy(schema, orderByColumn, sortRule);
+    if (orderBy.length) query = query.orderBy(...orderBy);
     const result: any[] = await query.limit(limit).offset(offset);
     // 有数据：从窗口函数直接读取 total
     if (result.length > 0) {
