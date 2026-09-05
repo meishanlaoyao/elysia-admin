@@ -1,9 +1,7 @@
 <!-- 用户管理 -->
 <template>
   <div class="user-page art-full-height">
-    <div class="user-search-shell">
-      <UserSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams" />
-    </div>
+    <UserSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams" />
 
     <ElCard class="art-table-card user-table-card" shadow="never">
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
@@ -279,16 +277,10 @@ const handleSelectionChange = (selection: UserListItem[]): void => {
 <style scoped lang="scss">
 .user-page {
   --user-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  animation: user-page-in 0.55s var(--user-ease) both;
-}
-
-.user-search-shell {
-  animation: user-rise 0.55s var(--user-ease) 0.04s both;
 }
 
 .user-table-card {
   position: relative;
-  animation: user-rise 0.6s var(--user-ease) 0.08s both;
 
   :deep(.el-card__body) {
     display: flex;
@@ -480,26 +472,6 @@ const handleSelectionChange = (selection: UserListItem[]): void => {
   }
 }
 
-@keyframes user-page-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes user-rise {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 @keyframes status-breathe {
 
   0%,
@@ -513,9 +485,6 @@ const handleSelectionChange = (selection: UserListItem[]): void => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .user-page,
-  .user-search-shell,
-  .user-table-card,
   :deep(.status-pill.is-on .status-pill__dot) {
     animation: none !important;
   }
