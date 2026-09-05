@@ -98,8 +98,8 @@ export async function findListData(ctx: AppContext) {
     } = ctx.query;
     const whereCondition = CreateQueryBuilder(systemDictDataSchema)
         .eq('delFlag', false)
-        .like('dictLabel', dictLabel)
-        .like('dictType', dictType)
+        .eq('dictLabel', dictLabel)
+        .eq('dictType', dictType)
         .dateRange('createTime', startTime, endTime)
         .build();
     const res = await FindPage(systemDictDataSchema, whereCondition, {
