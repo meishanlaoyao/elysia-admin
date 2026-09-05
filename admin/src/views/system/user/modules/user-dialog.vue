@@ -1,12 +1,35 @@
 <template>
-  <ElDialog v-model="dialogVisible" :title="dialogType === 'add' ? '添加用户' : '编辑用户'" width="800px" align-center
+  <ElDialog v-model="dialogVisible" class="user-dialog" width="800px" align-center append-to-body destroy-on-close
     @closed="handleClosed">
+    <template #header>
+      <div class="user-dialog__head">
+        <div class="user-dialog__badge" :class="dialogType === 'add' ? 'is-add' : 'is-edit'">
+          <ArtSvgIcon :icon="dialogType === 'add' ? 'ri:user-add-line' : 'ri:user-settings-line'" />
+        </div>
+        <div class="user-dialog__titles">
+          <h3 class="user-dialog__title">
+            {{ dialogType === 'add' ? '添加用户' : '编辑用户' }}
+          </h3>
+          <p class="user-dialog__sub">
+            {{
+              dialogType === 'add'
+                ? '创建账号并分配角色与部门'
+                : '更新资料、角色归属或启停状态'
+            }}
+          </p>
+        </div>
+      </div>
+    </template>
+
     <ArtForm :key="dialogType" ref="formRef" v-model="formData" :items="formItems" :rules="rules" :span="12"
       label-width="80px" :show-reset="false" :show-submit="false" />
+
     <template #footer>
-      <div class="dialog-footer">
+      <div class="user-dialog__footer">
         <ElButton @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" :loading="loading" @click="handleSubmit">提交</ElButton>
+        <ElButton type="primary" :loading="loading" @click="handleSubmit">
+          {{ dialogType === 'add' ? '创建用户' : '保存修改' }}
+        </ElButton>
       </div>
     </template>
   </ElDialog>
@@ -16,6 +39,7 @@
 import type { FormRules } from 'element-plus'
 import type { FormItem } from '@/components/core/forms/art-form/index.vue'
 import ArtForm from '@/components/core/forms/art-form/index.vue'
+import ArtSvgIcon from '@/components/core/base/art-svg-icon/index.vue'
 import { useDictStore } from '@/store/modules/dict'
 import { fetchCreateUser, fetchUpdateUser, fetchGetUserDetail } from '@/api/system/user'
 import { fetchGetRoleOptions } from '@/api/system/role'
@@ -38,23 +62,15 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// 对话框显示控制
 const dialogVisible = computed({
   get: () => props.visible,
   set: (value) => emit('update:visible', value)
 })
 
 const loading = ref(false)
-
 const dialogType = computed(() => props.type)
-
-// 表单实例
 const formRef = ref()
-
-// 部门列表数据
 const deptTree = ref<Api.SystemDept.DeptListItem[]>([])
-
-// 角色列表数据
 const roleList = ref<Api.SystemRole.RoleListItem[]>([])
 
 const getDefaultFormData = () => ({
@@ -72,10 +88,8 @@ const getDefaultFormData = () => ({
   avatar: ''
 })
 
-// 表单数据
 const formData = reactive(getDefaultFormData())
 
-// 级联选择器配置
 const cascaderProps = {
   value: 'deptId',
   label: 'deptName',
@@ -84,7 +98,6 @@ const cascaderProps = {
   emitPath: false
 }
 
-// 表单项配置
 const formItems = computed<FormItem[]>(() => [
   {
     label: '用户名',
@@ -92,12 +105,16 @@ const formItems = computed<FormItem[]>(() => [
     type: 'input',
     props: { placeholder: '请输入用户名', disabled: dialogType.value === 'edit' }
   },
-  ...(dialogType.value === 'add' ? [{
-    label: '密码',
-    key: 'password',
-    type: 'input',
-    props: { placeholder: '请输入密码', type: 'password', showPassword: true }
-  }] : []),
+  ...(dialogType.value === 'add'
+    ? [
+      {
+        label: '密码',
+        key: 'password',
+        type: 'input',
+        props: { placeholder: '请输入密码', type: 'password', showPassword: true }
+      }
+    ]
+    : []),
   {
     label: '昵称',
     key: 'nickname',
@@ -165,7 +182,7 @@ const formItems = computed<FormItem[]>(() => [
     key: 'avatar',
     type: 'upload',
     props: {
-      limit: 1, // 限制 1 个文件，返回字符串
+      limit: 1,
       listType: 'picture-card',
       accept: 'image/*'
     }
@@ -179,25 +196,30 @@ const formItems = computed<FormItem[]>(() => [
   }
 ])
 
-// 表单验证规则
 const rules = computed<FormRules>(() => ({
   username: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  ...(dialogType.value === 'add' ? {
-    password: [
-      { required: true, message: '请输入密码', trigger: 'blur' },
-      { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
-    ]
-  } : {}),
+  ...(dialogType.value === 'add'
+    ? {
+      password: [
+        { required: true, message: '请输入密码', trigger: 'blur' },
+        { min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }
+      ]
+    }
+    : {}),
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, message: '请输入正确的邮箱格式', trigger: 'blur' }
+    {
+      pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+      message: '请输入正确的邮箱格式',
+      trigger: 'blur'
+    }
   ],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -207,7 +229,6 @@ const rules = computed<FormRules>(() => ({
   roles: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }))
 
-// 获取角色下拉选项数据
 const handleGetRoleOptions = async () => {
   if (!roleList.value.length) {
     const res = await fetchGetRoleOptions()
@@ -215,7 +236,6 @@ const handleGetRoleOptions = async () => {
   }
 }
 
-// 获取部门下拉选项数据
 const handleGetDeptOptions = async () => {
   if (!deptTree.value.length) {
     const res = await fetchGetDeptOptions()
@@ -223,16 +243,12 @@ const handleGetDeptOptions = async () => {
   }
 }
 
-/**
- * 初始化表单数据
- * 根据对话框类型（新增/编辑）填充表单
- */
 const initFormData = () => {
   loading.value = false
   Object.assign(formData, getDefaultFormData())
   if (props.type === 'edit' && props.data?.userId) {
     const userId = props.data.userId
-    fetchGetUserDetail(userId).then(res => {
+    fetchGetUserDetail(userId).then((res) => {
       if (props.visible && props.type === 'edit' && props.data?.userId === userId && res) {
         Object.assign(formData, res)
       }
@@ -240,10 +256,6 @@ const initFormData = () => {
   }
 }
 
-/**
- * 监听对话框状态变化
- * 当对话框打开时初始化表单数据
- */
 watch(
   () => props.visible,
   (visible) => {
@@ -257,36 +269,134 @@ watch(
   }
 )
 
-/**
- * 提交表单
- * 验证通过后触发提交事件
- */
 const handleSubmit = async () => {
   if (!formRef.value) return
-  formRef.value.validate().then(async () => {
-    try {
-      loading.value = true
-      if (dialogType.value == 'add') {
-        await fetchCreateUser(formData)
-      } else {
-        await fetchUpdateUser(formData)
+  formRef.value
+    .validate()
+    .then(async () => {
+      try {
+        loading.value = true
+        if (dialogType.value == 'add') {
+          await fetchCreateUser(formData)
+        } else {
+          await fetchUpdateUser(formData)
+        }
+        emit('submit')
+        dialogVisible.value = false
+      } catch {
+        loading.value = false
       }
-      emit('submit')
-      dialogVisible.value = false
-    } catch {
-      loading.value = false
-    }
-  }).catch(() => {
-    ElMessage.error('表单校验失败，请检查输入')
-  })
+    })
+    .catch(() => {
+      ElMessage.error('表单校验失败，请检查输入')
+    })
 }
 
-/**
- * 对话框关闭后的回调
- */
 const handleClosed = () => {
   formRef.value?.reset()
 }
 </script>
 
-<style scoped lang='scss'></style>
+<style scoped lang="scss">
+.user-dialog__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 28px;
+}
+
+.user-dialog__badge {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &.is-add {
+    color: var(--el-color-primary);
+    background: color-mix(in srgb, var(--el-color-primary) 12%, transparent);
+    border-color: color-mix(in srgb, var(--el-color-primary) 22%, transparent);
+  }
+
+  &.is-edit {
+    color: var(--art-gray-800);
+    background: var(--art-gray-100);
+    border-color: var(--art-card-border);
+  }
+}
+
+.user-dialog__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--art-gray-900);
+  line-height: 1.3;
+}
+
+.user-dialog__sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--art-gray-500);
+  line-height: 1.4;
+}
+
+.user-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+</style>
+
+<style lang="scss">
+/* ElDialog teleports to body — unscoped chrome */
+.user-dialog.el-dialog {
+  border-radius: calc(var(--custom-radius) + 6px);
+  overflow: hidden;
+  box-shadow:
+    0 18px 50px color-mix(in srgb, #000 12%, transparent),
+    0 2px 8px color-mix(in srgb, #000 4%, transparent);
+}
+
+.user-dialog .el-dialog__header {
+  margin: 0;
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid var(--art-card-border);
+}
+
+.user-dialog .el-dialog__body {
+  padding: 20px 20px 8px;
+}
+
+.user-dialog .el-dialog__footer {
+  padding: 12px 20px 18px;
+  border-top: 1px solid var(--art-card-border);
+  background: color-mix(in srgb, var(--art-gray-100) 55%, transparent);
+}
+
+.user-dialog.dialog-fade-enter-active {
+  animation: user-dialog-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes user-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-dialog.dialog-fade-enter-active {
+    animation: none;
+  }
+}
+</style>

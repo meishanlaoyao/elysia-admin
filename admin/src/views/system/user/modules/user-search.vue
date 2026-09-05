@@ -1,12 +1,17 @@
 <template>
-  <ArtSearchBar ref="searchBarRef" v-model="formData" :items="formItems" :rules="rules" @reset="handleReset"
-    @search="handleSearch">
-  </ArtSearchBar>
+  <div class="user-search">
+    <ArtSearchBar
+      ref="searchBarRef"
+      v-model="formData"
+      :items="formItems"
+      :rules="rules"
+      @reset="handleReset"
+      @search="handleSearch"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { useDictStore } from '@/store/modules/dict'
-
 interface Props {
   modelValue: Record<string, any>
 }
@@ -18,27 +23,14 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-// 表单数据双向绑定
 const searchBarRef = ref()
 const formData = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
 })
 
-const dictStore = useDictStore()
-const { system_user_sex } = dictStore.getDictData(['system_user_sex'])
+const rules = {}
 
-// 校验规则
-const rules = {
-  // userName: [{ required: true, message: '请输入用户名', trigger: 'blur' }]
-}
-
-// 动态 options
-const statusOptions = ref<{ label: string; value: string; disabled?: boolean }[]>([])
-
-
-
-// 表单配置
 const formItems = computed(() => [
   {
     label: '用户名',
@@ -74,21 +66,34 @@ const formItems = computed(() => [
       placeholder: '请选择状态',
       options: [
         { label: '启用', value: true },
-        { label: '停用', value: false },
+        { label: '停用', value: false }
       ]
     }
-  },
+  }
 ])
 
-// 事件
 function handleReset() {
-  console.log('重置表单')
   emit('reset')
 }
 
 async function handleSearch() {
   await searchBarRef.value.validate()
   emit('search', formData.value)
-  console.log('表单数据', formData.value)
 }
 </script>
+
+<style scoped lang="scss">
+.user-search {
+  :deep(.art-search-bar),
+  :deep(.el-card) {
+    transition:
+      border-color 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  :deep(.el-form-item__label) {
+    color: var(--art-gray-600);
+    font-weight: 500;
+  }
+}
+</style>
