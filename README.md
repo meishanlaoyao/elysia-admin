@@ -148,7 +148,6 @@ elysia-admin/
 
 | 目录 / 文件 | 适用场景 | 删除影响 |
 |-------------|----------|----------|
-| `docs/` | 维护或本地预览 VitePress 文档站 | 不影响前后端开发与运行 |
 | `.vscode/`、`elysia-admin.code-workspace` | VS Code 一键任务、调试配置 | 不影响运行，仅失去 IDE 预设 |
 | `AGENTS.md` | Codex 及通用 AI 项目指引 | Codex 分层指令会缺失 |
 | `.ai/` | 任意 AI 辅助开发（模块 SOP、代码模板） | 不影响运行，AI 生成质量可能下降 |
@@ -169,7 +168,6 @@ elysia-admin/
 | `admin/dist/` | 前端构建产物，`pnpm build` 生成 |
 | `server/dist/` | 后端构建产物，`bun run build` 生成 |
 | `server/database/drizzle/` | Drizzle 迁移快照，`bun db:push` 等命令可再生成 |
-| `docs/.vitepress/cache/`、`docs/.vitepress/dist/` | 文档站缓存与构建产物 |
 | `server/logs/` | 运行日志 |
 
 **精简示例**（只做业务、用 Cursor 开发）：

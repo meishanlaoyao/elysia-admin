@@ -3,4 +3,5 @@
  */
 
 export * from './upgrade'
+export * from './version-check'
 export { default as mittBus } from './mittBus'

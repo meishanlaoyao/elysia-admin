@@ -4,6 +4,7 @@ import { staticRoutes } from './routes/staticRoutes'
 import { configureNProgress } from '@/utils/router'
 import { setupBeforeEachGuard } from './guards/beforeEach'
 import { setupAfterEachGuard } from './guards/afterEach'
+import { setupVersionCheck } from '@/utils/sys/version-check'
 
 // 创建路由实例
 export const router = createRouter({
@@ -16,6 +17,7 @@ export function initRouter(app: App<Element>): void {
   configureNProgress() // 顶部进度条
   setupBeforeEachGuard(router) // 路由前置守卫
   setupAfterEachGuard(router) // 路由后置守卫
+  setupVersionCheck(router) // 前端版本更新检测
   app.use(router)
 }
 
