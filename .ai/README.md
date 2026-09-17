@@ -19,6 +19,7 @@ This directory holds **Elysia Admin** AI development standards.
 |------|---------|
 | **[AI_MODULE_WORKFLOW.md](./AI_MODULE_WORKFLOW.md)** | **Main SOP:** Schema → scaffold → backend → dict → frontend → SQL |
 | **[AI_MODULE_SCAFFOLD.md](./AI_MODULE_SCAFFOLD.md)** | **CRUD boilerplate:** `create:module` + `create:page` CLI |
+| **[AI_PHASED_TASKS.md](./AI_PHASED_TASKS.md)** | **Large / multi-module work:** split into IDE-local `feature-tasks/` packs |
 | [AI_PAGE_QUALITY.md](./AI_PAGE_QUALITY.md) | List / search / dialog quality |
 | [AI_MCP_SETUP.md](./AI_MCP_SETUP.md) | Postgres + Chrome DevTools MCP |
 | [AI_SCHEMA_GUIDE.md](./AI_SCHEMA_GUIDE.md) | Main / junction / child tables |

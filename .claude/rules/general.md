@@ -58,6 +58,15 @@ When the task matches **new CRUD module**, **business-***, **menu permission**, 
 
 For built-in UI paths, MCP, dict/menu: `.ai/AI_CONTEXT_CAPSULE.md` **only if needed**.
 
+# Large Task / Full Project Triggers
+
+When the request names **multiple business feature modules** or a full subsystem/project (judge by module volume, **not** file-change count):
+
+- Read [`.ai/AI_PHASED_TASKS.md`](.ai/AI_PHASED_TASKS.md); write under `.claude/feature-tasks/{slug}/` (`CHECKLIST.md` + `NN-*.md`)
+- Do **not** start coding until the task pack exists and the user picks a phase (or says 继续 / 下一个)
+- Trigger phrases: `拆分任务` / `分阶段执行` / `大任务拆解` / `完整项目规划`
+- Single-module work still uses Module Dev Triggers / Skill above — do not force a task pack
+
 **Handoff SQL:** `server/database/sql/{module-name}-init.sql` — developer runs **manually only**. **NEVER** scripts/MCP/psql/ad-hoc execute. **NEVER** pretend SQL was executed.
 
 **Git (read-only for AI):** `status` / `diff` / `log` only — no `add` / `commit` / `push` / `stash` unless user asks.
@@ -113,6 +122,7 @@ For built-in UI paths, MCP, dict/menu: `.ai/AI_CONTEXT_CAPSULE.md` **only if nee
 | `AI_CODE_EXAMPLES_BACKEND.md` / `_FRONTEND.md` | Copy-paste templates |
 | `AI_MODULE_WORKFLOW.md` | Full SOP (when Skill is not enough) |
 | `AI_MODULE_SCAFFOLD.md` | `create:module` + `create:page` |
+| `AI_PHASED_TASKS.md` | Multi-module / full-project task packs |
 | `AI_CONTEXT_CAPSULE.md` | One-page ops quick ref |
 | Skill | `.cursor/skills/elysia-module-dev/SKILL.md` |
 

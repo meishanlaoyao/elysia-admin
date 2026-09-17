@@ -19,19 +19,27 @@ Full-stack admin: **Vue 3 + TypeScript** (`admin/`) + **Elysia + Bun** (`server/
 When the task matches **new CRUD module**, **business-***, **menu permission**, **handoff sql**, or **schema design**:
 
 - Read `.ai/AI_MODULE_WORKFLOW.md`
-- **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` �?run `create:module` + `create:page` from `server/` when schema exists
+- **Standard CRUD:** read `.ai/AI_MODULE_SCAFFOLD.md` ? run `create:module` + `create:page` from `server/` when schema exists
 - Code templates: `.ai/AI_CODE_EXAMPLES_BACKEND.md` / `.ai/AI_CODE_EXAMPLES_FRONTEND.md` (section only; index: `AI_CODE_EXAMPLES.md`)
 - Handoff SQL output: `server/database/sql/{module-name}-init.sql`
-- Trigger phrases: `�?module dev workflow` / `走完�?SOP` / `先用脚手架` / `脚手架已生成`
+- Trigger phrases: `? module dev workflow` / `??? SOP` / `?????` / `??????`
 - Soft delete & uniqueness; form validation both sides; `handle.ts` JSDoc; entity `/options` + cache; response DTO completeness; **NEVER modify** `pg.sql`
+
+## Large task / full project trigger
+
+When the request names **multiple business feature modules** or a full subsystem/project (judge by module volume, **not** file-change count):
+
+- Read `.ai/AI_PHASED_TASKS.md`; write under `.claude/feature-tasks/{slug}/`
+- Do **not** start coding until the task pack exists and the user picks a phase
+- Trigger phrases: `????` / `?????` / `?????` / `??????`
 
 ## Scoped rules
 
 Path-specific rules live in `.claude/rules/`:
 
-- `general.md` �?always apply
-- `backend.md` �?`server/src/**`
-- `frontend.md` �?`admin/src/**`
+- `general.md` ? always apply
+- `backend.md` ? `server/src/**`
+- `frontend.md` ? `admin/src/**`
 
 ## `.ai/` doc index
 
@@ -39,6 +47,7 @@ Path-specific rules live in `.claude/rules/`:
 |------|---------|
 | `AI_MODULE_WORKFLOW.md` | Main SOP |
 | `AI_MODULE_SCAFFOLD.md` | CRUD scaffold CLI |
+| `AI_PHASED_TASKS.md` | Multi-module / full-project task packs |
 | `AI_CODE_EXAMPLES.md` | Template index |
 | `AI_CODE_EXAMPLES_BACKEND.md` / `_FRONTEND.md` | Code templates |
 | `AI_PAGE_QUALITY.md` | List/search/dialog quality |

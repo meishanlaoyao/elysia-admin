@@ -16,6 +16,8 @@
 
 Postgres MCP 配置见 [`.ai/AI_MCP_SETUP.md`](../.ai/AI_MCP_SETUP.md)。
 
+多模块 / 完整大项目的分阶段任务包写在 [`.claude/feature-tasks/`](./feature-tasks/)（协议见 [`.ai/AI_PHASED_TASKS.md`](../.ai/AI_PHASED_TASKS.md)），不要放在仓库根目录。
+
 ## 维护约定
 
 改架构、依赖方向或读文件纪律时，请同步：

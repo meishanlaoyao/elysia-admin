@@ -38,6 +38,15 @@ shared ✗→ core/database
 - Standard CRUD → `AI_MODULE_SCAFFOLD.md` + `create:module` / `create:page`
 - Layered rules: [`server/AGENTS.md`](server/AGENTS.md) (backend), [`admin/AGENTS.md`](admin/AGENTS.md) (frontend)
 
+# Large Task / Full Project Triggers
+
+When the request names **multiple business feature modules** or a full subsystem/project (judge by module volume, **not** file-change count):
+
+- Read [`.ai/AI_PHASED_TASKS.md`](.ai/AI_PHASED_TASKS.md); write under `.codex/feature-tasks/{slug}/`
+- Do **not** start coding until the task pack exists and the user picks a phase (or says 继续 / 下一个)
+- Trigger phrases: `拆分任务` / `分阶段执行` / `大任务拆解` / `完整项目规划`
+- Single-module work still uses Module Dev Triggers / Skill — do not force a task pack
+
 **Handoff SQL:** file only — developer runs manually. **Git:** read-only unless user asks.
 
 ---
@@ -64,6 +73,7 @@ Full rules: [`.cursor/rules/general.mdc`](.cursor/rules/general.mdc)
 | `AI_CODE_EXAMPLES_BACKEND.md` / `_FRONTEND.md` | Code templates |
 | `AI_MODULE_SCAFFOLD.md` | CRUD CLI |
 | `AI_MODULE_WORKFLOW.md` | Full SOP |
+| `AI_PHASED_TASKS.md` | Multi-module / full-project task packs |
 | `AI_CONTEXT_CAPSULE.md` | Ops quick ref |
 
 Full index: [`.ai/README.md`](.ai/README.md)

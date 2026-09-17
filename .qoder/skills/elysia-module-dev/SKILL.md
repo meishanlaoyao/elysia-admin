@@ -21,6 +21,8 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 
 **User phrases (中文):** `按 module dev workflow`, `走完整 SOP`, `含菜单权限和 handoff SQL`, `全栈模块`, `先用脚手架`, `脚手架已生成`
 
+**Large / multi-module first:** If the request names **multiple business feature modules** or a full project, follow `.ai/AI_PHASED_TASKS.md` and write a task pack under this IDE’s `feature-tasks/{slug}/` **before** running this Skill for any single module.
+
 ## 10-Step Checklist
 
 ### 1. MCP

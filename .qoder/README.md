@@ -48,3 +48,5 @@ Postgres MCP 配置见 [`.ai/AI_MCP_SETUP.md`](../.ai/AI_MCP_SETUP.md)（需在 
 代码模板仍以 [`.ai/AI_CODE_EXAMPLES_BACKEND.md`](../.ai/AI_CODE_EXAMPLES_BACKEND.md) / [`.ai/AI_CODE_EXAMPLES_FRONTEND.md`](../.ai/AI_CODE_EXAMPLES_FRONTEND.md) 为准（按需读章节）。
 
 标准 CRUD 模块优先使用 [`.ai/AI_MODULE_SCAFFOLD.md`](../.ai/AI_MODULE_SCAFFOLD.md)（`server/` 下 `bun run create:module` + `create:page`），再由 AI 补业务逻辑与 handoff SQL。
+
+多模块 / 完整大项目的分阶段任务包写在 [`.qoder/feature-tasks/`](./feature-tasks/)（协议见 [`.ai/AI_PHASED_TASKS.md`](../.ai/AI_PHASED_TASKS.md)），不要放在仓库根目录。
