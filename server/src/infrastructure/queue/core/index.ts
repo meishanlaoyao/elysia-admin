@@ -1,7 +1,7 @@
 /**
  * core 层统一导出
  */
-export { queueManager, getRedisConnection } from './manager';
+export { queueManager, getRedisConnection, ConnectQueueRedis } from './manager';
 export { createQueue } from './queue';
 export { createWorker } from './worker';
 export { schedule, removeSchedule } from './scheduler';

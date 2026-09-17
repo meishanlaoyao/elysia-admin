@@ -1,9 +1,12 @@
 ﻿import config from "@/config";
 import { CreateApp } from '@/app';
-import { appendFatalLog, flushLogs, logger } from '@/shared/logger';
+import { EnsurePg } from '@/core/database/pg';
 import { InitSeedData } from 'script/seed.prod';
+import { ConnectRedis, quitRedis } from '@/core/database/redis';
+import { InitAppQueues, queueManager } from '@/infrastructure/queue';
+import { appendFatalLog, flushLogs, logger } from '@/shared/logger';
 import { StopAllCronJobs } from '@/infrastructure/cron/cron-scheduler';
-import { quitRedis } from '@/core/database/redis';
+import { ApplyDnsResultOrder, ProbeOutboundDualStack } from '@/shared/dual-stack-probe';
 
 async function runSeedData() {
     if (process.env.NODE_ENV !== 'production') {
@@ -28,6 +31,11 @@ async function gracefulShutdown(signal: string) {
     } catch (e) {
         logger.warn('HTTP 服务停止时异常: ' + e);
     }
+    try {
+        await queueManager.closeAll();
+    } catch (e) {
+        logger.warn('队列关闭时异常: ' + e);
+    }
     await quitRedis();
     flushLogs();
     process.exit(0);
@@ -47,15 +55,36 @@ process.on('SIGTERM', () => { void gracefulShutdown('SIGTERM'); });
 process.on('uncaughtException', (err) => fatalAndExit('uncaughtException', err));
 process.on('unhandledRejection', (reason) => fatalAndExit('unhandledRejection', reason));
 
-/** 应用启动入口 */
+/**
+ * 生产环境公网双栈探测；开发跳过。SKIP_NETWORK_PROBE=1 可跳过。
+ */
+async function runNetworkProbeIfNeeded(appEnv: string): Promise<void> {
+    if (appEnv !== 'production') return;
+    if (process.env.SKIP_NETWORK_PROBE === '1') {
+        logger.warn('已跳过网络双栈探测（SKIP_NETWORK_PROBE=1）');
+        ApplyDnsResultOrder('ipv4_only');
+        return;
+    };
+    const result = await ProbeOutboundDualStack();
+    if (!result.ok) {
+        throw new Error(result.message);
+    };
+    ApplyDnsResultOrder(result.mode);
+    logger.info(result.message);
+};
+
+/** 应用启动入口：探测 → Redis/PG → 队列 → CreateApp/seed → listen */
 async function bootstrap() {
     try {
+        const appEnv = process.env.NODE_ENV || 'development';
+        const isProduction = appEnv === 'production';
+        await runNetworkProbeIfNeeded(appEnv);
+        await Promise.all([EnsurePg(), ConnectRedis()]);
+        await InitAppQueues();
         const app = await CreateApp();
         await runSeedData();
         const { port, id } = config.app;
         const appPort = process.env.PORT || port;
-        const appEnv = process.env.NODE_ENV || 'development';
-        const isProduction = appEnv === 'production';
         httpServer = app.listen(appPort) as unknown as HttpListenHandle;
         let appVersion: string | undefined;
         if (!isProduction) {

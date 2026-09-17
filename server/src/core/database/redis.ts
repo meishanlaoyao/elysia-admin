@@ -18,15 +18,14 @@ function getRedisInstance(): Redis {
             enableReadyCheck: true, // 启用就绪检查
             enableOfflineQueue: true, // 启用离线队列
             connectTimeout: 10000, // 连接超时 10秒
-            // 性能优化
-            lazyConnect: false, // 立即连接
+            // 启动编排显式 ConnectRedis；禁止模块加载即拨号
+            lazyConnect: true,
             keepAlive: 30000, // 保持连接 30秒
         });
         globalThis.__redisConnected = false;
 
         // 只注册一次事件监听器
         globalThis.__redisInstance.once("connect", () => {
-            logger.info("Redis 连接成功");
             globalThis.__redisConnected = true;
         });
 
@@ -43,6 +42,51 @@ function getRedisInstance(): Redis {
 
 const redis = getRedisInstance();
 export { redis };
+
+/**
+ * 显式连接 Redis（须在 CreateApp / listen 之前调用）
+ * @throws 连接失败时抛出含中文说明的 Error
+ */
+export async function ConnectRedis(): Promise<void> {
+    const client = getRedisInstance();
+    if (client.status === 'ready') {
+        globalThis.__redisConnected = true;
+        return;
+    }
+    try {
+        if (client.status === 'wait' || client.status === 'end' || client.status === 'close') {
+            await client.connect();
+        } else if (client.status === 'connecting' || client.status === 'reconnecting' || client.status === 'connect') {
+            await new Promise<void>((resolve, reject) => {
+                if (client.status === 'ready') {
+                    resolve();
+                    return;
+                }
+                const onReady = () => {
+                    cleanup();
+                    resolve();
+                };
+                const onError = (err: Error) => {
+                    cleanup();
+                    reject(err);
+                };
+                const cleanup = () => {
+                    client.off('ready', onReady);
+                    client.off('error', onError);
+                };
+                client.once('ready', onReady);
+                client.once('error', onError);
+            });
+        } else {
+            await client.connect();
+        }
+        globalThis.__redisConnected = true;
+        logger.info('Redis 连接成功');
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(`Redis 连接失败，请检查 redis 配置与服务状态：${detail}`);
+    }
+};
 
 /**
  * 关闭 Redis 连接

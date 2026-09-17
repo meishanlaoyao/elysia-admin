@@ -21,10 +21,13 @@ import { getQueueEnvConfig } from '../config/env';
 // 全局默认 Redis 连接（单例复用）
 let _defaultConnection: Redis | null = null;
 
+/**
+ * 获取 BullMQ 用 Redis 连接（默认 lazyConnect，须 ConnectQueueRedis 后再建 Queue）
+ */
 export function getRedisConnection(custom?: RedisConnection): Redis {
     if (custom) {
-        return new Redis({ ...(custom as any), maxRetriesPerRequest: null });
-    }
+        return new Redis({ ...(custom as any), maxRetriesPerRequest: null, lazyConnect: true });
+    };
     if (!_defaultConnection) {
         const cfg = getQueueEnvConfig();
         _defaultConnection = new Redis({
@@ -34,9 +37,53 @@ export function getRedisConnection(custom?: RedisConnection): Redis {
             password: cfg.redis.password,
             db: cfg.redis.db,
             maxRetriesPerRequest: null,
+            lazyConnect: true,
         });
-    }
+    };
     return _defaultConnection;
+};
+
+/**
+ * 显式连接队列 Redis（须在 registerQueue 之前调用）
+ * @throws 连接失败时抛出含中文说明的 Error
+ */
+export async function ConnectQueueRedis(): Promise<void> {
+    const client = getRedisConnection();
+    if (client.status === 'ready') {
+        return;
+    };
+    try {
+        if (client.status === 'wait' || client.status === 'end' || client.status === 'close') {
+            await client.connect();
+        } else if (client.status === 'connecting' || client.status === 'reconnecting' || client.status === 'connect') {
+            await new Promise<void>((resolve, reject) => {
+                if (client.status === 'ready') {
+                    resolve();
+                    return;
+                }
+                const onReady = () => {
+                    cleanup();
+                    resolve();
+                };
+                const onError = (err: Error) => {
+                    cleanup();
+                    reject(err);
+                };
+                const cleanup = () => {
+                    client.off('ready', onReady);
+                    client.off('error', onError);
+                };
+                client.once('ready', onReady);
+                client.once('error', onError);
+            });
+        } else {
+            await client.connect();
+        }
+        logger.info('队列 Redis 连接成功');
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(`队列 Redis 连接失败，请检查 redis 配置与服务状态：${detail}`);
+    }
 };
 
 class QueueManager implements IQueueManager {
@@ -125,7 +172,7 @@ class QueueManager implements IQueueManager {
         if (_defaultConnection) {
             await _defaultConnection.quit();
             _defaultConnection = null;
-        }
+        };
     }
 };
 

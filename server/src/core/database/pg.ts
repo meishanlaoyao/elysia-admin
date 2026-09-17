@@ -1,9 +1,10 @@
 import postgres from 'postgres';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { sql } from 'drizzle-orm';
 import config from '@/config';
 import { logger } from '@/shared/logger';
 
-// 配置 PostgreSQL 连接池
+// 配置 PostgreSQL 连接池（实际 TCP 在首次查询 / EnsurePg 时建立）
 const client = postgres({
     host: config.pg.host,
     port: config.pg.port,
@@ -25,6 +26,20 @@ const client = postgres({
 });
 
 const pg = drizzle(client);
+
+/**
+ * 启动前检测 PostgreSQL 是否可连（须在 CreateApp / seed 之前调用）
+ * @throws 连接失败时抛出含中文说明的 Error
+ */
+export async function EnsurePg(): Promise<void> {
+    try {
+        await pg.execute(sql`SELECT 1`);
+        logger.info('PostgreSQL 连接成功');
+    } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(`PostgreSQL 连接失败，请检查 pg 配置与服务状态：${detail}`);
+    }
+}
 
 // 优雅关闭连接池
 process.on('SIGINT', async () => {
