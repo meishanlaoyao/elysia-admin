@@ -326,6 +326,11 @@ Route handlers stay lower camelCase (`create`, `findList`); cross-module exports
 
 ## route.ts — Declarative Route Module
 
+Optional module-level `stages?: Array<'development' | 'production'>`:
+- **Omit** = both environments (register + package).
+- Use a **literal array only** (e.g. `stages: ['development']`) so production `generateRegistry` can parse and skip the module from the bundle.
+- `stages: []` = never load.
+
 ```ts
 import type { IRouteModule } from "@/types/route";
 import { create, findList, findOne, remove, update } from './handle';
@@ -333,6 +338,7 @@ import { CreateDto, ListDto, UpdateDto } from "./dto";
 
 const XxxModule: IRouteModule = {
     tags: '模块名称',
+    // stages: ['development'], // optional — omit = both; literal array only
     routes: [
         {
             url: '/group/xxx',

@@ -68,6 +68,7 @@ import { CreateDto, ListDto, UpdateDto } from "./dto";
 
 const ${moduleVar}: IRouteModule = {
     tags: '${tag}',
+    // stages?: ['development' | 'production'] — omit = both; literal array only (build-time parse)
     routes: [
         { url: '${urlPath}', method: 'post', summary: '创建', dto: CreateDto, handle: create, meta: { isAuth: true, isLog: true, permission: '${perm}:create' } },
         { url: '${urlPath}/list', method: 'get', summary: '查询列表', dto: ListDto, handle: findList, meta: { isAuth: true, permission: '${perm}:query' } },

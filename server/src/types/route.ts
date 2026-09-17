@@ -47,11 +47,20 @@ export interface IRoute {
     meta?: IRouteMeta
 };
 
+/** 路由模块支持的环境阶段 */
+export type RouteStage = 'development' | 'production';
+
 export interface IRouteModule {
     /**
      * 路由模块标签
      */
     tags: string
+    /**
+     * 支持的环境阶段。缺省为 development + production（两端都注册/打包）。
+     * 必须使用字面量数组（如 `stages: ['development']`），供构建脚本正则解析；勿用变量或计算值。
+     * `stages: []` 表示永不加载。生产构建仅收录含 `production` 的模块。
+     */
+    stages?: RouteStage[]
     /**
      * 路由模块路由
      */

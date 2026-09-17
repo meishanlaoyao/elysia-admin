@@ -144,6 +144,19 @@ meta: {
 }
 ```
 
+# Module-level `stages`
+
+On `IRouteModule` (not per-route meta):
+
+```ts
+stages?: Array<'development' | 'production'>
+```
+
+- **Omit** = both environments (register + package)
+- **Literal array only** (e.g. `stages: ['development']`) — production `generateRegistry` parses source and skips modules that do not include `production`
+- `stages: []` = never load
+- Runtime `LoadRouteModules` also filters by normalized `NODE_ENV` (`production` vs everything else → `development`)
+
 ---
 
 # Schema sync (db:push)

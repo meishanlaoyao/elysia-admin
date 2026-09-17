@@ -271,6 +271,11 @@
       "title": "内嵌页面",
       "openapi": "接口文档"
     },
+    "dev": {
+      "title": "开发模块",
+      "sql": "SQL控制台",
+      "openapi": "接口文档"
+    },
     "dashboard": {
       "title": "仪表盘",
       "console": "工作台",

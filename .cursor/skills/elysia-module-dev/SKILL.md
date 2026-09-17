@@ -62,6 +62,7 @@ Follow this checklist; read `.ai/` docs for details. **NEVER skip steps.**
 - **Entity dropdowns:** dedicated cached `GET /options` (`WithCache` + `Del` on write) — **NEVER** paginated `/list`
 - **Cross-table data:** call the owning module's exported PascalCase function from its `handle.ts`; do **NOT** import another module's `@database/schema` for cross-table queries
 - `meta.permission`: `group:name:action`
+- **Dev-only modules:** set `stages: ['development']` on `IRouteModule` (literal array) so production build skips packaging
 
 ### 6. Dict
 

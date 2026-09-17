@@ -57,3 +57,5 @@ process.on('SIGTERM', async () => {
 });
 
 export default pg;
+/** 底层 postgres.js 客户端（任意 SQL / DDL 等场景） */
+export { client as pgClient };

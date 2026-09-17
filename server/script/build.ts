@@ -61,12 +61,13 @@ const publicDir = './public';
 if (existsSync(distDir)) rmSync(distDir, { recursive: true, force: true });
 mkdirSync(distDir, { recursive: true });
 
-// 构建前生成注册文件
+// 构建前生成注册文件（显式 production，避免误跑脚本时按 development 收错模块）
 generateRegistry({
   modulesPath: './src/modules',
   fileName: 'route',
   outputPath: './src/core/route-registry.generated.ts',
-  exportName: 'allRoutes'
+  exportName: 'allRoutes',
+  targetStage: 'production',
 });
 
 // 主进程 + Worker + Processor 单次构建，共享 chunk

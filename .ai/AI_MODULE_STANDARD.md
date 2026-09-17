@@ -139,6 +139,7 @@ Responsibility:
 - Define HTTP routes
 - Bind dto and handle
 - Export IRouteModule
+- Optional `stages?: Array<'development' | 'production'>` on `IRouteModule` (omit = both envs; literal array only so prod build can skip)
 
 Allowed:
 - parameter validation

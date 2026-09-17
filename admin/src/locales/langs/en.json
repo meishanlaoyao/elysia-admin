@@ -271,6 +271,11 @@
       "title": "Outside",
       "openapi": "OpenAPI"
     },
+    "dev": {
+      "title": "Development",
+      "sql": "SQL Console",
+      "openapi": "OpenAPI"
+    },
     "dashboard": {
       "title": "Dashboard",
       "console": "Console",
