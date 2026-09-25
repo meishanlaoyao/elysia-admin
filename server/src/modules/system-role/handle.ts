@@ -17,7 +17,7 @@ import { RunTransaction } from '@/core/database/transaction';
 import { Get, Set as RedisSet, Del } from '@/core/database/redis';
 import { DeleteOnlineUserL1 } from '@/shared/online-user-l1';
 import { systemUserRoleSchema } from '@database/schema/system_user';
-import { GetMenuPermissionByRoleIds } from '@/modules/system-menu/handle';
+import { GetMenuPermissionByRoleIds, GetAdminMenuCacheKey } from '@/modules/system-menu/handle';
 import { systemRoleSchema, systemRoleMenuSchema } from '@database/schema/system_role';
 
 export async function create(ctx: AppContext) {
@@ -170,7 +170,7 @@ export async function GetOrLoadUserPermissions(userId: string): Promise<string[]
 export async function InvalidateUserPermissionCache(userId: string): Promise<void> {
     if (!userId) return;
     await Del(CacheEnum.USER_PERM + userId);
-    await Del(CacheEnum.ADMIN_MENU + userId);
+    await Del(await GetAdminMenuCacheKey(userId));
     DeleteOnlineUserL1(userId);
 };
 

@@ -32,6 +32,7 @@ jwt:
     secret: "elysia-admin-refreshToken"
 
 redis:
+  # 多应用共库时 SCAN/Keys 会扫全 DB；建议本应用独占 db（如 1），勿与其它项目共用 0
   host: "localhost"
   port: 6379
   password: ""

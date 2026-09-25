@@ -173,7 +173,10 @@ export async function Get(key: string): Promise<any> {
 export async function Del(key: string | string[]): Promise<boolean> {
     try {
         if (Array.isArray(key)) {
-            await redis.del(...key);
+            if (!key.length) return true;
+            for (let i = 0; i < key.length; i += 500) {
+                await redis.del(...key.slice(i, i + 500));
+            }
         } else {
             await redis.del(key);
         };
@@ -185,22 +188,137 @@ export async function Del(key: string | string[]): Promise<boolean> {
 };
 
 /**
- * 获取匹配缓存key列表 (使用scan非阻塞方式)
- * @param pattern 缓存key模式
+ * 异步删除键（分块 UNLINK，适合大批量，避免单次 DEL 阻塞）
+ * @param key 缓存key或key数组
+ * @returns 是否删除成功
+ */
+export async function Unlink(key: string | string[]): Promise<boolean> {
+    try {
+        const keys = Array.isArray(key) ? key : [key];
+        if (!keys.length) return true;
+        for (let i = 0; i < keys.length; i += 500) {
+            await redis.unlink(...keys.slice(i, i + 500));
+        }
+        return true;
+    } catch (error) {
+        logger.error("Redis unlink error:" + error);
+        return false;
+    }
+};
+
+/**
+ * 判断 key 是否存在
+ * @param key 缓存key
+ * @returns 是否存在
+ */
+export async function Exists(key: string): Promise<boolean> {
+    try {
+        return (await redis.exists(key)) === 1;
+    } catch (error) {
+        logger.error("Redis exists error:" + error);
+        return false;
+    }
+};
+
+/**
+ * SET 集合添加成员；可选刷新集合 TTL
+ * @param key 集合key
+ * @param member 成员（支持多个）
+ * @param expire 可选过期时间（秒），写入后设置/刷新 TTL
+ * @returns 是否成功
+ */
+export async function SAdd(key: string, member: string | string[], expire?: number): Promise<boolean> {
+    try {
+        const members = Array.isArray(member) ? member : [member];
+        if (!members.length) return true;
+        await redis.sadd(key, ...members);
+        if (expire != null && expire > 0) await redis.expire(key, expire);
+        return true;
+    } catch (error) {
+        logger.error("Redis sadd error:" + error);
+        return false;
+    }
+};
+
+/**
+ * SET 集合移除成员
+ * @param key 集合key
+ * @param member 成员（支持多个）
+ * @returns 是否成功
+ */
+export async function SRem(key: string, member: string | string[]): Promise<boolean> {
+    try {
+        const members = Array.isArray(member) ? member : [member];
+        if (!members.length) return true;
+        await redis.srem(key, ...members);
+        return true;
+    } catch (error) {
+        logger.error("Redis srem error:" + error);
+        return false;
+    }
+};
+
+/**
+ * 获取 SET 全部成员
+ * @param key 集合key
+ * @returns 成员列表
+ */
+export async function SMembers(key: string): Promise<string[]> {
+    try {
+        return await redis.smembers(key);
+    } catch (error) {
+        logger.error("Redis smembers error:" + error);
+        return [];
+    }
+};
+
+/**
+ * SET 成员数量
+ * @param key 集合key
+ * @returns 数量
+ */
+export async function SCard(key: string): Promise<number> {
+    try {
+        return await redis.scard(key);
+    } catch (error) {
+        logger.error("Redis scard error:" + error);
+        return 0;
+    }
+};
+
+/**
+ * 原子自增
+ * @param key 缓存key
+ * @returns 自增后的值；失败返回 null
+ */
+export async function Incr(key: string): Promise<number | null> {
+    try {
+        return await redis.incr(key);
+    } catch (error) {
+        logger.error("Redis incr error:" + error);
+        return null;
+    }
+};
+
+/**
+ * 按前缀扫描匹配的 key 列表（全库 SCAN，共享大库下很慢）
+ * 仅供运维缓存监控等低频场景；业务热路径禁止调用。
+ * @param pattern 缓存key前缀（函数会追加 `*`）
  * @returns 缓存key列表
  */
 export async function Keys(pattern: string): Promise<string[]> {
     try {
         const keys: string[] = [];
         let cursor = '0';
+        const match = pattern.endsWith('*') ? pattern : pattern + '*';
 
         do {
             const [nextCursor, matchedKeys] = await redis.scan(
                 cursor,
                 'MATCH',
-                pattern + '*',
+                match,
                 'COUNT',
-                100
+                1000
             );
             cursor = nextCursor;
             keys.push(...matchedKeys);

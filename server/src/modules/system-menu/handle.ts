@@ -15,8 +15,9 @@ import { ListToTree } from '@/core/function';
 import { WithCache } from '@/core/cache';
 import { CacheEnum } from '@/constants/enum';
 import { logServerError } from '@/shared/server-error';
-import { Keys, Del, Set as RedisSet } from '@/core/database/redis';
+import { Set as RedisSet, Get, Incr } from '@/core/database/redis';
 import { GetRoleMenuIdsAndBtnIds } from '@/modules/system-role/handle';
+import config from '@/config';
 
 export async function createMenu(ctx: AppContext) {
     await InsertOne(systemMenuSchema, ctx);
@@ -30,9 +31,21 @@ export async function createMenuBtn(ctx: AppContext) {
     return BaseResultData.ok();
 };
 
+/**
+ * 当前版本下的用户菜单缓存 key
+ * @param userId 用户 ID
+ * @returns Redis key
+ */
+export async function GetAdminMenuCacheKey(userId: string): Promise<string> {
+    const ver = await Get(CacheEnum.ADMIN_MENU_VER);
+    const v = ver != null && ver !== '' ? String(ver) : '0';
+    return `${CacheEnum.ADMIN_MENU}${userId}:${v}`;
+};
+
 export async function findSimple(ctx: AppContext) {
     const { userId } = (ctx as any)?.user;
-    const data = await WithCache(CacheEnum.ADMIN_MENU + userId, async () => loadUserMenuTree(userId));
+    const cacheKey = await GetAdminMenuCacheKey(userId);
+    const data = await WithCache(cacheKey, async () => loadUserMenuTree(userId));
     return BaseResultData.ok(data);
 };
 
@@ -187,7 +200,8 @@ export function handleMenuListToTree(
 export async function RefreshRoutes(userId: string) {
     try {
         const data = await loadUserMenuTree(userId);
-        await RedisSet(CacheEnum.ADMIN_MENU + userId, data);
+        const cacheKey = await GetAdminMenuCacheKey(userId);
+        await RedisSet(cacheKey, data, config.app.baseCacheTime);
     } catch (error) {
         logServerError('刷新缓存菜单树失败', error);
         throw error;
@@ -247,7 +261,7 @@ async function loadUserMenuTree(userId: string) {
         .eq('delFlag', false)
         .eq('status', true)
         .build();
-    const menuData = await FindAll(systemMenuSchema, menuWhere, { orderByColumn: 'sort', sortRule: 'desc',});
+    const menuData = await FindAll(systemMenuSchema, menuWhere, { orderByColumn: 'sort', sortRule: 'desc', });
     const menuBtnBuilder = CreateQueryBuilder(systemMenuBtnSchema).eq('delFlag', false).eq('status', true);
     if (menuBtnIds.length) menuBtnBuilder.in('btnId', [...menuBtnIds]);
     const menuBtnData = menuBtnIds.length
@@ -257,8 +271,9 @@ async function loadUserMenuTree(userId: string) {
     return markAutoIncludedAncestorsAsHidden(tree, authorizedSet);
 };
 
-/** 清除所有用户的侧边栏菜单缓存 */
+/**
+ * 失效全员侧边栏菜单缓存（INCR 版本号，旧 key 依赖 TTL 过期）
+ */
 export async function invalidateAdminMenuCache() {
-    const keys = await Keys(CacheEnum.ADMIN_MENU + '*') || [];
-    if (keys.length) await Del(keys);
+    await Incr(CacheEnum.ADMIN_MENU_VER);
 };

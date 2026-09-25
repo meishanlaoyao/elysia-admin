@@ -2,7 +2,8 @@ import type { AppContext } from '@/types/app-context';
 import { eq } from 'drizzle-orm';
 import { CacheEnum } from '@/constants/enum';
 import { BaseResultData } from '@/core/result';
-import { Get, Keys, Del, Set as RedisSet } from '@/core/database/redis';
+import { Get, Del, Set as RedisSet, SMembers, Unlink, Exists, Keys, SRem } from '@/core/database/redis';
+import { GetAdminMenuCacheKey } from '@/modules/system-menu/handle';
 import { systemUserSchema, systemUserRoleSchema } from '@database/schema/system_user';
 import { BcryptHash, BcryptCompare } from '@/shared/bcrypt';
 import {
@@ -203,14 +204,42 @@ export async function SetUserPassword(userId: string, password: string): Promise
     await InvalidateUserSession(userId);
 };
 
-/** 失效用户会话：清理 ONLINE_USER、权限、refresh、菜单缓存与 refresh 墓碑 */
+/**
+ * 清除用户全部 refresh token
+ * 1. 按 SET 索引 SMembers → Unlink 成员 → Del 索引
+ * 2. 仅当迁移标记不存在时 Keys 兜底遗留键（每个用户最多一次全库 SCAN）
+ * 3. 写入迁移标记，之后零 SCAN
+ * @param userId 用户 ID
+ * @returns 是否清理成功
+ */
+export async function ClearUserRefreshTokens(userId: string): Promise<boolean> {
+    const indexKey = CacheEnum.REFRESH_TOKEN_INDEX + userId;
+    const initKey = CacheEnum.REFRESH_TOKEN_INDEX_INIT + userId;
+    const members = await SMembers(indexKey);
+    if (members.length) {
+        const ok = await Unlink(members);
+        if (!ok) return false;
+    }
+    await Del(indexKey);
+
+    const migrated = await Exists(initKey);
+    if (!migrated) {
+        const legacy = await Keys(CacheEnum.REFRESH_TOKEN + `${userId}:`);
+        if (legacy.length) {
+            const ok = await Unlink(legacy);
+            if (!ok) return false;
+        }
+        await RedisSet(initKey, '1');
+    }
+    return true;
+};
+
+/** 失效用户会话：清理 ONLINE_USER、权限、refresh、菜单缓存（refresh 墓碑依赖 TTL） */
 export async function InvalidateUserSession(userId: string): Promise<void> {
     await Del(CacheEnum.ONLINE_USER + userId);
+    await SRem(CacheEnum.ONLINE_USER_INDEX, userId);
     await Del(CacheEnum.USER_PERM + userId);
     DeleteOnlineUserL1(userId);
-    const refreshKeys = await Keys(CacheEnum.REFRESH_TOKEN + `${userId}:`);
-    if (refreshKeys.length) await Del(refreshKeys);
-    const usedKeys = await Keys(CacheEnum.REFRESH_USED + `${userId}:`);
-    if (usedKeys.length) await Del(usedKeys);
-    await Del(CacheEnum.ADMIN_MENU + userId);
+    await ClearUserRefreshTokens(userId);
+    await Del(await GetAdminMenuCacheKey(userId));
 };

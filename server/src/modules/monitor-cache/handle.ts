@@ -12,7 +12,7 @@ export async function findCacheList(ctx: AppContext) {
         const { cacheType } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
         if (!cache) return BaseResultData.fail(400, '参数错误');
-        const keys = await Keys(cache) || [];
+        const keys = await Keys(cache) || []; // Keys=全库 SCAN，共享大库下慢，仅运维低频使用
         const filterKeys = keys.map(key => {
                 let arr = key.split(':');
                 arr.splice(0, 2);
@@ -43,7 +43,7 @@ export async function removeType(ctx: AppContext) {
         const { cacheType } = ctx.query;
         const cache = CacheEnum[cacheType as keyof typeof CacheEnum];
         if (!cache) return BaseResultData.fail(400, '参数错误');
-        const keys = await Keys(cache) || [];
+        const keys = await Keys(cache) || []; // Keys=全库 SCAN，共享大库下慢，仅运维低频使用
         await Del(keys);
         return BaseResultData.ok();
 };
