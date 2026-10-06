@@ -4,7 +4,6 @@ import {
   discoverProcessorEntries,
   runProcessorBuild,
   copyBullmqCjs,
-  removeBuildEntryStubs,
 } from './build-shared';
 
 const distDir = './dist';
@@ -17,7 +16,6 @@ if (processorEntries.length === 0) {
 mkdirSync(`${distDir}/processors`, { recursive: true });
 await runProcessorBuild(processorEntries, distDir);
 copyBullmqCjs(distDir);
-removeBuildEntryStubs();
 for (const p of processorEntries) {
   logger.success(`✓ dist/processors/${p.name}.js`);
 };

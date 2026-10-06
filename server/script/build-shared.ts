@@ -66,8 +66,12 @@ export function generateBuildEntryStubs(processorEntries: ProcessorEntry[]): str
 
 /** 删除临时 stub 目录 */
 export function removeBuildEntryStubs(): void {
-    if (existsSync(BUILD_ENTRIES_DIR)) {
+    if (!existsSync(BUILD_ENTRIES_DIR)) return;
+    try {
         rmSync(BUILD_ENTRIES_DIR, { recursive: true, force: true });
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.warn(`清理 ${BUILD_ENTRIES_DIR} 失败（可能被占用）: ${message}`);
     };
 };
 
@@ -86,19 +90,28 @@ async function runBunBuild(entrypoints: string[], outdir: string): Promise<void>
         for (const log of result.logs) {
             logger.error(log.message);
         };
-        process.exit(1);
+        throw new Error('Bun.build failed');
     };
 };
 
 /** 仅构建 processors（dev 增量） */
 export async function runProcessorBuild(processorEntries: ProcessorEntry[], outdir: string): Promise<void> {
-    const entrypoints = generateProcessorStubs(processorEntries);
-    await runBunBuild(entrypoints, outdir);
+    try {
+        const entrypoints = generateProcessorStubs(processorEntries);
+        await runBunBuild(entrypoints, outdir);
+    } finally {
+        removeBuildEntryStubs();
+    };
 };
 
 /** 单次统一构建：index + workers + processors 共享 chunk */
-export async function runUnifiedBuild(entrypoints: string[], outdir: string): Promise<void> {
-    await runBunBuild(entrypoints, outdir);
+export async function runUnifiedBuild(processorEntries: ProcessorEntry[], outdir: string): Promise<void> {
+    try {
+        const entrypoints = generateBuildEntryStubs(processorEntries);
+        await runBunBuild(entrypoints, outdir);
+    } finally {
+        removeBuildEntryStubs();
+    };
 };
 
 /** 复制 BullMQ 沙箱 bootstrap → {distDir}/dist/cjs/ */

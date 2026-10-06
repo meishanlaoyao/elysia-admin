@@ -219,10 +219,12 @@ export async function ClearUserRefreshTokens(userId: string): Promise<boolean> {
     if (members.length) {
         const ok = await Unlink(members);
         if (!ok) return false;
-    }
+    };
     await Del(indexKey);
-
     const migrated = await Exists(initKey);
+    // 升级前的 refresh key 不在 SET 索引里，只有 SCAN 才能按 userId 找出来删掉。
+    // 共享大库时这一次会慢（断点常停在 Keys）。扫完写入 refreshTokenIndexInit，该用户之后不再扫。
+    // 刷新 token 不会写这个标记，只有登录、登出、踢人、改密码会走到这里。
     if (!migrated) {
         const legacy = await Keys(CacheEnum.REFRESH_TOKEN + `${userId}:`);
         if (legacy.length) {

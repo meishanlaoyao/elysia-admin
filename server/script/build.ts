@@ -6,8 +6,6 @@ import { logger } from '@/shared/logger';
 import { generateRegistry } from './generate-registry';
 import {
   discoverProcessorEntries,
-  generateBuildEntryStubs,
-  removeBuildEntryStubs,
   runUnifiedBuild,
   copyBullmqCjs,
 } from './build-shared';
@@ -72,8 +70,7 @@ generateRegistry({
 
 // 主进程 + Worker + Processor 单次构建，共享 chunk
 const processorEntries = discoverProcessorEntries();
-const entrypoints = generateBuildEntryStubs(processorEntries);
-await runUnifiedBuild(entrypoints, distDir);
+await runUnifiedBuild(processorEntries, distDir);
 
 logger.info('✓ 主进程构建完成 → dist/index.js');
 logger.info('✓ Worker 构建完成 → dist/workers.js');
@@ -152,6 +149,5 @@ writeFileSync(join(distDir, 'ecosystem.config.cjs'), ecosystemConfig, 'utf-8');
 // 清理临时文件
 const generatedFiles = ['./src/core/route-registry.generated.ts'];
 generatedFiles.forEach(file => { if (existsSync(file)) rmSync(file); });
-removeBuildEntryStubs();
 logger.info('✓ 清理临时生成文件');
 logger.success(`构建完成 → ${appConfig.app.id}:${appConfig.app.port}`);

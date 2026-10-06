@@ -8,6 +8,7 @@
 /database/drizzle
 /dist_binary
 /dist
+/script/.build-entries
 /logs
 .pnp.js
 
