@@ -369,7 +369,6 @@ const handleSubmit = async (formData: any): Promise<void> => {
         showBadge: formData.showBadge,
         showTextBadge: formData.showTextBadge,
         fixedTab: formData.fixedTab,
-        isFullPage: formData.isFullPage,
         activePath: formData.activePath,
         parentId: formData.parentId || 0
       }
