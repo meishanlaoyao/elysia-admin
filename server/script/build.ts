@@ -104,6 +104,14 @@ cpSync('./src/config/production.yaml', productionYamlPath);
 injectJwtSecrets(productionYamlPath);
 logger.info('✓ production.yaml 已复制，JWT secret 已随机注入');
 
+// 版本信息文件：缺失不阻断构建
+if (existsSync('./version.json')) {
+  cpSync('./version.json', join(distDir, 'version.json'));
+  logger.info('✓ version.json 已复制 → dist/version.json');
+} else {
+  logger.warn('未找到 version.json，版本信息接口将返回 500');
+};
+
 // PM2 配置：业务/启动失败日志由 pino + appendFatalLog 写入 ./logs/YYYYMMDD/，不再采集 stdout/stderr
 const nullLog = process.platform === 'win32' ? 'NUL' : '/dev/null';
 const ecosystemConfig = `// PM2 配置文件

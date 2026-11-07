@@ -25,6 +25,7 @@
     "user": {
       "userCenter": "个人中心",
       "docs": "使用文档",
+      "versionInfo": "版本信息",
       "github": "Github",
       "lockScreen": "锁定屏幕",
       "logout": "退出登录"
@@ -308,7 +309,8 @@
       "operLog": "操作日志",
       "storage": "存储配置",
       "deploy": "站点部署",
-      "notice": "通知公告"
+      "notice": "通知公告",
+      "version": "版本信息"
     },
     "monitor": {
       "title": "系统监控",
@@ -352,5 +354,24 @@
     "zebra": "斑马纹",
     "border": "边框",
     "headerBackground": "表头背景"
+  },
+  "version": {
+    "current": "当前版本",
+    "releaseTime": "发布日期",
+    "forceUpdate": "建议强制更新",
+    "content": "更新内容",
+    "history": "历史版本",
+    "latest": "最新",
+    "prevRelease": "上一版本",
+    "totalHistory": "共计 {count} 个历史版本",
+    "statCurrent": "当前版本",
+    "statReleaseDate": "发布日期",
+    "statHistory": "历史版本数",
+    "empty": "暂无历史版本",
+    "loadFailed": "版本信息加载失败",
+    "newVersionTitle": "发现新版本",
+    "refreshNow": "立即刷新",
+    "later": "稍后",
+    "newVersionTips": "系统已发布新版本，请刷新页面后使用最新功能。"
   }
 }

@@ -27,6 +27,10 @@
             <ArtSvgIcon icon="ri:book-2-line" />
             <span>{{ $t('topBar.user.docs') }}</span>
           </li>
+          <li class="btn-item" @click="goPage('/system/version')">
+            <ArtSvgIcon icon="ri:history-line" />
+            <span>{{ $t('topBar.user.versionInfo') }}</span>
+          </li>
           <li class="btn-item" @click="lockScreen()">
             <ArtSvgIcon icon="ri:lock-line" />
             <span>{{ $t('topBar.user.lockScreen') }}</span>

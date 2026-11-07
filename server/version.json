@@ -1,0 +1,18 @@
+{
+  "current": {
+    "version": "1.0.0",
+    "releaseTime": "2026-11-07 16:05:00",
+    "title": "首个版本",
+    "forceUpdate": false,
+    "content": "<p>系统正式上线。</p>"
+  },
+  "history": [
+    {
+      "version": "0.0.0",
+      "releaseTime": "2026-11-07 16:05:00",
+      "title": "初始版本",
+      "forceUpdate": false,
+      "content": "<p>项目初始化。</p>"
+    }
+  ]
+}

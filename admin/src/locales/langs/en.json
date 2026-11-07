@@ -25,6 +25,7 @@
     "user": {
       "userCenter": "User center",
       "docs": "Document",
+      "versionInfo": "Version info",
       "github": "Github",
       "lockScreen": "Lock screen",
       "logout": "Log out"
@@ -308,7 +309,8 @@
       "operLog": "Oper Log",
       "storage": "Storage Config",
       "deploy": "Site Deploy",
-      "notice": "Notice"
+      "notice": "Notice",
+      "version": "Version Info"
     },
     "monitor": {
       "title": "System Monitor",
@@ -352,5 +354,24 @@
     "zebra": "Zebra",
     "border": "Border",
     "headerBackground": "Header BG"
+  },
+  "version": {
+    "current": "Current Version",
+    "releaseTime": "Release Date",
+    "forceUpdate": "Recommended Update",
+    "content": "What's New",
+    "history": "Version History",
+    "latest": "Latest",
+    "prevRelease": "Previous",
+    "totalHistory": "{count} versions in total",
+    "statCurrent": "Current Version",
+    "statReleaseDate": "Release Date",
+    "statHistory": "Total Versions",
+    "empty": "No version history",
+    "loadFailed": "Failed to load version info",
+    "newVersionTitle": "New Version Available",
+    "refreshNow": "Refresh Now",
+    "later": "Later",
+    "newVersionTips": "A new version has been released. Refresh the page to use the latest features."
   }
 }

@@ -1,118 +1,118 @@
 /**
  * 前端版本更新检测模块
  *
- * 用于解决前端重新部署后，用户浏览器仍停留在旧版本页面的问题
+ * 用于解决前端重新部署后用户浏览器仍停留在旧版本页面的问题
  *
  * ## 主要功能
  *
- * - 以打包产物（assets 下带 hash 的 js / css）作为版本指纹，无需手动维护版本号
- * - 定期拉取服务端最新的 index.html 与本地指纹比对
- * - 检测到新版本时提示用户刷新，用户可选择稍后处理
+ * - 以服务端 `version.json` 中的版本号作为唯一版本标识
+ * - 路由切换、页面切回前台、定时轮询时比对本地缓存版本号
+ * - 检测到新版本时弹窗展示更新内容，可立即刷新或稍后处理
+ * - `forceUpdate` 为 true 时只保留「立即刷新」，用户无法跳过
  * - 懒加载路由文件失效（新版本覆盖旧文件）时自动刷新兜底
  *
- * ## 版本指纹来源
- *
- * - 本地：模块加载时快照当前文档引用的构建产物文件名（即用户此刻运行的这份代码）
- * - 远端：请求 index.html 原文，用同一套规则提取文件名
- *
- * 请求失败、响应无法解析、指纹为空时一律静默跳过，不做任何提示
+ * 请求失败、响应无法解析或未登录时一律静默跳过，不做任何提示
  *
  * @module utils/sys/version-check
  * @author Elysia Admin Team
  */
 import { ElMessageBox } from 'element-plus'
 import type { Router } from 'vue-router'
+import { $t } from '@/locales'
 
 /** 两次检测之间的最小间隔（毫秒） */
-const CHECK_INTERVAL = 5 * 60 * 1000
+const CHECK_INTERVAL = 60 * 1000
 
-/** 本次会话中用户选择「稍后」忽略的版本指纹 */
+/** 本地缓存的当前版本号 */
+const APP_VERSION_KEY = 'sys-app-version'
+
+/** 本次会话中用户选择「稍后」忽略的版本号 */
 const IGNORED_KEY = 'sys-version-ignored'
-
-/** 刷新前记录的目标版本指纹，用于识别「刷新后依旧是旧版」的情况 */
-const RELOAD_FLAG_KEY = 'sys-version-reloading'
 
 /** 因懒加载文件缺失而自动刷新过的标记 */
 const CHUNK_RELOAD_KEY = 'sys-chunk-reloading'
-
-/** 匹配构建产物路径，如 assets/index-BqK3xY2p.js */
-const ASSET_PATTERN = /assets\/([^"'\s>]+?\.(?:js|css))/g
 
 /** 懒加载模块请求失败的错误特征 */
 const CHUNK_ERROR_PATTERN =
   /Failed to fetch dynamically imported module|error loading dynamically imported module|Importing a module script failed/i
 
-/**
- * 从任意文本中提取构建产物文件名并生成指纹
- * @param source HTML 原文或资源地址集合
- * @returns 去重排序后拼接的指纹字符串，未匹配到时为空串
- */
-function extractFingerprint(source: string): string {
-  const names = Array.from(source.matchAll(ASSET_PATTERN), (match) => match[1])
-  return [...new Set(names)].sort().join(',')
-}
-
-/**
- * 读取当前文档引用的构建产物指纹
- *
- * 必须在应用挂载前调用，避免懒加载过程中动态插入的资源污染结果
- *
- * @returns 当前运行版本的指纹
- */
-function readLocalFingerprint(): string {
-  const nodes = document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(
-    'script[src], link[href]'
-  )
-  const urls = Array.from(nodes, (node) => ('src' in node ? node.src : node.href))
-  return extractFingerprint(urls.join('\n'))
-}
-
-/** 当前运行版本的指纹（模块加载即快照） */
-const LOCAL_FINGERPRINT = readLocalFingerprint()
-
-let lastCheckAt = Date.now()
+let lastCheckAt = 0
 let checking = false
 let prompting = false
-// 开发环境无 hash 产物，指纹为空时无法比对，直接关闭检测
-let disabled = !import.meta.env.PROD || !LOCAL_FINGERPRINT
 
 /**
- * 拉取服务端最新的 index.html 并解析指纹
- *
- * 通过时间戳参数与 no-store 绕过浏览器缓存，无需服务端配置缓存策略
- *
- * @returns 最新版本指纹，请求失败或未匹配到时为空串
+ * 读取本地缓存的版本号
+ * @returns 缓存的版本号，未缓存时为空串
  */
-async function readRemoteFingerprint(): Promise<string> {
-  const url = new URL(`${import.meta.env.BASE_URL || './'}index.html`, window.location.href)
-  url.searchParams.set('t', String(Date.now()))
+function readCachedVersion(): string {
+  return localStorage.getItem(APP_VERSION_KEY) || ''
+}
 
-  const response = await fetch(url.href, { cache: 'no-store' })
-  if (!response.ok) return ''
+/**
+ * 写入本地缓存的版本号
+ * @param version 版本号
+ */
+function writeCachedVersion(version: string): void {
+  localStorage.setItem(APP_VERSION_KEY, version)
+}
 
-  return extractFingerprint(await response.text())
+/**
+ * 判断当前是否处于可检测状态（已登录且不在登录页）
+ * 延迟导入 store，避免 router → version-check → store → router 的循环依赖
+ * @param router 路由实例
+ * @returns 是否允许发起检测
+ */
+async function canCheck(router: Router): Promise<boolean> {
+  if (router.currentRoute.value.name === 'Login') return false
+  const { useUserStore } = await import('@/store/modules/user')
+  return useUserStore().isLogin
+}
+
+/**
+ * 构建更新弹窗的正文 HTML
+ * @param item 版本条目
+ * @returns 可直接用于 dangerouslyUseHTMLString 的 HTML 字符串
+ */
+function buildMessageHtml(item: Api.SystemVersion.VersionItem): string {
+  const head = [
+    `<div style="font-size: 14px; font-weight: 500; color: var(--art-gray-800);">${item.title}</div>`,
+    `<div style="font-size: 12px; color: var(--art-gray-500); margin-top: 4px;">${item.releaseTime}</div>`
+  ].join('')
+  return [
+    head,
+    `<div style="margin-top: 10px; line-height: 1.8; color: var(--art-gray-800);">${item.content}</div>`
+  ].join('')
 }
 
 /**
  * 弹出更新提示
- * @param remote 服务端最新版本指纹
+ * 强制更新时只提供「立即刷新」且不可关闭；否则允许稍后处理
+ * @param remote 服务端最新版本条目
  */
-async function promptUpdate(remote: string): Promise<void> {
+async function promptUpdate(remote: Api.SystemVersion.VersionItem): Promise<void> {
   prompting = true
 
   try {
-    await ElMessageBox.confirm('系统已发布新版本，刷新页面后即可使用最新功能。', '发现新版本', {
-      confirmButtonText: '立即刷新',
-      cancelButtonText: '稍后',
-      type: 'info',
-      closeOnClickModal: false,
-      closeOnPressEscape: false
-    })
-    sessionStorage.setItem(RELOAD_FLAG_KEY, remote)
+    await ElMessageBox.confirm(
+      buildMessageHtml(remote),
+      `${$t('version.newVersionTitle')} v${remote.version}`,
+      {
+        confirmButtonText: $t('version.refreshNow'),
+        cancelButtonText: $t('version.later'),
+        type: 'info',
+        dangerouslyUseHTMLString: true,
+        showCancelButton: !remote.forceUpdate,
+        closeOnClickModal: !remote.forceUpdate,
+        closeOnPressEscape: !remote.forceUpdate,
+        showClose: !remote.forceUpdate
+      }
+    )
+    writeCachedVersion(remote.version)
     window.location.reload()
   } catch {
     // 用户选择稍后，本次会话内不再对该版本重复提示
-    sessionStorage.setItem(IGNORED_KEY, remote)
+    if (remote.forceUpdate) return
+    sessionStorage.setItem(IGNORED_KEY, remote.version)
   } finally {
     prompting = false
   }
@@ -122,23 +122,36 @@ async function promptUpdate(remote: string): Promise<void> {
  * 检测是否存在新版本
  *
  * 处理流程：
- * 1. 校验开关、并发与检测间隔
- * 2. 拉取服务端最新指纹
- * 3. 与本地指纹及已忽略版本比对
- * 4. 存在差异时提示刷新
+ * 1. 校验并发、检测间隔与登录状态
+ * 2. 拉取服务端最新版本信息
+ * 3. 首次运行直接记录版本号；版本号一致时不提示
+ * 4. 版本号不一致且本会话未忽略时弹窗提示
  *
+ * @param router 路由实例
  * @param force 是否忽略检测间隔限制
  */
-export async function checkAppVersion(force = false): Promise<void> {
-  if (disabled || checking || prompting) return
+export async function checkAppVersion(router: Router, force = false): Promise<void> {
+  if (checking || prompting) return
   if (!force && Date.now() - lastCheckAt < CHECK_INTERVAL) return
 
   checking = true
 
   try {
-    const remote = await readRemoteFingerprint()
-    if (!remote || remote === LOCAL_FINGERPRINT) return
-    if (sessionStorage.getItem(IGNORED_KEY) === remote) return
+    if (!(await canCheck(router))) return
+
+    // 延迟导入，避免 version-check（被 router 引用）与 http 层形成循环依赖
+    const { fetchGetVersionInfo } = await import('@/api/system/version')
+    const data = await fetchGetVersionInfo()
+    const remote = data?.current
+    if (!remote?.version) return
+
+    const cached = readCachedVersion()
+    if (!cached) {
+      writeCachedVersion(remote.version)
+      return
+    }
+    if (cached === remote.version) return
+    if (!remote.forceUpdate && sessionStorage.getItem(IGNORED_KEY) === remote.version) return
 
     await promptUpdate(remote)
   } catch {
@@ -147,20 +160,6 @@ export async function checkAppVersion(force = false): Promise<void> {
     lastCheckAt = Date.now()
     checking = false
   }
-}
-
-/**
- * 校验上一次刷新是否真正生效
- *
- * 若刷新后本地指纹仍未变化，说明 HTML 被强缓存，继续提示只会陷入
- * 「提示 → 刷新 → 再提示」的死循环，因此本次会话不再检测
- */
-function guardIneffectiveReload(): void {
-  const expected = sessionStorage.getItem(RELOAD_FLAG_KEY)
-  if (!expected) return
-
-  sessionStorage.removeItem(RELOAD_FLAG_KEY)
-  if (expected !== LOCAL_FINGERPRINT) disabled = true
 }
 
 /**
@@ -184,22 +183,22 @@ function handleRouterError(error: unknown): void {
 /**
  * 初始化版本检测
  *
- * 检测时机：页面从后台切回前台、路由切换（均受最小间隔限制）
+ * 检测时机：路由切换、页面从后台切回前台、定时轮询（均受最小间隔限制）
  *
  * @param router 路由实例
  */
 export function setupVersionCheck(router: Router): void {
-  guardIneffectiveReload()
-
   router.onError(handleRouterError)
   router.afterEach(() => {
     sessionStorage.removeItem(CHUNK_RELOAD_KEY)
-    void checkAppVersion()
+    void checkAppVersion(router)
   })
-
-  if (disabled) return
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') void checkAppVersion()
+    if (document.visibilityState === 'visible') void checkAppVersion(router)
   })
+
+  setInterval(() => {
+    void checkAppVersion(router)
+  }, CHECK_INTERVAL)
 }

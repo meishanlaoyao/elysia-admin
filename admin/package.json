@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite --open",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node scripts/zip-dist.mjs",
     "serve": "vite preview",
     "lint": "eslint",
     "fix": "eslint --fix",
