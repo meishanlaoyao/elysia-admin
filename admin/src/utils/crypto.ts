@@ -9,9 +9,9 @@
 import axios from 'axios'
 
 const IV_LENGTH = 12
-const { VITE_API_URL, VITE_API_ENCRYPT } = import.meta.env
+const { VITE_API_URL } = import.meta.env
 
-let publicKeyPromise: Promise<CryptoKey | null> | null = null
+let encryptConfigPromise: Promise<EncryptConfig | null> | null = null
 
 function toBase64(bytes: Uint8Array): string {
   let bin = ''
@@ -23,30 +23,52 @@ function fromBase64(text: string): Uint8Array {
   return Uint8Array.from(atob(text), (c) => c.charCodeAt(0))
 }
 
-/** 从后端获取开关与公钥；失败或未启用返回 null（自动退回明文） */
-async function fetchPublicKey(): Promise<CryptoKey | null> {
+interface EncryptConfig {
+  publicKey: CryptoKey
+  mode: 'include' | 'exclude'
+  routes: { methods: Set<string>; pattern: RegExp }[]
+}
+
+/** 从后端获取加密模式、接口列表与公钥；失败或 mode=off 返回 null（自动退回明文） */
+async function fetchEncryptConfig(): Promise<EncryptConfig | null> {
   try {
     const res = await axios.get(`${VITE_API_URL}/api/crypto/public-key`)
-    const { enabled, publicKey } = res.data?.data ?? {}
-    if (!enabled || !publicKey) return null
+    const { mode, routes, publicKey } = res.data?.data ?? {}
+    if ((mode !== 'include' && mode !== 'exclude') || !publicKey) return null
     const body = String(publicKey).replace(/-----[^-]+-----/g, '').replace(/\s+/g, '')
-    return await crypto.subtle.importKey(
-      'spki',
-      fromBase64(body),
-      { name: 'RSA-OAEP', hash: 'SHA-256' },
-      false,
-      ['encrypt']
-    )
+    return {
+      mode,
+      routes: ((routes ?? []) as { method: string[]; url: string }[]).map(({ method, url }) => ({
+        methods: new Set(method.map((m) => m.toUpperCase())),
+        pattern: new RegExp(`^${url.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`)
+      })),
+      publicKey: await crypto.subtle.importKey(
+        'spki',
+        fromBase64(body) as BufferSource,
+        { name: 'RSA-OAEP', hash: 'SHA-256' },
+        false,
+        ['encrypt']
+      )
+    };
   } catch {
     return null
   }
 }
 
-/** 是否启用加密：前端开关开启且后端也启用时返回公钥，否则返回 null；公钥只拉取一次 */
-export function getEncryptPublicKey(): Promise<CryptoKey | null> {
-  if (VITE_API_ENCRYPT !== 'true') return Promise.resolve(null)
-  publicKeyPromise ??= fetchPublicKey()
-  return publicKeyPromise
+/**
+ * 获取本次请求用于加密的公钥：后端未开启加密或该接口不要求加密时返回 null；配置只拉取一次
+ * @param method 请求方法
+ * @param url 请求地址（可含域名与 query）
+ */
+export async function getEncryptPublicKey(method = 'GET', url = ''): Promise<CryptoKey | null> {
+  encryptConfigPromise ??= fetchEncryptConfig()
+  const cfg = await encryptConfigPromise
+  if (!cfg) return null
+  const path = url.replace(/^https?:\/\/[^/]+/, '').split('?')[0]
+  const upper = method.toUpperCase()
+  if (upper === 'OPTIONS' || path === '/api/crypto/public-key') return null
+  const hit = cfg.routes.some((r) => (r.methods.has('*') || r.methods.has(upper)) && r.pattern.test(path))
+  return (cfg.mode === 'include' ? hit : !hit) ? cfg.publicKey : null
 }
 
 /** AES-GCM 加密字符串，返回 Base64(iv + 密文) */

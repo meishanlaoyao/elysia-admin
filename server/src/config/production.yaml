@@ -75,10 +75,15 @@ log:
   level: "info"
   showRequestParams: false
 
-# 请求/响应加解密（RSA + AES-GCM）。生成密钥对（自动写入本文件，不会改 enabled）:
+# 请求/响应加解密（RSA + AES-GCM）。生成密钥对（自动写入本文件，不会改 mode/routes）:
 #  bun run gen:crypto-keys production   （已有密钥需加 --force 才会覆盖）
 # 私钥切勿提交到仓库；PEM 也可手动用 YAML 块写法或单行 \n 写法填写。
+# mode: off 不开启 | include 只加密 routes | exclude 除 routes 外全部加密
+# routes: { method: "POST" 或 ["POST","PUT"] 或 "*", url: "/api/xx/*" }（url 中 * 匹配任意字符，method 须大写）
+# 注意: 需加密的接口收到明文会返回 400；exclude 模式下第三方回调/webhook 须写入 routes
 crypto:
-  enabled: false
+  mode: "include"
+  routes:
+    - { method: "POST", url: "/api/auth/login" }
   privateKey: ""
   publicKey: ""

@@ -1,0 +1,11 @@
+{
+  "name": "elysia-admin-workspace",
+  "private": true,
+  "description": "多项目托管入口：按 workspace.json 一键安装 / 打包 / 开发",
+  "scripts": {
+    "install:all": "node scripts/workspace.mjs install",
+    "build:all": "node scripts/workspace.mjs build",
+    "dev:all": "node scripts/workspace.mjs dev",
+    "list": "node scripts/workspace.mjs list"
+  }
+}

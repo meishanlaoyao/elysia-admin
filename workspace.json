@@ -1,0 +1,22 @@
+{
+  "projects": [
+    {
+      "name": "server",
+      "dir": "server",
+      "enabled": true,
+      "lockfile": "bun.lock",
+      "install": "bun install",
+      "build": "bun run build",
+      "dev": "bun run dev:all"
+    },
+    {
+      "name": "admin",
+      "dir": "admin",
+      "enabled": true,
+      "lockfile": "pnpm-lock.yaml",
+      "install": "pnpm install --frozen-lockfile",
+      "build": "pnpm build",
+      "dev": "pnpm dev"
+    }
+  ]
+}

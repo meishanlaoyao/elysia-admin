@@ -96,9 +96,13 @@ async function encryptRequest(request: EncryptedConfig) {
   const isBinary = ['blob', 'arraybuffer', 'stream'].includes(request.responseType || '')
   const isJsonBody =
     typeof request.data === 'string' && String(request.headers.get('Content-Type')).includes('json')
-  if (isBinary || (request.data && !isJsonBody)) return
-  const publicKey = await getEncryptPublicKey()
+  const publicKey = await getEncryptPublicKey(request.method, request.url)
   if (!publicKey) return
+  // 严格模式下需加密的接口必须带密钥头；二进制响应/非 JSON 请求体（如文件上传）后端不加解密，仅带头放行
+  if (isBinary || (request.data && !isJsonBody)) {
+    request.headers.set('X-Encrypt-Key', (await createRequestKey(publicKey)).wrappedKey)
+    return
+  }
   const { aesKey, wrappedKey } = await createRequestKey(publicKey)
   request.headers.set('X-Encrypt-Key', wrappedKey)
   if (isJsonBody) request.data = JSON.stringify({ data: await aesEncrypt(aesKey, request.data) })
@@ -147,7 +151,7 @@ async function refreshAccessToken(): Promise<string> {
   try {
     // refreshToken 通过 HTTP-only Cookie 自动携带，无需手动设置
     const body = { refreshToken: userStore.refreshToken }
-    const publicKey = await getEncryptPublicKey()
+    const publicKey = await getEncryptPublicKey('POST', '/api/auth/refresh')
     const encrypted = publicKey ? await createRequestKey(publicKey) : null
     const response = await axios.post<BaseResponse<Api.Auth.LoginResponse>>(
       `${VITE_API_URL}/api/auth/refresh`,

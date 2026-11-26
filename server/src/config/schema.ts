@@ -129,9 +129,18 @@ const LogSchema = t.Object({
 }, strict);
 
 /** 请求/响应加解密配置（RSA + AES-GCM 混合加密） */
+const CryptoMethodSchema = t.Union([
+    t.Literal('GET'), t.Literal('POST'), t.Literal('PUT'),
+    t.Literal('PATCH'), t.Literal('DELETE'), t.Literal('*'),
+]);
 const CryptoSchema = t.Object({
-    /** 是否启用请求/响应加解密（关闭时不注册中间件，公钥接口返回 enabled=false） */
-    enabled: t.Boolean(),
+    /** 加密模式：off 不开启；include 只加密 routes；exclude 除 routes 外全部加密 */
+    mode: t.Union([t.Literal('off'), t.Literal('include'), t.Literal('exclude')]),
+    /** 接口列表：method 为 GET/POST/PUT/PATCH/DELETE 或 *（全部），url 中 * 匹配任意字符 */
+    routes: t.Array(t.Object({
+        method: t.Union([CryptoMethodSchema, t.Array(CryptoMethodSchema)]),
+        url: t.String({ minLength: 1 }),
+    }, strict)),
     /** RSA 私钥（PEM, PKCS8），仅服务端持有 */
     privateKey: t.String(),
     /** RSA 公钥（PEM, SPKI），通过公钥接口下发给前端 */

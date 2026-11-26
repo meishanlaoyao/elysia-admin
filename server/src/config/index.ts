@@ -26,7 +26,8 @@ const raw = YAML.parse(text) as Record<string, unknown>;
 };
 
 (raw as { crypto: Record<string, unknown> }).crypto = {
-    enabled: false,
+    mode: 'off',
+    routes: [],
     privateKey: '',
     publicKey: '',
     ...(raw.crypto as Record<string, unknown> | undefined),

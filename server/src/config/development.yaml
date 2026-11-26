@@ -72,10 +72,52 @@ log:
   showRequestParams: true
 
 
-# 请求/响应加解密（RSA + AES-GCM）。生成密钥对（自动写入本文件，不会改 enabled）:
+# 请求/响应加解密（RSA + AES-GCM）。生成密钥对（自动写入本文件，不会改 mode/routes）:
 #  bun run gen:crypto-keys   （已有密钥需加 --force 才会覆盖）
 # 私钥切勿提交到仓库；PEM 也可手动用 YAML 块写法或单行 \n 写法填写。
+# mode: off 不开启 | include 只加密 routes | exclude 除 routes 外全部加密
+# routes: { method: "POST" 或 ["POST","PUT"] 或 "*", url: "/api/xx/*" }（url 中 * 匹配任意字符，method 须大写）
+# 注意: 需加密的接口收到明文会返回 400；exclude 模式下第三方回调/webhook 须写入 routes
 crypto:
-  enabled: false
-  privateKey: ""
-  publicKey: ""
+  mode: "include"
+  routes:
+    - { method: "POST", url: "/api/auth/login" }
+  privateKey: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDGwLXvhcGQ+82M
+    /HC4Bpzap10iGB5VNQFdHFyZI9AztK9NNsQJsMd6sHKOwl9Jmr9E+lijo/Pd1pln
+    NlC7Km0iVB0Jt/Gu4MgXj+I4ZTIUjBA+S94bFH4S6tBuHNU6hYrny1iQd8l7CeON
+    uQSdl2ottdrs6+CgbLrQjv6seK2DldvGgKir44t6qu4fE0nAOBEsR8+6qLlyZ9ef
+    Pb3F0OS3NQ0/xDZWWES+h8NQPW1U52NS7FnMlL5XqDk00L1zCI6ixWfTndyGgIAs
+    agNf0+O2k/Bn32/0cIndJaLUl+wJGWrIlV9+pFWzwIf4WqaQAJ6LWaFt+4ldWI+K
+    SvvCCoDBAgMBAAECggEAA21LNcgOoFtXHfk0UFf82GBOYModq8ZwMZTNm+5cJqgU
+    5bXuB2S+68SjFQcQ8YnzhlLyuE+ZYtfSaU8scS24GAFvRr2fMy65BH78nZBRHr2T
+    gh94wurFibn2wg9JNesbjAebjVIjbTWscMMh6z2zHPqnvbILe3ikd/gfOAYUp9Ij
+    2DPdimzfX/foCEN2gVDX/vHOBDoP0kLQIAuZ+Bizb24PXgEG1N3UBl5l4Wi8h8Fo
+    GIYzlu40nP8XJz//6C+sP5vI8ZjRZ9GTVcfFvGUFAggPaqNaaXY62hyEI3vJshcW
+    qL7LyoTJ2UD6Yk5VccYnIiUZlS3sgwUvPo8TUt+XKQKBgQD52vVs+RE1lghHnZ11
+    Oh1MRemxlGEgyGsQbOkdC0TCtL3P2WfuCKfwlCjmgMb835zbOF+3gyQj2i9N+tlZ
+    gIoQN/0eF02wYDQyjNbUFIajHfPXGoqPwyR0gUIyNzXtQmm/XzISpMVSsIEx3krJ
+    6DX58vcPGJutw6h4by6d0w/p1wKBgQDLpAUsrjJv+3P7MkhYpuAFvaJRV6ZIZIUS
+    q16XvDU+hm5zTc3SEbsATEHOzt6qV9qmehXlirt3yEzvOiiEEzZaVQawuo4FCfvX
+    9sWWkABcczq65k3XZioHsE7EcBb3jd8TNWe1q/odSGJOj7Rkj2pheCmLBUm523Ss
+    r6d+kW8HJwKBgQDoEQZZo/DnC6Y/Flc0lbi2qk0HwmCAeYZv6CiQ8HF6QzP1xOFy
+    Rpntqz9d8QhhwTRIrVDB+01q+3FqhW6xYeFadRZlh5GCG6j/tq6mpzXydZSRGzbN
+    lpvalmAskflFmKTtufahOGeKiSRGdEiUxli0AoaUf+/A8nUc/2+V6X7jWwKBgC+S
+    e5r6ftHmPiv6jSgYo9Dzgg3amf/ja6r22bw8vXuD0B2jmWdvuO3S4rS7Yw0MRQoL
+    Dz52cGEFK+PfBEQGcPYdUtjKXA8VS/4hqfsIXO08BgZPcvPU7BCrwVrmjJb8T5af
+    LUElkeJxXHXZ4Fx1nHZ0qc/ORnDisZj91/UbaIKVAoGAdQrM+59GqZqeufkWSzFo
+    D8Kw7UEAc9VEF0uE1SPG0ga3isOImCdfS/Pbsc+iJoxw75UsfcXicstBtgTtSfM0
+    xmBcvJcwbtOG24B41zCRuVVBETwMYGBrr2/3fGPj4pYCVZyLwx3aPh7GM3HnTdmr
+    17+9/Yu3EDoIwLQuk+EPJT4=
+    -----END PRIVATE KEY-----
+  publicKey: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxsC174XBkPvNjPxwuAac
+    2qddIhgeVTUBXRxcmSPQM7SvTTbECbDHerByjsJfSZq/RPpYo6Pz3daZZzZQuypt
+    IlQdCbfxruDIF4/iOGUyFIwQPkveGxR+EurQbhzVOoWK58tYkHfJewnjjbkEnZdq
+    LbXa7OvgoGy60I7+rHitg5XbxoCoq+OLeqruHxNJwDgRLEfPuqi5cmfXnz29xdDk
+    tzUNP8Q2VlhEvofDUD1tVOdjUuxZzJS+V6g5NNC9cwiOosVn053choCALGoDX9Pj
+    tpPwZ99v9HCJ3SWi1JfsCRlqyJVffqRVs8CH+FqmkACei1mhbfuJXViPikr7wgqA
+    wQIDAQAB
+    -----END PUBLIC KEY-----

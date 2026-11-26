@@ -19,6 +19,43 @@ function CryptoError(message: string) {
     return e;
 };
 
+/** 公钥接口与预检请求永不要求加密 */
+const PUBLIC_KEY_PATH = '/api/crypto/public-key';
+
+/** 解析后的路由规则 */
+interface ParsedRoute { methods: Set<string>; pattern: RegExp }
+
+/**
+ * 把配置中的 routes 解析为方法集合 + 路径正则（url 中 * 匹配任意字符）
+ * @param routes 配置的接口列表
+ * @returns 解析后的规则列表
+ */
+function ParseRoutes(routes: typeof config.crypto.routes): ParsedRoute[] {
+    return routes.map(({ method, url }) => {
+        const source = url.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+        return {
+            methods: new Set((Array.isArray(method) ? method : [method]).map((m) => m.toUpperCase())),
+            pattern: new RegExp(`^${source}$`),
+        };
+    });
+};
+
+const parsedRoutes = ParseRoutes(config.crypto.routes);
+
+/**
+ * 判断请求是否要求加密：include 模式命中列表才加密；exclude 模式未命中才加密
+ * @param method HTTP 方法
+ * @param path 请求路径（不含 query）
+ * @returns 是否要求加密
+ */
+function ShouldEncrypt(method: string, path: string): boolean {
+    const { mode } = config.crypto;
+    if (mode === 'off' || method === 'OPTIONS' || path === PUBLIC_KEY_PATH) return false;
+    const upper = method.toUpperCase();
+    const hit = parsedRoutes.some((r) => (r.methods.has('*') || r.methods.has(upper)) && r.pattern.test(path));
+    return mode === 'include' ? hit : !hit;
+};
+
 /**
  * 请求/响应加解密中间件（RSA + AES-GCM）
  *
@@ -26,14 +63,17 @@ function CryptoError(message: string) {
  * 2. onParse：JSON 请求体为 { data: 密文 } 时解密成对象，下游校验与 handle 无感知
  * 3. mapResponse：本次请求有 AES 密钥且响应为 JSON 对象时，加密成 { encrypted: true, data }
  *
- * 无 X-Encrypt-Key 的明文请求原样放行；enabled=false 时不注册。
+ * 无 X-Encrypt-Key 的明文请求：按 mode/routes 判断需加密则返回 400，否则放行；mode=off 时不注册。
  * @param app Elysia 实例
  */
 export function CryptoMiddleware(app: Elysia) {
-    if (!config.crypto.enabled) return;
+    if (config.crypto.mode === 'off') return;
     app.onRequest(async ({ request }) => {
         const wrapped = request.headers.get(KEY_HEADER);
-        if (!wrapped) return;
+        if (!wrapped) {
+            if (ShouldEncrypt(request.method, new URL(request.url).pathname)) throw CryptoError('该接口需加密传输');
+            return;
+        };
         try {
             requestKeys.set(request, await RsaDecryptKey(wrapped));
         } catch {

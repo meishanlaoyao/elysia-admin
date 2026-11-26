@@ -6,7 +6,7 @@
  *   bun run gen:crypto-keys production       # 写入 production.yaml
  *   bun run gen:crypto-keys production --force   # 已有密钥时强制覆盖
  *
- * 只替换 crypto 段的 privateKey / publicKey，保留 enabled 的当前值（需要时手动改为 true）。
+ * 只替换 crypto 段的 privateKey / publicKey，crypto 段其余内容（mode / routes / 注释）原样保留。
  */
 import { generateKeyPairSync } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -38,18 +38,32 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
 });
 const indent = (pem: string) => pem.trim().split('\n').map((l) => `    ${l}`).join(eol);
-const enabled = block.match(/^\s+enabled:\s*(true|false)/m)?.[1] ?? 'false';
-const next = [
-    'crypto:',
-    `  enabled: ${enabled}`,
-    '  privateKey: |',
-    indent(privateKey),
-    '  publicKey: |',
-    indent(publicKey),
-    '',
-].join(eol);
-
+const replacements: Record<string, string> = {
+    privateKey: `  privateKey: |${eol}${indent(privateKey)}`,
+    publicKey: `  publicKey: |${eol}${indent(publicKey)}`,
+};
+// 逐行处理：只替换 privateKey / publicKey 条目（块标量 | 或 > 时连同缩进的后续行），其余内容原样保留
+const lines = block.split(/\r?\n/);
+const out: string[] = [];
+const done = new Set<string>();
+for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^  (privateKey|publicKey):\s*(.*)$/);
+    if (!m) { out.push(lines[i]); continue; }
+    out.push(replacements[m[1]]);
+    done.add(m[1]);
+    if (/^[|>][+-]?\s*$/.test(m[2])) {
+        while (i + 1 < lines.length && /^[ \t]{3,}\S/.test(lines[i + 1])) i++;
+    }
+}
+for (const k of Object.keys(replacements)) {
+    if (done.has(k)) continue;
+    let end = out.length;
+    while (end > 1 && out[end - 1].trim() === '') end--;
+    out.splice(end, 0, replacements[k]);
+}
+const next = out.join(eol);
+const mode = block.match(/^\s+mode:\s*["']?(\w+)/m)?.[1] ?? 'off';
 writeFileSync(file, text.replace(blockRe, () => next));
 console.log(`✓ 已生成 RSA-2048 密钥对并写入 ${file}`);
-console.log(`  enabled 当前为 ${enabled}${enabled === 'true' ? '' : '，如需启用请改为 true'}`);
+console.log(`  mode 当前为 ${mode}${mode === 'off' ? '，如需启用请改为 include / exclude' : ''}`);
 console.log('  注意: 私钥不要提交到仓库');
